@@ -5,67 +5,15 @@
 
 #include "Game.hpp"
 
-// TODO(wmayner) figure out and document cruel black magic voodoo sorcery
-#define KISSRND (                                                        \
-    ((((rndZ = 36969 * (rndZ & 65535) + (rndZ >> 16)) << 16) +           \
-      (rndW = 18000 * (rndW & 65535) + (rndW >> 16)) )                   \
-     ^(rndY = 69069 * rndY + 1234567)) +                                 \
-    (rndX ^= (rndX << 17), rndX ^= (rndX >> 13), rndX ^= (rndX << 5))    \
-)
-#define INTABS(number) (((((0x80) << ((sizeof(int) - 1) << 3)) & number) \
-            ? (~number) + 1 : number))
-
-#define randDouble ((double)rand() / (double)RAND_MAX)
-
-int rndX, rndY, rndZ, rndW;
-
 int randInt(int i) {
     return rand() % i;
-}
-
-Game::Game(char* filename) {
-    FILE *f = fopen(filename, "r+w");
-    int i;
-    patterns.clear();
-    while (!feof(f)) {
-        // TODO(wmayner) use CSV format
-        fscanf(f, "%i  ", &i);
-        patterns.push_back(bitset<WORLD_WIDTH>(i));
-    }
-    fclose(f);
-}
-
-Game::~Game() {}
-
-double Game::agentDependentRandDouble(void) {
-    int A = KISSRND;
-    return (double)((INTABS(A)) & 65535) / (double)65535;
-}
-
-int Game::agentDependentRandInt(void) {
-    int A = KISSRND;
-    return (INTABS(A));
-}
-
-void Game::applyNoise(Agent *agent, double sensorNoise) {
-    // Larissa: If I don't have noise in evaluation, then I can just use random
-    // numbers always
-    // if (agentDependentRandDouble() < sensorNoise) {
-    if (randDouble < sensorNoise) {
-        agent->states[0] = !agent->states[0];
-    }
-    // if (agentDependentRandDouble() < sensorNoise)
-    if (randDouble < sensorNoise) {
-        agent->states[1] = !agent->states[1];
-    }
 }
 
 /**
  * Executes a game, updates the agent's fitness accordingly, and returns a
  * vector of the agent's state transitions over the course of the game.
  */
-vector< vector<int> > Game::executeGame(Agent* agent, double sensorNoise, int
-        repeat) {
+vector< vector<int> > executeGame(Agent* agent, double sensorNoise, int repeat) {
     bitset<WORLD_WIDTH> world_state, old_world_state;
 
     vector< bitset<WORLD_WIDTH> > world;
