@@ -13,7 +13,9 @@ int randInt(int i) {
  * Executes a game, updates the agent's fitness accordingly, and returns a
  * vector of the agent's state transitions over the course of the game.
  */
-vector< vector<int> > execute_game(Agent* agent) {
+
+vector< vector<int> > execute_game(Agent* agent, vector< bitset<WORLD_WIDTH> >
+        patterns) {
     bitset<WORLD_WIDTH> world_state, old_world_state;
 
     vector< bitset<WORLD_WIDTH> > world;
@@ -34,12 +36,6 @@ vector< vector<int> > execute_game(Agent* agent) {
     vector< vector<int> > stateTransitions;
     stateTransitions.clear();
     stateTransitions.resize(2);
-
-    // Make random seeds unique from one another by including index
-    rndW = agent->ID + repeat;
-    rndX = ~(agent->ID + repeat);
-    rndY = (agent->ID + repeat)^0b01010101010101010101010101010101;
-    rndZ = (agent->ID + repeat)^0b10101010101010101010101010101010;
 
     agent->fitness = 1.0;
     agent->correct = agent->incorrect = 0;
@@ -108,8 +104,6 @@ vector< vector<int> > execute_game(Agent* agent) {
 
                     // TODO(wmayner) parameterize changing sensors mid-evolution
                     // Larissa: Set to 0 to evolve agents with just one sensor
-
-                    applyNoise(agent, sensorNoise);
 
                     // Set motors to 0 to prevent them from influencing next
                     // animat state
