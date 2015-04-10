@@ -25,16 +25,12 @@ class Agent {
     double fitness;
     vector<double> fitnesses;
     int ID;
-    int born;
     int correct, incorrect;
     vector<int> numCorrectByPattern;
 
     Agent();
     ~Agent();
     void injectStartCodons();
-    void setupEmptyAgent(int nucleotides);
-    void inherit(Agent *parent, double mutationRate, int generation);
-    void setupPhenotype();
     void resetBrain();
     void updateStates();
 };
