@@ -67,44 +67,6 @@ void Agent::injectStartCodons() {
     }
 }
 
-void Agent::inherit(Agent *parent, double mutationRate, int generation) {
-    int nucleotides = parent->genome.size();
-    vector<unsigned char> buffer;
-    born = generation;
-    ancestor = parent;
-    parent->nrPointingAtMe++;
-    genome.clear();
-    genome.resize(parent->genome.size());
-    // Mutation
-    for (int i = 0; i < nucleotides; i++) {
-        if (randDouble < mutationRate) {
-            genome[i] = rand() & 255;
-        } else {
-            genome[i] = parent->genome[i];
-        }
-    }
-    if (mutationRate != 0.0) {
-        if ((randDouble < 0.05) && (genome.size() < 10000)) {
-            int w = 15 + rand() & 511;
-            // Duplication
-            int s = rand() % ((int)genome.size() - w);
-            int o = rand() % (int)genome.size();
-            buffer.clear();
-            buffer.insert(buffer.begin(), genome.begin() + s,
-                    genome.begin() + s + w);
-            genome.insert(genome.begin() + o, buffer.begin(), buffer.end());
-        }
-        if ((randDouble < 0.02) && (genome.size() > 1000)) {
-            // Deletion
-            int w = 15 + rand() & 511;
-            int s = rand() % ((int)genome.size() - w);
-            genome.erase(genome.begin() + s, genome.begin() + s + w);
-        }
-    }
-    setupPhenotype();
-    fitness = 0.0;
-}
-
 Agent::~Agent() {
     for (int i = 0; i < hmmus.size(); i++) {
         delete hmmus[i];
