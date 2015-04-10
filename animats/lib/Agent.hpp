@@ -37,11 +37,6 @@ class Agent {
     void setupPhenotype();
     void resetBrain();
     void updateStates();
-    void loadAgent(char* filename);
-    void saveLogicTable(FILE *f);
-    void saveLogicTableSingleAnimat(FILE *f);
-    void saveGenome(FILE *f);
-    void saveEdgeList(char *filename);
 };
 
 #endif  // SRC_AGENT_H_
