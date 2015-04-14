@@ -17,7 +17,10 @@ static int masterID = 0;
 
 class Agent {
  public:
-    vector<HMMU*> hmmus;
+    Agent();
+    ~Agent();
+
+    vector<HMM*> hmmus;
     vector<unsigned char> genome;
     Agent *ancestor;
     unsigned int nrPointingAtMe;
@@ -28,9 +31,9 @@ class Agent {
     int correct, incorrect;
     vector<int> numCorrectByPattern;
 
-    Agent();
-    ~Agent();
-    void injectStartCodons();
+    void setupEmptyAgent(int nucleotides);
+    void setupPhenotype();
+    void injectStartCodons(int n);
     void resetBrain();
     void updateStates();
 };

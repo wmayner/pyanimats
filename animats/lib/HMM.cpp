@@ -5,7 +5,7 @@
 #include "./HMM.hpp"
 
 
-HMMU::HMMU(vector<unsigned char> &genome, int start) {
+HMM::HMM(vector<unsigned char> &genome, int start) {
     ins.clear();
     outs.clear();
 
@@ -64,7 +64,7 @@ HMMU::HMMU(vector<unsigned char> &genome, int start) {
     }
 }
 
-void HMMU::update(unsigned char *currentStates, unsigned char *nextStates) {
+void HMM::update(unsigned char *currentStates, unsigned char *nextStates) {
     // Encode the given states as an integer to index into the TPM
     int pastStateIndex = 0;
     for (int i = 0; i < ins.size(); i++)
@@ -95,7 +95,7 @@ void HMMU::update(unsigned char *currentStates, unsigned char *nextStates) {
     }
 }
 
-HMMU::~HMMU() {
+HMM::~HMM() {
     hmm.clear();
     sums.clear();
     ins.clear();

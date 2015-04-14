@@ -16,9 +16,9 @@ Agent::Agent() {
     hmmus.clear();
 }
 
-void Agent::setupEmptyAgent(int nucleotides) {
-    genome.resize(nucleotides);
-    for (int i = 0; i < nucleotides; i++) {
+void Agent::setupEmptyAgent(int genomeSize) {
+    genome.resize(genomeSize);
+    for (int i = 0; i < genomeSize; i++) {
         genome[i] = 127;
     }
     setupPhenotype();
@@ -31,10 +31,10 @@ void Agent::setupPhenotype() {
         }
     }
     hmmus.clear();
-    HMMU *hmmu;
+    HMM *hmmu;
     for (int i = 0; i < genome.size(); i++) {
         if ((genome[i] == 42) && (genome[(i + 1) %genome.size()] == 213)) {
-            hmmu = new HMMU(genome, i);
+            hmmu = new HMM(genome, i);
             hmmus.push_back(hmmu);
         }
     }
@@ -55,10 +55,10 @@ void Agent::updateStates(void) {
     }
 }
 
-void Agent::injectStartCodons() {
+void Agent::injectStartCodons(int n) {
     for (int i = 0; i < genome.size(); i++)
         genome[i] = rand() & 255;
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < n; i++) {
         int j = rand() % (genome.size() - 100);
         genome[j] = 42;
         genome[j + 1]= 213;
@@ -77,4 +77,3 @@ Agent::~Agent() {
             delete ancestor;
     }
 }
-

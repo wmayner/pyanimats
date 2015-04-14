@@ -13,7 +13,6 @@ int randInt(int i) {
  * Executes a game, updates the agent's fitness accordingly, and returns a
  * vector of the agent's state transitions over the course of the game.
  */
-
 vector< vector<int> > execute_game(Agent* agent, vector< bitset<WORLD_WIDTH> >
         patterns) {
     bitset<WORLD_WIDTH> world_state, old_world_state;
