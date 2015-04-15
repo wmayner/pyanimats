@@ -147,12 +147,14 @@ vector< vector<int> > executeGame(Agent* agent, vector<int> patterns, bool
                 }
 
                 // Update hitcount
+                int hit = 0;
                 // TODO(wmayner) un-hardcode agent body size
                 for (int i = 0; i < 3; i++) {
                     if (((world_state >> ((agentPos + i) & (WORLD_WIDTH - 1))) & 1) == 1) {
-                        agent->hits++;
+                        hit = 1;
                     }
                 }
+                agent->hits += hit;
             }  // Agent starting position
         }  // Directions
     }  // Block patterns
