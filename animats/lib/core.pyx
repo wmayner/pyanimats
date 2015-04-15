@@ -7,35 +7,15 @@
 from libcpp.vector cimport vector
 from libcpp cimport bool
 
-INIT_GENOME_SIZE = 5000
-
-
-cdef extern from 'HMM.hpp':
-    cdef cppclass HMM:
-        HMM(vector[unsigned char] &genome, int start)
-
-        vector[unsigned int] sums
-        vector[unsigned char] ins, outs
-        unsigned char numInputs, numOutputs
-
-        void update(unsigned char *currentStates, unsigned char *nextStates)
-
 
 cdef extern from 'Agent.hpp':
     cdef cppclass Agent:
-        Agent()
-        vector[HMM] hmmus
-        vector[unsigned char] genome
-        Agent *ancestor
-        unsigned int nrPointingAtMe
-        int hits
-        int NUM_NODES
+        Agent(vector[unsigned char] genome)
 
-        void setupEmptyAgent(int nucleotides)
-        void setupPhenotype()
+        vector[unsigned char] genome
+        int hits
+
         void injectStartCodons(int n)
-        void resetBrain()
-        void updateStates()
 
 
 cdef extern from 'Game.hpp':
@@ -47,10 +27,8 @@ cdef class Animat:
     # Hold the C++ instance that we're wrapping.
     cdef Agent *thisptr
 
-    def __cinit__(self):
-        self.thisptr = new Agent()
-        self.thisptr.setupEmptyAgent(INIT_GENOME_SIZE)
-        self.thisptr.injectStartCodons(4)
+    def __cinit__(self, genome):
+        self.thisptr = new Agent(genome)
 
     def __dealloc__(self):
         del self.thisptr
