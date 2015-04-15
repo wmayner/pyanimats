@@ -38,6 +38,12 @@ void Agent::setupPhenotype() {
     }
 }
 
+Agent::~Agent() {
+    for (int i = 0; i < hmmus.size(); i++) {
+        delete hmmus[i];
+    }
+}
+
 void Agent::resetState(void) {
     for (int i = 0; i < NUM_NODES; i++)
         states[i] = 0;
