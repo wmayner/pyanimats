@@ -25,11 +25,8 @@ class Agent {
     Agent *ancestor;
     unsigned int nrPointingAtMe;
     unsigned char states[NUM_NODES], newStates[NUM_NODES];
-    double fitness;
-    vector<double> fitnesses;
     int ID;
-    int correct, incorrect;
-    vector<int> numCorrectByPattern;
+    int hits;
 
     void setupEmptyAgent(int nucleotides);
     void setupPhenotype();

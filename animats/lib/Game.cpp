@@ -1,7 +1,6 @@
 // Game.cpp
 
 #include <vector>
-#include <bitset>
 
 #include "Game.hpp"
 
@@ -10,14 +9,12 @@ int randInt(int i) {
 }
 
 /**
- * Executes a game, updates the agent's fitness accordingly, and returns a
+ * Executes a game, updates the agent's hit count accordingly, and returns a
  * vector of the agent's state transitions over the course of the game.
  */
-vector< vector<int> > execute_game(Agent* agent, vector< bitset<WORLD_WIDTH> >
-        patterns) {
-    bitset<WORLD_WIDTH> world_state, old_world_state;
-
-    vector< bitset<WORLD_WIDTH> > world;
+vector< vector<int> > executeGame(Agent* agent, vector<int> patterns, bool
+        scrambleWorld) {
+    vector<int> world;
     world.clear();
     world.resize(WORLD_HEIGHT);
 
@@ -35,17 +32,6 @@ vector< vector<int> > execute_game(Agent* agent, vector< bitset<WORLD_WIDTH> >
     vector< vector<int> > stateTransitions;
     stateTransitions.clear();
     stateTransitions.resize(2);
-
-    agent->fitness = 1.0;
-    agent->correct = agent->incorrect = 0;
-
-    bool hit;
-
-    // Record the number of correct outcomes for each different type of block
-    agent->numCorrectByPattern.resize(patterns.size());
-    for (int i = 0; i < agent->numCorrectByPattern.size(); i++) {
-        agent->numCorrectByPattern[i] = 0;
-    }
 
     // Block patterns
     for (patternIndex = 0; patternIndex < patterns.size(); patternIndex++) {
@@ -66,24 +52,23 @@ vector< vector<int> > execute_game(Agent* agent, vector< bitset<WORLD_WIDTH> >
 
                 // Generate world
                 world.resize(WORLD_HEIGHT);
-                world_state = patterns[patternIndex];
+                int world_state = patterns[patternIndex];
 
                 for (timestep = 0; timestep < WORLD_HEIGHT; timestep++) {
                     world[timestep] = world_state;
-                    old_world_state = world_state;
                     // Move the block
                     if (direction == -1) {
                         // Left
-                        world_state = old_world_state >> 1;
-                        world_state[WORLD_WIDTH - 1] = old_world_state[0];
+                        world_state = ((world_state >> 1) & 65535) +
+                            ((world_state & 1) << (WORLD_WIDTH - 1));
                     } else {
                         // Right
-                        world_state = old_world_state << 1;
-                        world_state[0] = old_world_state[WORLD_WIDTH - 1];
+                        world_state = ((world_state << 1) & 65535) +
+                            ((world_state >> (WORLD_WIDTH - 1)) & 1);
                     }
                 }
 
-                if (SCRAMBLE_WORLD) {
+                if (scrambleWorld) {
                     // Scramble time
                     random_shuffle(world.begin(), world.end(), randInt);
                     // Scramble space (what animat sees will be determined by
@@ -98,8 +83,8 @@ vector< vector<int> > execute_game(Agent* agent, vector< bitset<WORLD_WIDTH> >
 
                     // Activate sensors if block is in line of sight
                     // TODO(wmayner) parametrize sensor location on agent body
-                    agent->states[0] = world_state[worldTransform[agentPos]];
-                    agent->states[1] = world_state[worldTransform[agentPos + 2]];
+                    agent->states[0] = (world_state >> worldTransform[agentPos]) & 1;
+                    agent->states[1] = (world_state >> (worldTransform[agentPos + 2] & (WORLD_WIDTH - 1))) & 1;
 
                     // TODO(wmayner) parameterize changing sensors mid-evolution
                     // Larissa: Set to 0 to evolve agents with just one sensor
@@ -161,35 +146,11 @@ vector< vector<int> > execute_game(Agent* agent, vector< bitset<WORLD_WIDTH> >
                     }
                 }
 
-                // Check for hit
-                hit = false;
+                // Update hitcount
                 // TODO(wmayner) un-hardcode agent body size
                 for (int i = 0; i < 3; i++) {
-                    if (world_state[(agentPos + i) % WORLD_WIDTH] == 1) {
-                        hit = true;
-                    }
-                }
-
-                // Update fitness
-                // TODO(wmayner) Make the alternating catch/avoid stuff
-                // explicit and read it from the file
-                if ((patternIndex & 1) == 0) {
-                    if (hit) {
-                        agent->correct++;
-                        agent->fitness *= FITNESS_MULTIPLIER;
-                        agent->numCorrectByPattern[patternIndex]++;
-                    } else {
-                        agent->fitness /= FITNESS_MULTIPLIER;
-                        agent->incorrect++;
-                    }
-                } else {
-                    if (hit) {
-                        agent->incorrect++;
-                        agent->fitness /= FITNESS_MULTIPLIER;
-                    } else {
-                        agent->correct++;
-                        agent->fitness *= FITNESS_MULTIPLIER;
-                        agent->numCorrectByPattern[patternIndex]++;
+                    if (((world_state >> ((agentPos + i) & (WORLD_WIDTH - 1))) & 1) == 1) {
+                        agent->hits++;
                     }
                 }
             }  // Agent starting position

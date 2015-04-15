@@ -14,6 +14,7 @@
 using std::vector;
 using std::bitset;
 
-vector< vector<int> > executeGame(Agent* agent);
+vector< vector<int> > executeGame(Agent* agent, vector<int> patterns, bool
+        scrambleWorld);
 
 #endif  // SRC_GAME_H_

@@ -13,6 +13,7 @@ Agent::Agent() {
         newStates[i] = 0;
     }
     ID = masterID++;
+    hits = 0;
     hmmus.clear();
 }
 
