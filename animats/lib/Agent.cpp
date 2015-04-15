@@ -38,7 +38,7 @@ void Agent::setupPhenotype() {
     }
 }
 
-void Agent::resetBrain(void) {
+void Agent::resetState(void) {
     for (int i = 0; i < NUM_NODES; i++)
         states[i] = 0;
 }

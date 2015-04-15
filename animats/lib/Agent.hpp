@@ -26,7 +26,7 @@ class Agent {
     void setupEmptyAgent(int nucleotides);
     void setupPhenotype();
     void injectStartCodons(int n);
-    void resetBrain();
+    void resetState();
     void updateStates();
 };
 

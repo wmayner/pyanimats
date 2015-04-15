@@ -48,7 +48,7 @@ vector< vector<int> > executeGame(Agent* agent, vector<int> patterns, bool
                 // TODO(wmayner) add logic outside of Game to change the
                 // patterns mid-evolution
 
-                agent->resetBrain();
+                agent->resetState();
 
                 // Generate world
                 world.resize(WORLD_HEIGHT);
