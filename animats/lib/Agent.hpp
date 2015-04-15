@@ -3,9 +3,6 @@
 #ifndef SRC_AGENT_H_
 #define SRC_AGENT_H_
 
-#include <stdio.h>
-#include <stdlib.h>
-
 #include <vector>
 
 #include "./constants.hpp"

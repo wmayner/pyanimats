@@ -3,9 +3,6 @@
 #ifndef SRC_GAME_H_
 #define SRC_GAME_H_
 
-#include <stdio.h>
-#include <stdlib.h>
-
 #include <vector>
 
 #include "./constants.hpp"

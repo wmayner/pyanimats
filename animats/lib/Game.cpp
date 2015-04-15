@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "Game.hpp"
+#include "./Game.hpp"
 
 int randInt(int i) {
     return rand() % i;

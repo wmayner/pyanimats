@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "Agent.hpp"
+#include "./Agent.hpp"
 
 
 Agent::Agent(vector<unsigned char> genome) : genome(genome) {
