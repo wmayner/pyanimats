@@ -9,6 +9,8 @@ from bitarray import bitarray
 DETERMINISTIC = True
 ALLOW_FEEDBACK_FROM_MOTORS = False
 
+INIT_GENOME_SIZE = 5000
+
 NUM_NODES = 8
 # Sensors are always the first nodes.
 NUM_SENSORS = 2
