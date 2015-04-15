@@ -15,7 +15,7 @@ using std::vector;
 
 class Agent {
  public:
-    Agent();
+    Agent(vector<unsigned char> genome);
     ~Agent();
 
     vector<HMM*> hmmus;
@@ -23,8 +23,6 @@ class Agent {
     int hits;
     unsigned char states[NUM_NODES], newStates[NUM_NODES];
 
-    void setupEmptyAgent(int nucleotides);
-    void setupPhenotype();
     void injectStartCodons(int n);
     void resetState();
     void updateStates();

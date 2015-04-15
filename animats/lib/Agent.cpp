@@ -5,24 +5,14 @@
 #include "Agent.hpp"
 
 
-Agent::Agent() {
+Agent::Agent(vector<unsigned char> genome) : genome(genome) {
     for (int i = 0; i < NUM_NODES; i++) {
         states[i] = 0;
         newStates[i] = 0;
     }
     hits = 0;
+    // Setup phenotype
     hmmus.clear();
-}
-
-void Agent::setupEmptyAgent(int genomeSize) {
-    genome.resize(genomeSize);
-    for (int i = 0; i < genomeSize; i++) {
-        genome[i] = 127;
-    }
-    setupPhenotype();
-}
-
-void Agent::setupPhenotype() {
     if (hmmus.size() != 0) {
         for (int i = 0; i < hmmus.size(); i++) {
             delete hmmus[i];
