@@ -13,8 +13,6 @@
 
 using std::vector;
 
-static int masterID = 0;
-
 class Agent {
  public:
     Agent();
@@ -22,11 +20,8 @@ class Agent {
 
     vector<HMM*> hmmus;
     vector<unsigned char> genome;
-    Agent *ancestor;
-    unsigned int nrPointingAtMe;
-    unsigned char states[NUM_NODES], newStates[NUM_NODES];
-    int ID;
     int hits;
+    unsigned char states[NUM_NODES], newStates[NUM_NODES];
 
     void setupEmptyAgent(int nucleotides);
     void setupPhenotype();

@@ -6,13 +6,10 @@
 
 
 Agent::Agent() {
-    nrPointingAtMe = 1;
-    ancestor = NULL;
     for (int i = 0; i < NUM_NODES; i++) {
         states[i] = 0;
         newStates[i] = 0;
     }
-    ID = masterID++;
     hits = 0;
     hmmus.clear();
 }
@@ -65,16 +62,5 @@ void Agent::injectStartCodons(int n) {
         genome[j + 1]= 213;
         for (int k = 2; k < 20; k++)
             genome[j + k] = rand() & 255;
-    }
-}
-
-Agent::~Agent() {
-    for (int i = 0; i < hmmus.size(); i++) {
-        delete hmmus[i];
-    }
-    if (ancestor != NULL) {
-        ancestor->nrPointingAtMe--;
-        if (ancestor->nrPointingAtMe == 0)
-            delete ancestor;
     }
 }
