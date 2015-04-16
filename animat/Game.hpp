@@ -9,7 +9,6 @@
 #include "./Agent.hpp"
 
 using std::vector;
-using std::bitset;
 
 vector< vector<int> > executeGame(Agent* agent, vector<int> patterns, bool
         scrambleWorld);
