@@ -1,5 +1,6 @@
 // Game.cpp
 
+#include <algorithm>
 #include <vector>
 
 #include "./Game.hpp"
@@ -70,11 +71,11 @@ vector< vector<int> > executeGame(Agent* agent, vector<int> patterns, bool
 
                 if (scrambleWorld) {
                     // Scramble time
-                    random_shuffle(world.begin(), world.end(), randInt);
+                    std::random_shuffle(world.begin(), world.end(), randInt);
                     // Scramble space (what animat sees will be determined by
                     // the transform)
-                    random_shuffle(worldTransform.begin(),
-                            worldTransform.end(), randInt);
+                    std::random_shuffle(worldTransform.begin(),
+                        worldTransform.end(), randInt);
                 }
 
                 // World loop
