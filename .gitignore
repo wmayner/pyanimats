@@ -7,3 +7,4 @@ build
 dist
 pyemd.egg-info
 profiling
+animat/animat.cpp
