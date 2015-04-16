@@ -6,17 +6,17 @@ from distutils.extension import Extension
 from Cython.Build import cythonize
 
 extensions = [
-    Extension('core',
+    Extension('animat',
               sources=[
-                  'lib/core.pyx',
-                  'lib/Agent.cpp',
-                  'lib/HMM.cpp',
-                  'lib/Game.cpp'
+                  'animat/animat.pyx',
+                  'animat/Agent.cpp',
+                  'animat/HMM.cpp',
+                  'animat/Game.cpp'
               ],
               language='c++')
 ]
 
 setup(
-    name="animats",
+    name="animat",
     ext_modules=cythonize(extensions)
 )
