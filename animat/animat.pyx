@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 # distutils: language = c++
+
+# animat.pyx
 
 
 from libcpp.vector cimport vector
