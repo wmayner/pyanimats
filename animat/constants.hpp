@@ -11,4 +11,10 @@
 #define WORLD_HEIGHT 36
 #define WORLD_WIDTH 16
 
+// Evolution parameters
+// Minimum length of a duplicated/deleted genome section
+#define MIN_DUP_DEL_LENGTH 15
+// Maximum length of a duplicated/deleted genome section
+#define MAX_DUP_DEL_LENGTH 511
+
 #endif  // SRC_CONSTANTS_H_

@@ -4,6 +4,8 @@
 
 #include "./Agent.hpp"
 
+#define randDouble ((double)rand() / (double)RAND_MAX)
+
 
 Agent::Agent(vector<unsigned char> genome) : genome(genome) {
     for (int i = 0; i < NUM_NODES; i++) {
@@ -11,37 +13,23 @@ Agent::Agent(vector<unsigned char> genome) : genome(genome) {
         newStates[i] = 0;
     }
     hits = 0;
-    // Setup phenotype
-    hmmus.clear();
-    if (hmmus.size() != 0) {
-        for (int i = 0; i < hmmus.size(); i++) {
-            delete hmmus[i];
-        }
-    }
-    hmmus.clear();
-    HMM *hmmu;
-    for (int i = 0; i < genome.size(); i++) {
-        if ((genome[i] == 42) && (genome[(i + 1) %genome.size()] == 213)) {
-            hmmu = new HMM(genome, i);
-            hmmus.push_back(hmmu);
-        }
-    }
+    hmms.clear();
 }
 
 Agent::~Agent() {
-    for (int i = 0; i < hmmus.size(); i++) {
-        delete hmmus[i];
+    for (int i = 0; i < (int)hmms.size(); i++) {
+        delete hmms[i];
     }
 }
 
-void Agent::resetState(void) {
+void Agent::resetState() {
     for (int i = 0; i < NUM_NODES; i++)
         states[i] = 0;
 }
 
-void Agent::updateStates(void) {
-    for (int i = 0; i < hmmus.size(); i++) {
-        hmmus[i]->update(&states[0], &newStates[0]);
+void Agent::updateStates() {
+    for (int i = 0; i < (int)hmms.size(); i++) {
+        hmms[i]->update(&states[0], &newStates[0]);
     }
     for (int i = 0; i < NUM_NODES; i++) {
         states[i] = newStates[i];
@@ -49,11 +37,86 @@ void Agent::updateStates(void) {
     }
 }
 
+void Agent::generatePhenotype() {
+    if (hmms.size() != 0) {
+        for (int i = 0; i < (int)hmms.size(); i++) {
+            delete hmms[i];
+        }
+    }
+    hmms.clear();
+    HMM *hmm;
+    for (int i = 0; i < (int)genome.size(); i++) {
+        if ((genome[i] == 42) && (genome[(i + 1) % (int)genome.size()] == 213)) {
+            hmm = new HMM(genome, i);
+            hmms.push_back(hmm);
+        }
+    }
+}
+
+vector<unsigned char> mutateGenome(vector<unsigned char> g, double mutProb,
+        double dupProb, double delProb, int minGenomeLength, int
+        maxGenomeLength) {
+    int size = g.size();
+    // Mutation
+    for (int i = 0; i < size; i++) {
+        if (randDouble < mutProb) {
+            g[i] = rand() & 255;
+        }
+    }
+    // Duplication
+    if ((randDouble < dupProb) && (size < maxGenomeLength)) {
+        int width = MIN_DUP_DEL_LENGTH + rand() & MAX_DUP_DEL_LENGTH;
+        int start = rand() % (size - width);
+        int insert = rand() % size;
+        vector<unsigned char> buffer;
+        buffer.clear();
+        buffer.insert(buffer.begin(), g.begin() + start, g.begin() +
+                start + width);
+        g.insert(g.begin() + insert, buffer.begin(), buffer.end());
+    }
+    // Deletion
+    if ((randDouble < delProb) && (size > minGenomeLength)) {
+        int width = MIN_DUP_DEL_LENGTH + rand() & MAX_DUP_DEL_LENGTH;
+        int start = rand() % (size - width);
+        g.erase(g.begin() + start, g.begin() + start + width);
+    }
+    return g;
+}
+
+void Agent::mutateGenome(double mutProb, double dupProb, double delProb,
+        int minGenomeLength, int maxGenomeLength) {
+    int size = genome.size();
+    // Mutation
+    for (int i = 0; i < size; i++) {
+        if (randDouble < mutProb) {
+            genome[i] = rand() & 255;
+        }
+    }
+    // Duplication
+    if ((randDouble < dupProb) && (size < maxGenomeLength)) {
+        int width = MIN_DUP_DEL_LENGTH + rand() & MAX_DUP_DEL_LENGTH;
+        int start = rand() % (size - width);
+        int insert = rand() % size;
+        vector<unsigned char> buffer;
+        buffer.clear();
+        buffer.insert(buffer.begin(), genome.begin() + start, genome.begin() +
+                start + width);
+        genome.insert(genome.begin() + insert, buffer.begin(), buffer.end());
+    }
+    // Deletion
+    if ((randDouble < delProb) && (size > minGenomeLength)) {
+        int width = MIN_DUP_DEL_LENGTH + rand() & MAX_DUP_DEL_LENGTH;
+        int start = rand() % (size - width);
+        genome.erase(genome.begin() + start, genome.begin() + start + width);
+    }
+}
+
 void Agent::injectStartCodons(int n) {
-    for (int i = 0; i < genome.size(); i++)
+    for (int i = 0; i < (int)genome.size(); i++)
         genome[i] = rand() & 255;
     for (int i = 0; i < n; i++) {
-        int j = rand() % (genome.size() - 100);
+        int j = rand() % ((int)genome.size() - 100);
+        // Start codon is a 42 followed by a 213.
         genome[j] = 42;
         genome[j + 1]= 213;
         for (int k = 2; k < 20; k++)

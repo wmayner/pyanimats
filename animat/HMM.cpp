@@ -10,17 +10,17 @@ HMM::HMM(vector<unsigned char> &genome, int start) {
     outs.clear();
 
     // This keeps track of where we are in the genome.
-    int scan = (start + 2) % genome.size();
+    int scan = (start + 2) % (int)genome.size();
 
-    numInputs = 1 + (genome[(scan++) % genome.size()] & 3);
-    numOutputs = 1 + (genome[(scan++) % genome.size()] & 3);
+    numInputs = 1 + (genome[(scan++) % (int)genome.size()] & 3);
+    numOutputs = 1 + (genome[(scan++) % (int)genome.size()] & 3);
     ins.resize(numInputs);
     outs.resize(numOutputs);
 
     for (int i = 0; i < numInputs; i++)
-        ins[i] = genome[(scan + i) % genome.size()] & (NUM_NODES - 1);
+        ins[i] = genome[(scan + i) % (int)genome.size()] & (NUM_NODES - 1);
     for (int i = 0; i < numOutputs; i++)
-        outs[i] = genome[(scan + 4 + i) % genome.size()] & (NUM_NODES - 1);
+        outs[i] = genome[(scan + 4 + i) % (int)genome.size()] & (NUM_NODES - 1);
 
     // Probabilities begin after the input and output codons, which are
     // NUM_NODES long each
@@ -41,7 +41,7 @@ HMM::HMM(vector<unsigned char> &genome, int start) {
             int largestValueInRowIndex = 0;
             for (int j = 0; j < (N); j++) {
                 hmm[i][j] = 0;
-                int currentValue = genome[(scan + j + (N * i)) % genome.size()];
+                int currentValue = genome[(scan + j + (N * i)) % (int)genome.size()];
                 if (currentValue > largestValueInRow) {
                     largestValueInRow = currentValue;
                     largestValueInRowIndex = j;
@@ -54,7 +54,7 @@ HMM::HMM(vector<unsigned char> &genome, int start) {
         for (int i = 0; i < M; i++) {
             hmm[i].resize(N);
             for (int j = 0; j < N; j++) {
-                hmm[i][j] = genome[(scan + j + (N * i)) % genome.size()];
+                hmm[i][j] = genome[(scan + j + (N * i)) % (int)genome.size()];
                 // Don't allow zero-entries
                 // TODO(wmayner) why?
                 if (hmm[i][j] == 0) hmm[i][j] = 1;
@@ -67,7 +67,7 @@ HMM::HMM(vector<unsigned char> &genome, int start) {
 void HMM::update(unsigned char *currentStates, unsigned char *nextStates) {
     // Encode the given states as an integer to index into the TPM
     int pastStateIndex = 0;
-    for (int i = 0; i < ins.size(); i++)
+    for (int i = 0; i < (int)ins.size(); i++)
         pastStateIndex = (pastStateIndex << 1) + ((currentStates[ins[i]]) & 1);
     // Get the next state
     int nextStateIndex = 0;
@@ -90,7 +90,7 @@ void HMM::update(unsigned char *currentStates, unsigned char *nextStates) {
     }
     // The index of the column we chose is the next state (we take the its bits
     // as the next states of individual nodes)
-    for (int i = 0; i < outs.size(); i++) {
+    for (int i = 0; i < (int)outs.size(); i++) {
         nextStates[outs[i]] |= (nextStateIndex >> i) & 1;
     }
 }

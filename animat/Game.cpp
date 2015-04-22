@@ -35,7 +35,7 @@ vector< vector<int> > executeGame(Agent* agent, vector<int> patterns, bool
     stateTransitions.resize(2);
 
     // Block patterns
-    for (patternIndex = 0; patternIndex < patterns.size(); patternIndex++) {
+    for (patternIndex = 0; patternIndex < (int)patterns.size(); patternIndex++) {
         // Directions (left/right)
         for (direction = -1; direction < 2; direction += 2) {
             // Agent starting position
