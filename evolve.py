@@ -1,14 +1,13 @@
-from random import random, randint
 import numpy
 from time import time
-# import networkx as nx
+from copy import copy, deepcopy
 import cProfile
 
 
 PROFILING = True
 
 # Simulation parameters
-NGEN = 2
+NGEN = 1000
 POPSIZE = 100
 SEED = 0
 # Evolution parameters
@@ -29,50 +28,31 @@ animat.seed(SEED)
 from animat import Animat
 
 
-creator.create('FitnessCatch', base.Fitness, weights=(1.0,))
-
-
-class Node:
-
-    def __init__(self, data, parent):
-        self.data = data
-        self.parent = parent
-
-
 class Individual:
 
     def __init__(self, genome=INIT_GENOME, parent=None):
         self.animat = Animat(genome)
         self.parent = parent
 
-creator.create('Individual', Individual, fitness=creator.FitnessCatch)
-
-toolbox = base.Toolbox()
-
-def clone(ind):
-    current_parent = ind.parent
-    new_parent = Node(ind.animat.genome, current_parent)
-    ind.parent = new_parent
-    return ind
-
-toolbox.register('clone', clone)
-
-toolbox.register('individual', creator.Individual)
-
-toolbox.register('population', tools.initRepeat, list, toolbox.individual)
+    def __deepcopy__(self, memo):
+        # Don't copy the animat or the parent.
+        copy = Individual(genome=self.animat.genome, parent=self.parent)
+        for key, val in self.__dict__.items():
+            if not key in ('animat', 'parent'):
+                copy.__dict__[key] = deepcopy(val, memo)
+        return copy
 
 
 FITNESS_BASE = 1.02
-
 TASKS = (
     (1, '1110000000000000'),
-) * 4
-
+    (1, '1110000000000000'),
+    (1, '1110000000000000'),
+    (1, '1110000000000000'),
+)
 # Convert world-strings into integers. Note that in the implementation, the
 # world is mirrored; hence the reversal of the string.
 TASKS = [(task[0], int(task[1][::-1], 2)) for task in TASKS]
-
-
 def evaluate(ind):
     ind.animat.update_phenotype()
     # Simulate the animat in the world.
@@ -86,33 +66,11 @@ def evaluate(ind):
     return (FITNESS_BASE**num_correct,)
 toolbox.register('evaluate', evaluate)
 
-
 def mutate(ind, mut_prob, dup_prob, del_prob, min_genome_length,
            max_genome_length):
     ind.animat.mutate(mut_prob, dup_prob, del_prob, min_genome_length,
                       max_genome_length)
     return (ind,)
-
-
-# def pymutate(genome, mut_prob, dup_prob, del_prob):
-#     # Randomly change nucleotides.
-#     for i in range(len(genome)):
-#         if random() < mut_prob:
-#             genome[i] = randint(0, 255)
-#     # Duplicate sections of the genome.
-#     if random() < dup_prob and len(genome) < MAX_GENOME_LENGTH:
-#         width = randint(MIN_DUP_DEL_WIDTH, MAX_DUP_DEL_WIDTH)
-#         start = randint(0, len(genome) - width)
-#         insert = randint(0, len(genome) - width)
-#         genome[insert:insert] = genome[start:(start + width)]
-#     # Delete sections of the genome.
-#     if random() < del_prob and len(genome) > MIN_GENOME_LENGTH:
-#         width = randint(MIN_DUP_DEL_WIDTH, MAX_DUP_DEL_WIDTH)
-#         start = randint(0, len(genome) - width)
-#         genome[start:(start + width)] = []
-#     return (genome,)
-
-
 toolbox.register('mutate', mutate,
                  mut_prob=MUTATION_PROB,
                  dup_prob=DUPLICATION_PROB,
@@ -121,11 +79,12 @@ toolbox.register('mutate', mutate,
                  max_genome_length=MAX_GENOME_LENGTH)
 
 
-# history = tools.History()
-# toolbox.decorate('mutate', history.decorator)
-
-
-toolbox.register('select', tools.selTournament, tournsize=3)
+toolbox = base.Toolbox()
+creator.create('FitnessCatch', base.Fitness, weights=(1.0,))
+creator.create('Individual', Individual, fitness=creator.FitnessCatch)
+toolbox.register('individual', creator.Individual)
+toolbox.register('population', tools.initRepeat, list, toolbox.individual)
+toolbox.register('select', tools.selRoulette)
 
 stats = tools.Statistics(key=lambda ind: ind.fitness.values)
 stats.register('avg', numpy.mean)
@@ -137,14 +96,12 @@ logbook = tools.Logbook()
 
 population = toolbox.population(n=POPSIZE)
 
-history = [[]] * POPSIZE
-
 if __name__ == '__main__':
 
     if PROFILING:
         pr = cProfile.Profile()
 
-    # Evaluate the individuals with an invalid fitness
+    # Evaluate the initial population.
     invalid_ind = [ind for ind in population if not ind.fitness.valid]
     fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
     for ind, fit in zip(invalid_ind, fitnesses):
@@ -158,25 +115,23 @@ if __name__ == '__main__':
 
     def process_gen(population):
         # Selection.
-        offspring = toolbox.select(population, len(population))
-
+        population = toolbox.select(population, len(population))
+        # Cloning.
         offspring = [toolbox.clone(ind) for ind in population]
-
         # Variation.
         for i in range(len(offspring)):
             toolbox.mutate(offspring[i])
-
-        # Evaluate offspring.
+            offspring[i].parent = population[i]
+        # Evaluation.
         fitnesses = toolbox.map(toolbox.evaluate, offspring)
         for ind, fit in zip(offspring, fitnesses):
             ind.fitness.values = fit
-
-        # Record stats.
+        # Recording.
         record = stats.compile(population)
         logbook.record(gen=gen, popsize=POPSIZE, **record)
-
         return offspring
 
+    # Evolution.
     for gen in range(1, NGEN):
         population = process_gen(population)
 
@@ -190,4 +145,3 @@ if __name__ == '__main__':
 
     # hof = tools.HallOfFame(maxsize=10)
     # best = hof[0]
-    # graph = nx.DiGraph(history.getGenealogy(best, max_depth=5))

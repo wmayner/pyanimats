@@ -8,14 +8,12 @@
 from libcpp.vector cimport vector
 from libcpp cimport bool
 
+cimport cython
+
 
 cdef extern from 'Agent.hpp':
 
     void srand(int s)
-
-    vector[unsigned char] mutateGenome(
-        vector[unsigned char] genome, double mutProb, double dupProb, double
-        delProb, int minGenomeLength, int maxGenomeLength);
 
     cdef cppclass Agent:
         Agent(vector[unsigned char] genome)
@@ -28,35 +26,11 @@ cdef extern from 'Agent.hpp':
         void mutateGenome(double mutProb, double dupProb, double delProb, int
                           minGenomeLength, int maxGenomeLength);
 
-
 cdef extern from 'Game.hpp':
     cdef vector[vector[int]] executeGame(Agent* agent, vector[int] patterns,
                                          bool scrambleWorld)
 
-
-# cdef extern from 'mutate.hpp':
-#     vector[unsigned char] mutateGenome(
-#         vector[unsigned char] genome, double mutProb, double dupProb, double
-#         delProb, int minGenomeLength, int maxGenomeLength)
-
-
-# cdef class Individual:
-#     cdef vector[unsigned char] genome
-
-#     def __cinit__(self, genome, fitness):
-#         self.genome = genome
-#         self.fitness = fitness
-
-#     def __dealloc__(self):
-#         del self.fitness
-
-#     def mutate(self, mut_prob, dup_prob, del_prob, min_genome_length,
-#                max_genome_length):
-#         mutateGenome(self.genome, mut_prob, dup_prob, del_prob,
-#                      min_genome_length, max_genome_length)
-
-
-
+@cython.freelist(1000)
 cdef class Animat:
     # Hold the C++ instance that we're wrapping.
     cdef Agent *thisptr
@@ -68,11 +42,11 @@ cdef class Animat:
     def __dealloc__(self):
         del self.thisptr
 
-    def __copy__(self):
+    def __deepcopy__(self, memo):
         return Animat(self.genome)
 
-    def __deepcopy__(self, memo):
-        return self.__copy__()
+    def __copy__(self):
+        return self.__deepcopy__()
 
     def __reduce__(self):
         return (Animat, (self.thisptr.genome, self.thisptr.hits))
@@ -90,10 +64,6 @@ cdef class Animat:
         def __set__(self, v):
             self.thisptr.hits = v
 
-    def play_game(self, patterns, scramble_world=False):
-        self.thisptr.hits = 0
-        return executeGame(self.thisptr, patterns, scramble_world)
-
     def update_phenotype(self):
         self.thisptr.generatePhenotype()
 
@@ -102,12 +72,9 @@ cdef class Animat:
         self.thisptr.mutateGenome(mutProb, dupProb, delProb, minGenomeLength,
                                   maxGenomeLength);
 
-
-def mutate(genome, mutProb, dupProb, delProb, minGenomeLength,
-           maxGenomeLength):
-    return mutateGenome(genome, mutProb, dupProb, delProb, minGenomeLength,
-                        maxGenomeLength);
-
+    def play_game(self, patterns, scramble_world=False):
+        self.thisptr.hits = 0
+        return executeGame(self.thisptr, patterns, scramble_world)
 
 
 def seed(s):

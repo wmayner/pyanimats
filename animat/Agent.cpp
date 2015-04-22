@@ -53,36 +53,6 @@ void Agent::generatePhenotype() {
     }
 }
 
-vector<unsigned char> mutateGenome(vector<unsigned char> g, double mutProb,
-        double dupProb, double delProb, int minGenomeLength, int
-        maxGenomeLength) {
-    int size = g.size();
-    // Mutation
-    for (int i = 0; i < size; i++) {
-        if (randDouble < mutProb) {
-            g[i] = rand() & 255;
-        }
-    }
-    // Duplication
-    if ((randDouble < dupProb) && (size < maxGenomeLength)) {
-        int width = MIN_DUP_DEL_LENGTH + rand() & MAX_DUP_DEL_LENGTH;
-        int start = rand() % (size - width);
-        int insert = rand() % size;
-        vector<unsigned char> buffer;
-        buffer.clear();
-        buffer.insert(buffer.begin(), g.begin() + start, g.begin() +
-                start + width);
-        g.insert(g.begin() + insert, buffer.begin(), buffer.end());
-    }
-    // Deletion
-    if ((randDouble < delProb) && (size > minGenomeLength)) {
-        int width = MIN_DUP_DEL_LENGTH + rand() & MAX_DUP_DEL_LENGTH;
-        int start = rand() % (size - width);
-        g.erase(g.begin() + start, g.begin() + start + width);
-    }
-    return g;
-}
-
 void Agent::mutateGenome(double mutProb, double dupProb, double delProb,
         int minGenomeLength, int maxGenomeLength) {
     int size = genome.size();

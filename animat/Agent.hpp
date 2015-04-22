@@ -29,8 +29,4 @@ class Agent {
             minGenomeLength, int maxGenomeLength);
 };
 
-vector<unsigned char> mutateGenome(vector<unsigned char> g, double mutProb,
-        double dupProb, double delProb, int minGenomeLength, int
-        maxGenomeLength);
-
 #endif  // SRC_AGENT_H_
