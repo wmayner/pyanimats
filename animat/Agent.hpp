@@ -18,7 +18,8 @@ class Agent {
 
     vector<HMM*> hmms;
     vector<unsigned char> genome;
-    int hits;
+    int correct;
+    int incorrect;
     unsigned char states[NUM_NODES], newStates[NUM_NODES];
 
     void injectStartCodons(int n);

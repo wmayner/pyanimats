@@ -13,8 +13,8 @@ int randInt(int i) {
  * Executes a game, updates the agent's hit count accordingly, and returns a
  * vector of the agent's state transitions over the course of the game.
  */
-vector< vector<int> > executeGame(Agent* agent, vector<int> patterns, bool
-        scrambleWorld) {
+vector< vector<int> > executeGame(Agent* agent, vector<int> hitMultipliers,
+        vector<int> patterns, bool scrambleWorld) {
     vector<int> world;
     world.clear();
     world.resize(WORLD_HEIGHT);
@@ -155,7 +155,23 @@ vector< vector<int> > executeGame(Agent* agent, vector<int> patterns, bool
                         hit = 1;
                     }
                 }
-                agent->hits += hit;
+                if (hitMultipliers[patternIndex] > 0) {
+                    if (hit == 1) {
+                        agent->correct++;
+                    }
+                    else {
+                        agent->incorrect++;
+                    }
+                }
+                if (hitMultipliers[patternIndex] <= 0) {
+                    if (hit == 0) {
+                        agent->correct++;
+                    }
+                    else {
+                        agent->incorrect++;
+                    }
+                }
+                /* agent->correct += (hitMultipliers[patternIndex] * hit); */
             }  // Agent starting position
         }  // Directions
     }  // Block patterns
