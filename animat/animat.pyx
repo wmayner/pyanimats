@@ -11,10 +11,20 @@ from libcpp cimport bool
 cimport cython
 
 
+# Expose #defined constants to Python.
+cdef extern from 'constants.hpp':
+    cdef int _NUM_NODES 'NUM_NODES'
+    cdef bool _DETERMINISTIC 'DETERMINISTIC'
+    cdef int _WORLD_HEIGHT 'WORLD_HEIGHT'
+    cdef int _WORLD_WIDTH 'WORLD_WIDTH'
+NUM_NODES = _NUM_NODES
+DETERMINISTIC = _DETERMINISTIC
+WORLD_HEIGHT = _WORLD_HEIGHT
+WORLD_WIDTH = _WORLD_WIDTH
+
+
 cdef extern from 'Agent.hpp':
-
     void srand(int s)
-
     cdef cppclass Agent:
         Agent(vector[unsigned char] genome)
 
@@ -26,14 +36,17 @@ cdef extern from 'Agent.hpp':
         void generatePhenotype()
         void mutateGenome(
             double mutProb, double dupProb, double delProb, int
-            minGenomeLength, int maxGenomeLength);
+            minGenomeLength, int maxGenomeLength)
+        vector[vector[int]] getEdges()
+
 
 cdef extern from 'Game.hpp':
     cdef vector[vector[int]] executeGame(
         Agent* agent, vector[int] hitMultipliers, vector[int] patterns, bool
         scrambleWorld);
 
-@cython.freelist(1000)
+
+@cython.freelist(60000)
 cdef class Animat:
     # Hold the C++ instance that we're wrapping.
     cdef Agent *thisptr
@@ -53,7 +66,8 @@ cdef class Animat:
         return self.__deepcopy__()
 
     def __reduce__(self):
-        return (Animat, (self.thisptr.genome, self.thisptr.correct))
+        return (Animat, (self.thisptr.genome, self.thisptr.correct,
+                         self.thisptr.incorrect))
 
     property genome:
 
@@ -75,6 +89,11 @@ cdef class Animat:
 
         def __set__(self, v):
             self.thisptr.incorrect = v
+
+    property edges:
+
+        def __get__(self):
+            return self.thisptr.getEdges()
 
     def update_phenotype(self):
         self.thisptr.generatePhenotype()

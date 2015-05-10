@@ -28,6 +28,7 @@ class Agent {
     void generatePhenotype();
     void mutateGenome(double mutProb, double dupProb, double delProb, int
             minGenomeLength, int maxGenomeLength);
+    vector< vector<int> > getEdges();
 };
 
 #endif  // SRC_AGENT_H_

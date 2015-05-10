@@ -93,3 +93,22 @@ void Agent::injectStartCodons(int n) {
             genome[j + k] = rand() & 255;
     }
 }
+
+vector< vector<int> > Agent::getEdges() {
+    vector< vector<int> > edgeList;
+    edgeList.clear();
+    vector<int> edge;
+    for (int i = 0; i < (int)hmms.size(); i++) {
+        for (int j = 0; j < (int)hmms[i]->ins.size(); j++) {
+            for (int k = 0; k < (int)hmms[i]->outs.size(); k++) {
+                edge.clear();
+                edge.resize(2);
+                edge[0] = hmms[i]->ins[j];
+                edge[1] = hmms[i]->outs[k];
+                edgeList.push_back(edge);
+            }
+        }
+    }
+    return edgeList;
+}
+

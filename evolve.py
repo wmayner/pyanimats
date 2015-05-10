@@ -1,60 +1,40 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# evolve.py
+
+from pprint import pprint
+import pickle
+import random
 import numpy
 from time import time
-from copy import copy, deepcopy
 import cProfile
 
+import parameters
+from parameters import (
+    NGEN, POPSIZE, SEED, TASKS, INIT_GENOME, MUTATION_PROB, DUPLICATION_PROB,
+    DELETION_PROB, MAX_GENOME_LENGTH, MIN_GENOME_LENGTH, MIN_DUP_DEL_WIDTH,
+    MAX_DUP_DEL_WIDTH, FITNESS_BASE
+)
 
-PROFILING = True
-
-# Simulation parameters
-NGEN = 60000
-POPSIZE = 100
-SEED = 0
-# Evolution parameters
-INIT_GENOME = [127] * 5000
-MUTATION_PROB = 0.002
-DUPLICATION_PROB = 0.05
-DELETION_PROB = 0.02
-MAX_GENOME_LENGTH = 10000
-MIN_GENOME_LENGTH = 1000
-MIN_DUP_DEL_WIDTH = 15
-MAX_DUP_DEL_WIDTH = 511
-
+random.seed(SEED)
+from individual import Individual
 
 from deap import creator, base, tools
 toolbox = base.Toolbox()
 
-import animat
-animat.seed(SEED)
-from animat import Animat
+
+PROFILING = True
+# Status will be printed at this interval.
+LOG_FREQ = 1000
 
 
-class Individual:
-
-    def __init__(self, genome=INIT_GENOME, parent=None):
-        self.animat = Animat(genome)
-        self.parent = parent
-
-    def __deepcopy__(self, memo):
-        # Don't copy the animat or the parent.
-        copy = Individual(genome=self.animat.genome, parent=self.parent)
-        for key, val in self.__dict__.items():
-            if not key in ('animat', 'parent'):
-                copy.__dict__[key] = deepcopy(val, memo)
-        return copy
-
-
-FITNESS_BASE = 1.02
-TASKS = (
-    ( 1, '1000000000000000'),
-    (-1, '1110000000000000'),
-    ( 1, '1000000000000000'),
-    (-1, '1110000000000000'),
-)
 # Convert world-strings into integers. Note that in the implementation, the
 # world is mirrored; hence the reversal of the string.
+print('TASKS:')
+pprint(TASKS)
 TASKS = [(task[0], int(task[1][::-1], 2)) for task in TASKS]
-print(TASKS)
+
+
 def evaluate(ind):
     ind.animat.update_phenotype()
     # Simulate the animat in the world.
@@ -66,6 +46,7 @@ def evaluate(ind):
     # order to keep the selection pressure more even.
     return (FITNESS_BASE**ind.animat.correct,)
 toolbox.register('evaluate', evaluate)
+
 
 def mutate(ind, mut_prob, dup_prob, del_prob, min_genome_length,
            max_genome_length):
@@ -92,15 +73,17 @@ fitness_stats.register('std', numpy.std)
 fitness_stats.register('min', numpy.min)
 fitness_stats.register('max', numpy.max)
 
-correct_stats = tools.Statistics(key=lambda ind: (ind.animat.correct, ind.animat.incorrect))
+correct_stats = tools.Statistics(key=lambda ind: (ind.animat.correct,
+                                                  ind.animat.incorrect))
 correct_stats.register('correct/incorrect', lambda x: numpy.max(x, 0))
 
 logbook1 = tools.Logbook()
 logbook2 = tools.Logbook()
 
-hof = tools.HallOfFame(maxsize=10)
+hof = tools.HallOfFame(maxsize=100)
 
 population = toolbox.population(n=POPSIZE)
+
 
 if __name__ == '__main__':
 
@@ -141,14 +124,17 @@ if __name__ == '__main__':
         logbook1.record(gen=gen, **record)
         record = correct_stats.compile(population)
         logbook2.record(gen=gen, **record)
-        print('[Generation {}] Correct/Incorrect: {} Fitness: {}'.format(gen,
-                                                logbook2[-1]['correct/incorrect'],
-                                                logbook1[-1]['max']))
         return offspring
 
     # Evolution.
-    for gen in range(1, NGEN):
+    for gen in range(1, NGEN + 1):
         population = process_gen(population)
+        if gen % LOG_FREQ == 0:
+            print('[Generation {}] Correct/Incorrect: {} Fitness: {}'.format(
+                str(gen).rjust(len(str(NGEN))),
+                logbook2[-1]['correct/incorrect'],
+                logbook1[-1]['max'])
+            )
 
     end = time()
     if PROFILING:
@@ -157,3 +143,18 @@ if __name__ == '__main__':
 
     print("Simulated {} generations in {} seconds.".format(
         NGEN, round(end - start, 2)))
+
+    # Save data
+    data = {
+        'parameters': parameters.param_dict,
+        'lineages': [tuple(ind.lineage()) for ind in population],
+        'logbooks': {
+            'fitness': logbook1,
+            'correct': logbook2,
+        },
+        'hof': [ind.animat for ind in hof],
+        'elapsed': end - start,
+        'version': '0.0.0'
+    }
+    with open('results/seed_{}.pkl'.format(SEED), 'wb') as f:
+        pickle.dump(data, f)
