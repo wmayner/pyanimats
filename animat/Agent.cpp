@@ -1,5 +1,6 @@
 // Agent.cpp
 
+#include <math.h>
 #include <vector>
 
 #include "./Agent.hpp"
@@ -112,3 +113,31 @@ vector< vector<int> > Agent::getEdges() {
     return edgeList;
 }
 
+
+vector< vector<bool> > Agent::getTransitions() {
+    // Save animats original state.
+    unsigned char initial_states[NUM_NODES];
+    for (int i = 0; i < NUM_NODES; i++) {
+        initial_states[i] = states[i];
+    }
+    vector< vector<bool> > tpm;
+    tpm.clear();
+    tpm.resize(NUM_STATES);
+    for (int i = 0; i < NUM_STATES; i++) {
+        // Set animat to the ith state.
+        for (int j = 0; j < NUM_NODES; j++) {
+            states[j] = (i >> j) & 1;
+        }
+        // Update the state to get the transition and record it.
+        updateStates();
+        tpm[i].resize(NUM_NODES);
+        for (int j = 0; j < NUM_NODES; j++) {
+            tpm[i][j] = states[j];
+        }
+    }
+    // Return animat to its original state.
+    for (int i = 0; i < NUM_NODES; i++) {
+        states[i] = initial_states[i];
+    }
+    return tpm;
+}

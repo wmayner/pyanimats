@@ -27,6 +27,10 @@ class Individual:
     def edges(self):
         return self.animat.edges
 
+    @property
+    def tpm(self):
+        return np.array(self.animat.tpm).astype(float)
+
     def __deepcopy__(self, memo):
         # Don't copy the animat or the parent.
         copy = Individual(genome=self.animat.genome, parent=self.parent)

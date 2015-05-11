@@ -29,6 +29,7 @@ class Agent {
     void mutateGenome(double mutProb, double dupProb, double delProb, int
             minGenomeLength, int maxGenomeLength);
     vector< vector<int> > getEdges();
+    vector< vector<bool> > getTransitions();
 };
 
 #endif  // SRC_AGENT_H_

@@ -38,6 +38,7 @@ cdef extern from 'Agent.hpp':
             double mutProb, double dupProb, double delProb, int
             minGenomeLength, int maxGenomeLength)
         vector[vector[int]] getEdges()
+        vector[vector[bool]] getTransitions()
 
 
 cdef extern from 'Game.hpp':
@@ -94,6 +95,11 @@ cdef class Animat:
 
         def __get__(self):
             return self.thisptr.getEdges()
+
+    property tpm:
+
+        def __get__(self):
+            return self.thisptr.getTransitions()
 
     def update_phenotype(self):
         self.thisptr.generatePhenotype()

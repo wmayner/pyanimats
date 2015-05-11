@@ -5,6 +5,7 @@
 
 // Agent parameters
 #define NUM_NODES 8
+#define NUM_STATES 256
 #define DETERMINISTIC true
 
 // World parameters

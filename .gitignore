@@ -9,3 +9,5 @@ pyemd.egg-info
 profiling
 animat/animat.cpp
 results
+__pyphi_cache__
+pyphi.log
