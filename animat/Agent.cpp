@@ -124,7 +124,8 @@ vector< vector<bool> > Agent::getTransitions() {
     tpm.clear();
     tpm.resize(NUM_STATES);
     for (int i = 0; i < NUM_STATES; i++) {
-        // Set animat to the ith state.
+        // Set animat to the ith state (using LOLI mapping from states to
+        // integers).
         for (int j = 0; j < NUM_NODES; j++) {
             states[j] = (i >> j) & 1;
         }
