@@ -17,10 +17,16 @@ cdef extern from 'constants.hpp':
     cdef bool _DETERMINISTIC 'DETERMINISTIC'
     cdef int _WORLD_HEIGHT 'WORLD_HEIGHT'
     cdef int _WORLD_WIDTH 'WORLD_WIDTH'
+    cdef int _NUM_STATES 'NUM_STATES'
+    cdef int _NUM_SENSORS 'NUM_SENSORS'
+    cdef int _NUM_MOTORS 'NUM_MOTORS'
 NUM_NODES = _NUM_NODES
 DETERMINISTIC = _DETERMINISTIC
 WORLD_HEIGHT = _WORLD_HEIGHT
 WORLD_WIDTH = _WORLD_WIDTH
+NUM_STATES = _NUM_STATES
+NUM_SENSORS = _NUM_SENSORS
+NUM_MOTORS = _NUM_MOTORS
 
 
 cdef extern from 'Agent.hpp':
@@ -61,7 +67,8 @@ cdef class Animat:
         del self.thisptr
 
     def __deepcopy__(self, memo):
-        return Animat(self.genome)
+        return Animat(self.genome, correct=self.thisptr.correct,
+                      incorrect=self.thisptr.incorrect)
 
     def __copy__(self):
         return self.__deepcopy__()
