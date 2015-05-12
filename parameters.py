@@ -7,16 +7,16 @@ import sys
 
 param_dict = {
     # Simulation parameters
-    # 'NGEN': 60000,
-    'NGEN': 10,
+    'NGEN': 60000,
     'POPSIZE': 100,
-    'SEED': 20,
+    'SEED': 0,
     'TASKS': (
         ( 1, '1000000000000000'),
         (-1, '1110000000000000'),
         ( 1, '1000000000000000'),
         (-1, '1110000000000000'),
     ),
+    'SCRAMBLE_WORLD': False,
     # Evolution parameters
     'INIT_GENOME': [127] * 5000,
     'MUTATION_PROB': 0.002,

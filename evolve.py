@@ -10,11 +10,8 @@ from time import time
 import cProfile
 
 import parameters
-from parameters import (
-    NGEN, POPSIZE, SEED, TASKS, INIT_GENOME, MUTATION_PROB, DUPLICATION_PROB,
-    DELETION_PROB, MAX_GENOME_LENGTH, MIN_GENOME_LENGTH, MIN_DUP_DEL_WIDTH,
-    MAX_DUP_DEL_WIDTH, FITNESS_BASE
-)
+from parameters import (NGEN, POPSIZE, SEED, TASKS, INIT_GENOME,  FITNESS_BASE,
+                        SCRAMBLE_WORLD)
 
 random.seed(SEED)
 from individual import Individual
@@ -36,10 +33,9 @@ TASKS = [(task[0], int(task[1][::-1], 2)) for task in TASKS]
 
 
 def evaluate(ind):
-    ind.animat.update_phenotype()
-    # Simulate the animat in the world.
+    # Simulate the animat in the world with the given tasks.
     hit_multipliers, patterns = zip(*TASKS)
-    ind.animat.play_game(hit_multipliers, patterns)
+    ind.play_game(hit_multipliers, patterns, scramble_world=SCRAMBLE_WORLD)
     # We use an exponential fitness function because the selection pressure
     # lessens as animats get close to perfect performance in the game; thus we
     # need to weight additional improvements more as the animat gets better in
@@ -48,17 +44,10 @@ def evaluate(ind):
 toolbox.register('evaluate', evaluate)
 
 
-def mutate(ind, mut_prob, dup_prob, del_prob, min_genome_length,
-           max_genome_length):
-    ind.animat.mutate(mut_prob, dup_prob, del_prob, min_genome_length,
-                      max_genome_length)
+def mutate(ind):
+    ind.mutate()
     return (ind,)
-toolbox.register('mutate', mutate,
-                 mut_prob=MUTATION_PROB,
-                 dup_prob=DUPLICATION_PROB,
-                 del_prob=DELETION_PROB,
-                 min_genome_length=MIN_GENOME_LENGTH,
-                 max_genome_length=MAX_GENOME_LENGTH)
+toolbox.register('mutate', mutate)
 
 
 creator.create('Fitness', base.Fitness, weights=(1.0,))
@@ -82,10 +71,9 @@ logbook2 = tools.Logbook()
 
 hof = tools.HallOfFame(maxsize=100)
 
-population = toolbox.population(n=POPSIZE)
-
-
 if __name__ == '__main__':
+
+    population = toolbox.population(n=POPSIZE)
 
     if PROFILING:
         pr = cProfile.Profile()
@@ -130,11 +118,10 @@ if __name__ == '__main__':
     for gen in range(1, NGEN + 1):
         population = process_gen(population)
         if gen % LOG_FREQ == 0:
-            print('[Generation {}] Correct/Incorrect: {} Fitness: {}'.format(
-                str(gen).rjust(len(str(NGEN))),
-                logbook2[-1]['correct/incorrect'],
-                logbook1[-1]['max'])
-            )
+            print('[Generation {}] Max Correct / Max Incorrect: {} Avg. '
+                  'Fitness: {}'.format(str(gen).rjust(len(str(NGEN))),
+                                       logbook2[-1]['correct/incorrect'],
+                                       logbook1[-1]['max']))
 
     end = time()
     if PROFILING:
@@ -144,7 +131,7 @@ if __name__ == '__main__':
     print("Simulated {} generations in {} seconds.".format(
         NGEN, round(end - start, 2)))
 
-    # Save data
+    # Save data.
     data = {
         'parameters': parameters.param_dict,
         'lineages': [tuple(ind.lineage()) for ind in population],
@@ -156,5 +143,8 @@ if __name__ == '__main__':
         'elapsed': end - start,
         'version': '0.0.0'
     }
-    with open('results/seed_{}.pkl'.format(SEED), 'wb') as f:
+    with open('results/seed_{}-full-dataset.pkl'.format(SEED), 'wb') as f:
         pickle.dump(data, f)
+    with open('results/seed_{}-final-genomes-and-fitnesses.pkl'.format(SEED),
+              'wb') as f:
+        pickle.dump([(ind.genome, ind.fitness) for ind in population], f)
