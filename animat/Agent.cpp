@@ -65,7 +65,7 @@ void Agent::mutateGenome(double mutProb, double dupProb, double delProb,
     }
     // Duplication
     if ((randDouble < dupProb) && (size < maxGenomeLength)) {
-        int width = MIN_DUP_DEL_LENGTH + rand() & MAX_DUP_DEL_LENGTH;
+        int width = (MIN_DUP_DEL_LENGTH + rand()) & MAX_DUP_DEL_LENGTH;
         int start = rand() % (size - width);
         int insert = rand() % size;
         vector<unsigned char> buffer;
@@ -76,7 +76,7 @@ void Agent::mutateGenome(double mutProb, double dupProb, double delProb,
     }
     // Deletion
     if ((randDouble < delProb) && (size > minGenomeLength)) {
-        int width = MIN_DUP_DEL_LENGTH + rand() & MAX_DUP_DEL_LENGTH;
+        int width = (MIN_DUP_DEL_LENGTH + rand()) & MAX_DUP_DEL_LENGTH;
         int start = rand() % (size - width);
         genome.erase(genome.begin() + start, genome.begin() + start + width);
     }
