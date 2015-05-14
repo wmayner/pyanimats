@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # evolve.py
 
+import os
 from pprint import pprint
 import pickle
 import random
@@ -10,7 +11,7 @@ from time import time
 import cProfile
 
 import parameters
-from parameters import (NGEN, POPSIZE, SEED, TASKS, INIT_GENOME,  FITNESS_BASE,
+from parameters import (NGEN, POPSIZE, SEED, TASKS, FITNESS_BASE,
                         SCRAMBLE_WORLD)
 
 random.seed(SEED)
@@ -20,13 +21,14 @@ from deap import creator, base, tools
 toolbox = base.Toolbox()
 
 
-PROFILING = True
+PROFILING = False
 # Status will be printed at this interval.
 LOG_FREQ = 1000
 
 
 # Convert world-strings into integers. Note that in the implementation, the
 # world is mirrored; hence the reversal of the string.
+print('SEED:', SEED)
 print('TASKS:')
 pprint(TASKS)
 TASKS = [(task[0], int(task[1][::-1], 2)) for task in TASKS]
@@ -133,18 +135,23 @@ if __name__ == '__main__':
 
     # Save data.
     data = {
-        'parameters': parameters.param_dict,
+        'params': parameters.param_dict,
         'lineages': [tuple(ind.lineage()) for ind in population],
         'logbooks': {
             'fitness': logbook1,
             'correct': logbook2,
         },
         'hof': [ind.animat for ind in hof],
-        'elapsed': end - start,
-        'version': '0.0.0'
+        'metadata': {
+            'elapsed': end - start,
+            'version': '0.0.0'
+        }
     }
-    with open('results/seed_{}-full-dataset.pkl'.format(SEED), 'wb') as f:
-        pickle.dump(data, f)
-    with open('results/seed_{}-final-genomes-and-fitnesses.pkl'.format(SEED),
-              'wb') as f:
-        pickle.dump([(ind.genome, ind.fitness) for ind in population], f)
+    RESULTS_DIR = 'results/seed-{}'.format(SEED)
+    if not os.path.exists(RESULTS_DIR):
+        os.makedirs(RESULTS_DIR)
+    for key in data:
+        with open(os.path.join(RESULTS_DIR,
+                               'seed-{}_{}.pkl'.format(SEED, key)),
+                  'wb') as f:
+            pickle.dump(data[key], f)
