@@ -18,15 +18,15 @@ param_dict = {
     ),
     'SCRAMBLE_WORLD': False,
     # Evolution parameters
+    'MUTATION_PROB': 0.005,
+    'FITNESS_BASE': 1.02,
     'INIT_GENOME': [127] * 5000,
-    'MUTATION_PROB': 0.002,
     'DUPLICATION_PROB': 0.05,
     'DELETION_PROB': 0.02,
     'MAX_GENOME_LENGTH': 10000,
     'MIN_GENOME_LENGTH': 1000,
     'MIN_DUP_DEL_WIDTH': 15,
     'MAX_DUP_DEL_WIDTH': 511,
-    'FITNESS_BASE': 1.02,
 }
 
 sys.modules[__name__].__dict__.update(param_dict)
