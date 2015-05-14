@@ -23,7 +23,7 @@ toolbox = base.Toolbox()
 
 PROFILING = False
 # Status will be printed at this interval.
-LOG_FREQ = 1000
+LOG_FREQ = 100
 
 
 # Convert world-strings into integers. Note that in the implementation, the
@@ -52,11 +52,35 @@ def mutate(ind):
 toolbox.register('mutate', mutate)
 
 
+def select(individuals, k):
+    """Select *k* individuals from the input *individuals* using the variant of
+    roulette-wheel selection used in the C++ code.
+
+    :param individuals: A list of individuals to select from.
+    :param k: The number of individuals to select.
+    :returns: A list of selected individuals.
+
+    This function uses the :func:`~random.random` function from the python base
+    :mod:`random` module.
+    """
+    max_fitness = max([ind.fitness.values[0] for ind in individuals])
+    chosen = []
+    for i in range(k):
+        done = False
+        while not done:
+            choice = random.randint(0, k - 1)
+            done = random.random() <= (individuals[choice].fitness.values[0]
+                                       / max_fitness)
+        chosen.append(individuals[choice])
+
+    return chosen
+
+
 creator.create('Fitness', base.Fitness, weights=(1.0,))
 creator.create('Individual', Individual, fitness=creator.Fitness)
 toolbox.register('individual', creator.Individual)
 toolbox.register('population', tools.initRepeat, list, toolbox.individual)
-toolbox.register('select', tools.selRoulette)
+toolbox.register('select', select)
 
 fitness_stats = tools.Statistics(key=lambda ind: ind.fitness.values)
 fitness_stats.register('avg', numpy.mean)
@@ -147,7 +171,7 @@ if __name__ == '__main__':
             'version': '0.0.0'
         }
     }
-    RESULTS_DIR = 'results/seed-{}'.format(SEED)
+    RESULTS_DIR = 'results/current/seed-{}'.format(SEED)
     if not os.path.exists(RESULTS_DIR):
         os.makedirs(RESULTS_DIR)
     for key in data:
