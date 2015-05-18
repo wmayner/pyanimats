@@ -9,6 +9,10 @@ int randInt(int i) {
     return rand() % i;
 }
 
+int wrap(int i) {
+    return i & (WORLD_WIDTH - 1);
+}
+
 /**
  * Executes a game, updates the agent's hit count accordingly, and returns a
  * vector of the agent's state transitions over the course of the game.
@@ -85,7 +89,7 @@ vector< vector<int> > executeGame(Agent* agent, vector<int> hitMultipliers,
                     // Activate sensors if block is in line of sight
                     // TODO(wmayner) parametrize sensor location on agent body
                     agent->states[0] = (world_state >> worldTransform[agentPos]) & 1;
-                    agent->states[1] = (world_state >> (worldTransform[agentPos + 2] & (WORLD_WIDTH - 1))) & 1;
+                    agent->states[1] = (world_state >> worldTransform[wrap(agentPos + 2)]) & 1;
 
                     // TODO(wmayner) parameterize changing sensors mid-evolution
                     // Larissa: Set to 0 to evolve agents with just one sensor
@@ -125,12 +129,12 @@ vector< vector<int> > executeGame(Agent* agent, vector<int> hitMultipliers,
                         // Left motor on
                         case 1:
                             // Move right
-                            agentPos = (agentPos + 1) % WORLD_WIDTH;
+                            agentPos = wrap(agentPos + 1);
                             break;
                         // Right motor on
                         case 2:
                             // Move left
-                            agentPos = (agentPos - 1) % WORLD_WIDTH;
+                            agentPos = wrap(agentPos - 1);
                             break;
                     }
                 }
@@ -139,7 +143,7 @@ vector< vector<int> > executeGame(Agent* agent, vector<int> hitMultipliers,
                 int hit = 0;
                 // TODO(wmayner) un-hardcode agent body size
                 for (int i = 0; i < 3; i++) {
-                    if (((world_state >> ((agentPos + i) & (WORLD_WIDTH - 1))) & 1) == 1) {
+                    if (((world_state >> (wrap(agentPos + i))) & 1) == 1) {
                         hit = 1;
                     }
                 }
