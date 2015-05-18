@@ -3,7 +3,6 @@
 # evolve.py
 
 import os
-from pprint import pprint
 import pickle
 import random
 import numpy
@@ -12,7 +11,7 @@ import cProfile
 
 import parameters
 from parameters import (NGEN, POPSIZE, SEED, TASKS, FITNESS_BASE,
-                        SCRAMBLE_WORLD)
+                        SCRAMBLE_WORLD, NUM_TRIALS)
 
 random.seed(SEED)
 from individual import Individual
@@ -21,16 +20,17 @@ from deap import creator, base, tools
 toolbox = base.Toolbox()
 
 
+__version__ = '0.0.1'
+
+
+RESULTS_DIR = 'results/current/seed-{}'.format(SEED)
 PROFILING = False
 # Status will be printed at this interval.
-LOG_FREQ = 100
+LOG_FREQ = 1000
 
 
 # Convert world-strings into integers. Note that in the implementation, the
 # world is mirrored; hence the reversal of the string.
-print('SEED:', SEED)
-print('TASKS:')
-pprint(TASKS)
 TASKS = [(task[0], int(task[1][::-1], 2)) for task in TASKS]
 
 
@@ -38,6 +38,7 @@ def evaluate(ind):
     # Simulate the animat in the world with the given tasks.
     hit_multipliers, patterns = zip(*TASKS)
     ind.play_game(hit_multipliers, patterns, scramble_world=SCRAMBLE_WORLD)
+    assert ind.correct + ind.incorrect == NUM_TRIALS
     # We use an exponential fitness function because the selection pressure
     # lessens as animats get close to perfect performance in the game; thus we
     # need to weight additional improvements more as the animat gets better in
@@ -95,29 +96,28 @@ correct_stats.register('correct/incorrect', lambda x: numpy.max(x, 0))
 logbook1 = tools.Logbook()
 logbook2 = tools.Logbook()
 
-hof = tools.HallOfFame(maxsize=100)
+hof = tools.HallOfFame(maxsize=POPSIZE)
 
 if __name__ == '__main__':
-
-    population = toolbox.population(n=POPSIZE)
+    parameters.print_parameters()
 
     if PROFILING:
         pr = cProfile.Profile()
+        pr.enable()
+    start = time()
+
+    population = toolbox.population(n=POPSIZE)
 
     # Evaluate the initial population.
-    invalid_ind = [ind for ind in population if not ind.fitness.valid]
-    fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
-    for ind, fit in zip(invalid_ind, fitnesses):
-        ind.fitness.values = fit
+    fitnesses = toolbox.map(toolbox.evaluate, population)
+    for ind, fitness in zip(population, fitnesses):
+        ind.fitness.values = fitness
+    # Record stats for initial population.
     hof.update(population)
     record = fitness_stats.compile(population)
     logbook1.record(gen=0, **record)
     record = correct_stats.compile(population)
     logbook2.record(gen=0, **record)
-
-    if PROFILING:
-        pr.enable()
-    start = time()
 
     def process_gen(population):
         # Selection.
@@ -134,9 +134,9 @@ if __name__ == '__main__':
             ind.fitness.values = fit
         # Recording.
         hof.update(offspring)
-        record = fitness_stats.compile(population)
+        record = fitness_stats.compile(offspring)
         logbook1.record(gen=gen, **record)
-        record = correct_stats.compile(population)
+        record = correct_stats.compile(offspring)
         logbook2.record(gen=gen, **record)
         return offspring
 
@@ -144,10 +144,12 @@ if __name__ == '__main__':
     for gen in range(1, NGEN + 1):
         population = process_gen(population)
         if gen % LOG_FREQ == 0:
-            print('[Generation {}] Max Correct / Max Incorrect: {} Avg. '
-                  'Fitness: {}'.format(str(gen).rjust(len(str(NGEN))),
-                                       logbook2[-1]['correct/incorrect'],
-                                       logbook1[-1]['max']))
+            print('[Generation] {}  [Max Correct] {}  [Max Incorrect] {}  '
+                  '[Avg. Fitness] {}'.format(
+                      str(gen).rjust(len(str(NGEN))),
+                      str(logbook2[-1]['correct/incorrect'][0]).rjust(3),
+                      str(logbook2[-1]['correct/incorrect'][1]).rjust(3),
+                      logbook1[-1]['max']))
 
     end = time()
     if PROFILING:
@@ -159,7 +161,7 @@ if __name__ == '__main__':
 
     # Save data.
     data = {
-        'params': parameters.param_dict,
+        'params': parameters.params,
         'lineages': [tuple(ind.lineage()) for ind in population],
         'logbooks': {
             'fitness': logbook1,
@@ -168,14 +170,13 @@ if __name__ == '__main__':
         'hof': [ind.animat for ind in hof],
         'metadata': {
             'elapsed': end - start,
-            'version': '0.0.0'
+            'version': __version__
         }
     }
-    RESULTS_DIR = 'results/current/seed-{}'.format(SEED)
     if not os.path.exists(RESULTS_DIR):
         os.makedirs(RESULTS_DIR)
     for key in data:
-        with open(os.path.join(RESULTS_DIR,
-                               'seed-{}_{}.pkl'.format(SEED, key)),
-                  'wb') as f:
+        with open(os.path.join(RESULTS_DIR, '{}.pkl'.format(key)), 'wb') as f:
             pickle.dump(data[key], f)
+
+    parameters.print_parameters()
