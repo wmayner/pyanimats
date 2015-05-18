@@ -74,7 +74,7 @@ class Individual:
     def mutate(self):
         """Mutate the animat's genome in-place."""
         self.animat.mutate(MUTATION_PROB, DUPLICATION_PROB, DELETION_PROB,
-                           MAX_GENOME_LENGTH, MIN_GENOME_LENGTH)
+                           MIN_GENOME_LENGTH, MAX_GENOME_LENGTH)
         self._dirty_phenotype = True
 
     def play_game(self, hit_multipliers, patterns, scramble_world=False):
