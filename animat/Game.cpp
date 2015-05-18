@@ -75,7 +75,7 @@ vector< vector<int> > executeGame(Agent* agent, vector<int> hitMultipliers,
                     // Scramble space (what animat sees will be determined by
                     // the transform)
                     std::random_shuffle(worldTransform.begin(),
-                        worldTransform.end(), randInt);
+                            worldTransform.end(), randInt);
                 }
 
                 // World loop
@@ -106,12 +106,6 @@ vector< vector<int> > executeGame(Agent* agent, vector<int> hitMultipliers,
                     }
                     stateTransitions[1].push_back(current_state);
 
-                    // TODO(wmayner) parameterize this
-                    // Larissa: limit to one motor
-                    // agent->states[7]=0;
-                    // if (agent->born < nowUpdate) {
-                    //     agent->states[7] = 0;
-                    // }
                     // TODO(wmayner) switch motors and cases to be less
                     // confusing
                     action = agent->states[6] + (agent->states[7] << 1);
@@ -165,7 +159,6 @@ vector< vector<int> > executeGame(Agent* agent, vector<int> hitMultipliers,
                         agent->incorrect++;
                     }
                 }
-                /* agent->correct += (hitMultipliers[patternIndex] * hit); */
             }  // Agent starting position
         }  // Directions
     }  // Block patterns
