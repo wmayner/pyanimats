@@ -68,10 +68,10 @@ def select(individuals, k):
     for i in range(k):
         done = False
         while not done:
-            choice = random.randint(0, k - 1)
-            done = random.random() <= (individuals[choice].fitness.values[0]
-                                       / max_fitness)
-        chosen.append(individuals[choice])
+            candidate = random.choice(individuals)
+            done = random.random() <= (candidate.fitness.values[0] /
+                                       max_fitness)
+        chosen.append(candidate)
 
     return chosen
 
