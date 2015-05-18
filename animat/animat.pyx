@@ -118,6 +118,7 @@ cdef class Animat:
 
     def play_game(self, hit_multipliers, patterns, scramble_world=False):
         self.thisptr.correct = 0
+        self.thisptr.incorrect = 0
         return executeGame(self.thisptr, hit_multipliers, patterns,
                            scramble_world)
 
