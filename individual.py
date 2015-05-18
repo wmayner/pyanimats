@@ -44,6 +44,16 @@ class Individual:
         self._update_phenotype()
         return np.array(self.animat.tpm).astype(float)
 
+    @property
+    def correct(self):
+        """The number of correct catches/avoidances in the game."""
+        return self.animat.correct
+
+    @property
+    def incorrect(self):
+        """The number of incorrect catches/avoidances in the game."""
+        return self.animat.incorrect
+
     def _update_phenotype(self):
         """Update the animat's phenotype if necessary. Returns whether an
         update was performed."""
