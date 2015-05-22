@@ -19,10 +19,10 @@ from deap import creator, base, tools
 toolbox = base.Toolbox()
 
 
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
 
-RESULTS_DIR = 'results/current/seed-{}'.format(SEED)
+RESULTS_DIR = 'raw_results/current/seed-{}'.format(SEED)
 PROFILING = False
 # Status will be printed at this interval.
 LOG_FREQ = 500
@@ -147,8 +147,8 @@ if __name__ == '__main__':
             print('[Generation] {}  [Max Correct] {}  [Max Incorrect] {}  '
                   '[Avg. Fitness] {}'.format(
                       str(gen).rjust(len(str(NGEN))),
-                      str(logbook2[-1]['correct/incorrect'][0]).rjust(3),
-                      str(logbook2[-1]['correct/incorrect'][1]).rjust(3),
+                      str(logbook2[-1]['correct']).rjust(3),
+                      str(logbook2[-1]['incorrect']).rjust(3),
                       logbook1[-1]['max']))
 
     end = time()
