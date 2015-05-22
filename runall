@@ -1,0 +1,7 @@
+#!/bin/bash
+
+for ((seed=0; seed < 32; seed++))
+do
+  result_dir="results/current/seed-$seed"
+  /home/will/.virtualenvs/deap/bin/python /home/will/deap/evolve.py $seed &
+done
