@@ -7,11 +7,19 @@ import animat
 from pprint import pprint
 
 
+SEED = False
+if len(sys.argv) >= 2:
+    SEED = int(sys.argv[1])
+
+NGEN = False
+if len(sys.argv) >= 3:
+    NGEN = int(sys.argv[2])
+
 params = {
     # Simulation parameters
-    'NGEN': 60000,
+    'NGEN': NGEN or 30000,
     'POPSIZE': 100,
-    'SEED': 0,
+    'SEED': SEED or 0,
     'TASKS': (
         ( 1, '1000000000000000'),
         (-1, '1110000000000000'),
