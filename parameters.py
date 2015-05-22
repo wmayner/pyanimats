@@ -17,7 +17,7 @@ if len(sys.argv) >= 3:
 
 params = {
     # Simulation parameters
-    'NGEN': NGEN or 30000,
+    'NGEN': NGEN or 10,
     'POPSIZE': 100,
     'SEED': SEED or 0,
     'TASKS': (
