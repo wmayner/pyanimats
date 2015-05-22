@@ -12,7 +12,6 @@ import cProfile
 import parameters
 from parameters import (NGEN, POPSIZE, SEED, TASKS, FITNESS_BASE,
                         SCRAMBLE_WORLD, NUM_TRIALS)
-
 random.seed(SEED)
 from individual import Individual
 
@@ -26,7 +25,7 @@ __version__ = '0.0.1'
 RESULTS_DIR = 'results/current/seed-{}'.format(SEED)
 PROFILING = False
 # Status will be printed at this interval.
-LOG_FREQ = 1000
+LOG_FREQ = 500
 
 
 # Convert world-strings into integers. Note that in the implementation, the
@@ -91,7 +90,8 @@ fitness_stats.register('max', numpy.max)
 
 correct_stats = tools.Statistics(key=lambda ind: (ind.animat.correct,
                                                   ind.animat.incorrect))
-correct_stats.register('correct/incorrect', lambda x: numpy.max(x, 0))
+correct_stats.register('correct', lambda x: numpy.max(x, 0)[0])
+correct_stats.register('incorrect', lambda x: numpy.max(x, 0)[1])
 
 logbook1 = tools.Logbook()
 logbook2 = tools.Logbook()
