@@ -20,7 +20,7 @@ def get_correct_counts(output_filename='correct_counts.pkl'):
             print('Processing `{}`'.format(filename))
             logbooks = pickle.load(f)
             correct_counts.append(
-                logbooks['correct'][-1]['correct/incorrect'][0])
+                logbooks['correct'][-1]['correct'])
     with open(output_filename, 'wb') as f:
         pickle.dump(correct_counts, f)
         print('Saved correct counts to `{}`.'.format(output_filename))
