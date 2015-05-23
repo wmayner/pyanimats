@@ -24,6 +24,7 @@ def get_correct_counts(output_filename='correct_counts.pkl'):
     with open(output_filename, 'wb') as f:
         pickle.dump(correct_counts, f)
         print('Saved correct counts to `{}`.'.format(output_filename))
+    return correct_counts
 
 
 def make_json_record(output_file):
@@ -84,3 +85,5 @@ def make_json_record(output_file):
 
     with open(output_file, 'w') as f:
         json.dump(json_dict, f)
+
+    return json_dict
