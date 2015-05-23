@@ -10,12 +10,12 @@ from glob import glob
 from individual import Individual
 
 
-RESULT_DIR = 'results/current'
+RESULT_DIR = 'raw_results/current'
 
 
 def get_correct_counts(output_filename='correct_counts.pkl'):
     correct_counts = []
-    for filename in glob('./results/current/**/logbooks.pkl'):
+    for filename in glob(os.path.join(RESULT_DIR, '**/logbooks.pkl')):
         with open(filename, 'rb') as f:
             print('Processing `{}`'.format(filename))
             logbooks = pickle.load(f)
