@@ -10,10 +10,13 @@ from glob import glob
 from individual import Individual
 
 
-RESULT_DIR = 'raw_results/current'
+RESULT_DIR = os.path.join('raw_results', 'current')
+ANALYSIS_DIR = 'compiled_results'
+
+CORRECT_COUNTS_FILEPATH = os.path.join(ANALYSIS_DIR, 'correct_counts.pkl')
 
 
-def get_correct_counts(output_filename='correct_counts.pkl'):
+def save_correct_counts(output_filepath=CORRECT_COUNTS_FILEPATH):
     correct_counts = []
     for filename in glob(os.path.join(RESULT_DIR, '**/logbooks.pkl')):
         with open(filename, 'rb') as f:
@@ -21,10 +24,15 @@ def get_correct_counts(output_filename='correct_counts.pkl'):
             logbooks = pickle.load(f)
             correct_counts.append(
                 logbooks['correct'][-1]['correct'])
-    with open(output_filename, 'wb') as f:
+    with open(output_filepath, 'wb') as f:
         pickle.dump(correct_counts, f)
-        print('Saved correct counts to `{}`.'.format(output_filename))
+        print('Saved correct counts to `{}`.'.format(output_filepath))
     return correct_counts
+
+
+def load_correct_counts(input_filepath=CORRECT_COUNTS_FILEPATH):
+    with open(input_filepath, 'rb') as f:
+        return pickle.load(f)
 
 
 def make_json_record(output_file):
