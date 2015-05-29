@@ -20,7 +20,7 @@ from deap import creator, base, tools
 toolbox = base.Toolbox()
 
 
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 
 
 RESULTS_DIR = 'raw_results/test/seed-{}'.format(SEED)
