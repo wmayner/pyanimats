@@ -56,18 +56,17 @@ void Agent::generatePhenotype() {
 
 void Agent::mutateGenome(double mutProb, double dupProb, double delProb,
         int minGenomeLength, int maxGenomeLength) {
-    int size = genome.size();
     // Mutation
-    for (int i = 0; i < size; i++) {
+    for (int i = 0; i < (int)genome.size(); i++) {
         if (randDouble < mutProb) {
             genome[i] = rand() & 255;
         }
     }
     // Duplication
-    if ((randDouble < dupProb) && (size < maxGenomeLength)) {
+    if ((randDouble < dupProb) && ((int)genome.size() < maxGenomeLength)) {
         int width = (MIN_DUP_DEL_LENGTH + rand()) & MAX_DUP_DEL_LENGTH;
-        int start = rand() % (size - width);
-        int insert = rand() % size;
+        int start = rand() % ((int)genome.size() - width);
+        int insert = rand() % (int)genome.size();
         vector<unsigned char> buffer;
         buffer.clear();
         buffer.insert(buffer.begin(), genome.begin() + start, genome.begin() +
@@ -75,9 +74,9 @@ void Agent::mutateGenome(double mutProb, double dupProb, double delProb,
         genome.insert(genome.begin() + insert, buffer.begin(), buffer.end());
     }
     // Deletion
-    if ((randDouble < delProb) && (size > minGenomeLength)) {
+    if ((randDouble < delProb) && ((int)genome.size() > minGenomeLength)) {
         int width = (MIN_DUP_DEL_LENGTH + rand()) & MAX_DUP_DEL_LENGTH;
-        int start = rand() % (size - width);
+        int start = rand() % ((int)genome.size() - width);
         genome.erase(genome.begin() + start, genome.begin() + start + width);
     }
 }
