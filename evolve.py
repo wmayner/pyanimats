@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # evolve.py
 
+import sys
 import os
 import pickle
 import random
@@ -22,7 +23,12 @@ toolbox = base.Toolbox()
 __version__ = '0.0.2'
 
 
-RESULTS_DIR = 'raw_results/current/seed-{}'.format(SEED)
+RESULTS_DIR = 'raw_results/test/seed-{}'.format(SEED)
+if len(sys.argv) >= 4:
+    RESULTS_DIR = sys.argv[3]
+if not os.path.exists(RESULTS_DIR):
+    os.makedirs(RESULTS_DIR)
+
 PROFILING = False
 # Status will be printed at this interval.
 LOG_FREQ = 500
@@ -173,8 +179,6 @@ if __name__ == '__main__':
             'version': __version__
         }
     }
-    if not os.path.exists(RESULTS_DIR):
-        os.makedirs(RESULTS_DIR)
     for key in data:
         with open(os.path.join(RESULTS_DIR, '{}.pkl'.format(key)), 'wb') as f:
             pickle.dump(data[key], f)
