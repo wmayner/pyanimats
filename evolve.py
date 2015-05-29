@@ -106,6 +106,7 @@ hof = tools.HallOfFame(maxsize=POPSIZE)
 
 if __name__ == '__main__':
     parameters.print_parameters()
+    print('')
 
     if PROFILING:
         pr = cProfile.Profile()
@@ -183,4 +184,5 @@ if __name__ == '__main__':
         with open(os.path.join(RESULTS_DIR, '{}.pkl'.format(key)), 'wb') as f:
             pickle.dump(data[key], f)
 
+    print('')
     parameters.print_parameters()
