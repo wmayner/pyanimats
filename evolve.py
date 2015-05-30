@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 # evolve.py
 
+__version__ = '0.0.3'
+
 import sys
 import os
 import pickle
@@ -20,8 +22,9 @@ from deap import creator, base, tools
 toolbox = base.Toolbox()
 
 
-__version__ = '0.0.3'
-
+PROFILING = False
+# Status will be printed at this interval.
+LOG_FREQ = 10
 
 RESULTS_DIR = 'raw_results/test/seed-{}'.format(SEED)
 if len(sys.argv) >= 4:
@@ -29,20 +32,16 @@ if len(sys.argv) >= 4:
 if not os.path.exists(RESULTS_DIR):
     os.makedirs(RESULTS_DIR)
 
-PROFILING = False
-# Status will be printed at this interval.
-LOG_FREQ = 500
-
 
 # Convert world-strings into integers. Note that in the implementation, the
 # world is mirrored; hence the reversal of the string.
 TASKS = [(task[0], int(task[1][::-1], 2)) for task in TASKS]
+HIT_MULTIPLIERS, PATTERNS = zip(*TASKS)
 
 
 def evaluate(ind):
     # Simulate the animat in the world with the given tasks.
-    hit_multipliers, patterns = zip(*TASKS)
-    ind.play_game(hit_multipliers, patterns, scramble_world=SCRAMBLE_WORLD)
+    ind.play_game(HIT_MULTIPLIERS, PATTERNS, scramble_world=SCRAMBLE_WORLD)
     assert ind.correct + ind.incorrect == NUM_TRIALS
     # We use an exponential fitness function because the selection pressure
     # lessens as animats get close to perfect performance in the game; thus we
@@ -78,7 +77,6 @@ def select(individuals, k):
             done = random.random() <= (candidate.fitness.values[0] /
                                        max_fitness)
         chosen.append(candidate)
-
     return chosen
 
 
