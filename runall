@@ -4,6 +4,6 @@ NGEN=30000
 
 for ((seed=0; seed < 32; seed++))
 do
-  result_dir="results/current/seed-$seed"
-  /home/will/.virtualenvs/deap/bin/python /home/will/deap/evolve.py $seed $NGEN &
+  result_dir="results/0.0.3/seed-$seed"
+  /home/will/.virtualenvs/deap/bin/python /home/will/deap/evolve.py $seed $NGEN $result_dir &
 done
