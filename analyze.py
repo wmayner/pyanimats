@@ -10,15 +10,21 @@ from glob import glob
 from individual import Individual
 
 
-RESULT_DIR = os.path.join('raw_results', 'current')
+RESULT_DIR = os.path.join('raw_results', 'test')
 ANALYSIS_DIR = 'compiled_results'
+
+PARAM_FILENAME = 'params.pkl'
+HOF_FILENAME = 'hof.pkl'
+LOGBOOKS_FILENAME = 'logbooks.pkl'
+LINEAGES_FILENAME = 'lineages.pkl'
+METADATA_FILENAME = 'metadata.pkl'
 
 CORRECT_COUNTS_FILEPATH = os.path.join(ANALYSIS_DIR, 'correct_counts.pkl')
 
 
 def save_correct_counts(output_filepath=CORRECT_COUNTS_FILEPATH):
     correct_counts = []
-    for filename in glob(os.path.join(RESULT_DIR, '**/logbooks.pkl')):
+    for filename in glob(os.path.join(RESULT_DIR, '**', LOGBOOKS_FILENAME)):
         with open(filename, 'rb') as f:
             print('Processing `{}`'.format(filename))
             logbooks = pickle.load(f)
@@ -35,34 +41,26 @@ def load_correct_counts(input_filepath=CORRECT_COUNTS_FILEPATH):
         return pickle.load(f)
 
 
-def make_json_record(output_file):
-    SEED = 1
-    LINEAGE = 0
-    GENERATION = 0
+GAME_JSON_FILEPATH = os.path.join(ANALYSIS_DIR, 'game.json')
 
-    filename = os.path.join(
-        RESULT_DIR, 'seed-{}_params.pkl'.format(SEED))
-    with open(filename, 'rb') as f:
+
+def make_json_record(input_filepath=RESULT_DIR, output_file=GAME_JSON_FILEPATH,
+                     seed=0, lineage=0, age=0):
+    result_path = os.path.join(input_filepath, 'seed-{}'.format(seed))
+
+    with open(os.path.join(result_path, PARAM_FILENAME), 'rb') as f:
         params = pickle.load(f)
 
     TASKS = [(task[0], int(task[1][::-1], 2)) for task in params['TASKS']]
     hit_multipliers, patterns = zip(*TASKS)
 
-    filename = os.path.join(
-        RESULT_DIR, 'seed-{}_lineages.pkl'.format(SEED))
-    with open(filename, 'rb') as f:
+    with open(os.path.join(result_path, LINEAGES_FILENAME), 'rb') as f:
         d = pickle.load(f)
-
-    params['NUM_NODES'] = 8
-    params['NUM_SENSORS'] = 2
-    params['WORLD_WIDTH'] = 16
-    params['WORLD_HEIGHT'] = 36
-    params['NUM_TRIALS'] = 128
 
     def i2s(i):
         return tuple((i >> n) & 1 for n in range(params['NUM_NODES']))
 
-    ind = Individual(d[LINEAGE][GENERATION].genome)
+    ind = Individual(d[lineage][age].genome)
     transitions = ind.play_game(hit_multipliers, patterns)
     states = [ps[:params['NUM_SENSORS']] + cs[params['NUM_SENSORS']:]
               for ps, cs in zip(map(i2s, transitions[0]),
@@ -76,7 +74,7 @@ def make_json_record(output_file):
                                                  len(patterns))
 
     json_dict = {
-        'generation': GENERATION,
+        'generation': params['NGEN'] - age,
         'connectivityMatrix': ind.cm.T.tolist(),
         'nodeTypes': {
             'sensors': [0, 1],
@@ -93,5 +91,6 @@ def make_json_record(output_file):
 
     with open(output_file, 'w') as f:
         json.dump(json_dict, f)
+    print('Saved game representation to `{}`.'.format(output_file))
 
     return json_dict
