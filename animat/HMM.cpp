@@ -20,11 +20,11 @@ HMM::HMM(vector<unsigned char> &genome, int start) {
     for (int i = 0; i < numInputs; i++)
         // Exclude motors from possible inputs.
         ins[i] = genome[(scan + i) % (int)genome.size()]
-                & (NUM_NODES - NUM_MOTORS - 1);
+                % (NUM_NODES - NUM_MOTORS);
     for (int i = 0; i < numOutputs; i++)
         // Exclude sensors from possible outputs.
         outs[i] = (genome[(scan + 4 + i) % (int)genome.size()]
-                & (NUM_NODES - NUM_SENSORS - 1)) + NUM_SENSORS;
+                % (NUM_NODES - NUM_SENSORS)) + NUM_SENSORS;
 
     // Probabilities begin after the input and output codons, which are
     // NUM_NODES long each

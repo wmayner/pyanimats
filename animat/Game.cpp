@@ -94,6 +94,12 @@ vector< vector<int> > executeGame(Agent* agent, vector<int> hitMultipliers,
                     // TODO(wmayner) parameterize changing sensors mid-evolution
                     // Larissa: Set to 0 to evolve agents with just one sensor
 
+                    /* // Set motors to 0 to prevent them from influencing next */
+                    /* // animat state */
+                    /* // TODO(wmayner) parametrize motor node indices */
+                    /* agent->states[6] = 0; */
+                    /* agent->states[7] = 0; */
+
                     past_state = 0;
                     for (int n = 0; n < NUM_NODES; n++) {
                         // Set the nth bit to the nth node's state
