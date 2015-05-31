@@ -21,10 +21,10 @@ params = {
     'POPSIZE': 100,
     'SEED': SEED or 0,
     'TASKS': (
-        ( 1, '1000000000000000'),
-        (-1, '1110000000000000'),
-        ( 1, '1000000000000000'),
-        (-1, '1110000000000000'),
+        ( 1, '1110000000000000'),
+        (-1, '1111000000000000'),
+        ( 1, '1111110000000000'),
+        (-1, '1111100000000000'),
     ),
     'SCRAMBLE_WORLD': False,
     # Evolution parameters
@@ -45,6 +45,7 @@ params = {
     'NUM_MOTORS': animat.NUM_MOTORS,
     'DETERMINISTIC': animat.DETERMINISTIC,
 }
+# Number of tasks * two directions * number of starting points for the animat
 params['NUM_TRIALS'] = len(params['TASKS']) * 2 * params['WORLD_WIDTH']
 
 
