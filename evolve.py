@@ -102,7 +102,8 @@ logbook2 = tools.Logbook()
 
 hof = tools.HallOfFame(maxsize=POPSIZE)
 
-if __name__ == '__main__':
+
+def main():
     parameters.print_parameters()
     print('')
 
@@ -184,3 +185,7 @@ if __name__ == '__main__':
 
     print('')
     parameters.print_parameters()
+
+
+if __name__ == '__main__':
+    main()
