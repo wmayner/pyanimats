@@ -2,6 +2,10 @@
 # -*- coding: utf-8 -*-
 # evolve.py
 
+"""
+Main script for animat evolution.
+"""
+
 __version__ = '0.0.3'
 
 import sys
@@ -13,10 +17,10 @@ from time import time
 import cProfile
 
 import parameters
-from parameters import (NGEN, POPSIZE, SEED, TASKS, FITNESS_BASE,
-                        SCRAMBLE_WORLD, NUM_TRIALS)
+from parameters import NGEN, POPSIZE, SEED, FITNESS_FUNCTION
 random.seed(SEED)
 from individual import Individual
+import fitness_functions
 
 from deap import creator, base, tools
 toolbox = base.Toolbox()
@@ -31,30 +35,6 @@ if len(sys.argv) >= 4:
     RESULTS_DIR = sys.argv[3]
 if not os.path.exists(RESULTS_DIR):
     os.makedirs(RESULTS_DIR)
-
-
-# Convert world-strings into integers. Note that in the implementation, the
-# world is mirrored; hence the reversal of the string.
-TASKS = [(task[0], int(task[1][::-1], 2)) for task in TASKS]
-HIT_MULTIPLIERS, PATTERNS = zip(*TASKS)
-
-
-def evaluate(ind):
-    # Simulate the animat in the world with the given tasks.
-    ind.play_game(HIT_MULTIPLIERS, PATTERNS, scramble_world=SCRAMBLE_WORLD)
-    assert ind.correct + ind.incorrect == NUM_TRIALS
-    # We use an exponential fitness function because the selection pressure
-    # lessens as animats get close to perfect performance in the game; thus we
-    # need to weight additional improvements more as the animat gets better in
-    # order to keep the selection pressure more even.
-    return (FITNESS_BASE**ind.animat.correct,)
-toolbox.register('evaluate', evaluate)
-
-
-def mutate(ind):
-    ind.mutate()
-    return (ind,)
-toolbox.register('mutate', mutate)
 
 
 def select(individuals, k):
@@ -78,13 +58,21 @@ def select(individuals, k):
                                        max_fitness)
         chosen.append(candidate)
     return chosen
+toolbox.register('select', select)
 
 
+def mutate(ind):
+    ind.mutate()
+    return (ind,)
+toolbox.register('mutate', mutate)
+
+
+# Register the desired fitness function.
+toolbox.register('evaluate', fitness_functions.__dict__[FITNESS_FUNCTION])
 creator.create('Fitness', base.Fitness, weights=(1.0,))
 creator.create('Individual', Individual, fitness=creator.Fitness)
 toolbox.register('individual', creator.Individual)
 toolbox.register('population', tools.initRepeat, list, toolbox.individual)
-toolbox.register('select', select)
 
 fitness_stats = tools.Statistics(key=lambda ind: ind.fitness.values)
 fitness_stats.register('avg', numpy.mean)
