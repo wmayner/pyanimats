@@ -5,7 +5,7 @@
 import pickle
 import matplotlib.pyplot as plt
 
-DATA_FILE = 'correct_counts.pkl'
+DATA_FILE = 'compiled_results/0.0.3/3-4-6-5/correct_counts.pkl'
 
 with open(DATA_FILE, 'rb') as f:
     data = pickle.load(f)
