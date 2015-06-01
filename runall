@@ -1,9 +1,9 @@
 #!/bin/bash
 
-NGEN=30000
+NGEN=60000
 
-for ((seed=0; seed < 32; seed++))
+for ((seed=64; seed < 96; seed++))
 do
-  result_dir="results/0.0.3/seed-$seed"
+  result_dir="raw_results/0.0.3/3-4-6-5/seed-$seed"
   /home/will/.virtualenvs/deap/bin/python /home/will/deap/evolve.py $seed $NGEN $result_dir &
 done
