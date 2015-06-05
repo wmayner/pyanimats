@@ -6,61 +6,160 @@ import os
 import pickle
 import json
 from glob import glob
+import numpy as np
+import matplotlib.pyplot as plt
 
 from individual import Individual
 
 
-RESULT_DIR = os.path.join('raw_results', 'test')
+CASE_NAME = os.path.join('0.0.3', '3-4-6-5')
+RESULT_DIR = 'raw_results'
 ANALYSIS_DIR = 'compiled_results'
+FILENAMES = {
+    'params': 'params.pkl',
+    'hof': 'hof.pkl',
+    'logbooks': 'logbooks.pkl',
+    'lineages': 'lineages.pkl',
+    'metadata': 'metadata.pkl',
+}
 
-PARAM_FILENAME = 'params.pkl'
-HOF_FILENAME = 'hof.pkl'
-LOGBOOKS_FILENAME = 'logbooks.pkl'
-LINEAGES_FILENAME = 'lineages.pkl'
-METADATA_FILENAME = 'metadata.pkl'
 
-CORRECT_COUNTS_FILEPATH = os.path.join(ANALYSIS_DIR, 'correct_counts.pkl')
+def close():
+    """Close a matplotlib figure window."""
+    plt.close()
 
 
-def save_correct_counts(output_filepath=CORRECT_COUNTS_FILEPATH):
-    correct_counts = []
-    for filename in glob(os.path.join(RESULT_DIR, '**', LOGBOOKS_FILENAME)):
+def ensure_exists(path):
+    os.makedirs(path, exist_ok=True)
+    return path
+
+
+# Result loading
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def load(filetype, input_filepath=RESULT_DIR, seed=0):
+    result_path = os.path.join(input_filepath, 'seed-{}'.format(seed))
+    print('Loading {} from `{}`...'.format(filetype, result_path))
+    with open(os.path.join(result_path, FILENAMES[filetype]), 'rb') as f:
+        data = pickle.load(f)
+    return data
+
+
+def load_all_seeds(filetype, input_filepath=RESULT_DIR):
+    data = {}
+    for filename in glob(os.path.join(input_filepath, '**',
+                                      FILENAMES[filetype])):
+        print('Loading {} from `{}`...'.format(filetype, filename))
         with open(filename, 'rb') as f:
-            print('Processing `{}`'.format(filename))
-            logbooks = pickle.load(f)
-            correct_counts.append(
-                logbooks['correct'][-1]['correct'])
+            data[filename] = pickle.load(f)
+    return data
+
+
+# Correct counts
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def get_correct_counts(case_name=CASE_NAME, force=False):
+    input_filepath = os.path.join(RESULT_DIR, case_name)
+    output_filepath = os.path.join(
+        ensure_exists(os.path.join(ANALYSIS_DIR, case_name)),
+        'correct_counts.pkl')
+    if os.path.exists(output_filepath) and not force:
+        print('Output file `{}` already exists. Use `force=True` to recompute '
+              'and overwrite.'.format(output_filepath))
+        with open(output_filepath, 'rb') as f:
+            return pickle.load(f)
+    correct_counts = []
+    for filename, logbooks in load_all_seeds('logbooks',
+                                             input_filepath).items():
+        correct_counts.append(logbooks['correct'][-1]['correct'])
+    params = load('params', input_filepath)
     with open(output_filepath, 'wb') as f:
-        pickle.dump(correct_counts, f)
-        print('Saved correct counts to `{}`.'.format(output_filepath))
+        pickle.dump({
+            'correct_counts': correct_counts,
+            'params': params,
+        }, f)
+    print('Saved correct counts to `{}`.'.format(output_filepath))
     return correct_counts
 
 
-def load_correct_counts(input_filepath=CORRECT_COUNTS_FILEPATH):
-    with open(input_filepath, 'rb') as f:
-        return pickle.load(f)
+def plot_correct_counts(case_name=CASE_NAME, force=False,
+                        bins=np.arange(64, 128, 2), fontsize=20):
+    data = get_correct_counts(case_name, force)
+    correct_counts, params = data['correct_counts'], data['params']
+    plt.hist(correct_counts, bins, normed=True, facecolor='blue', alpha=0.8)
+    plt.xlabel('$\mathrm{Fitness}$', fontsize=fontsize)
+    plt.ylabel('$\mathrm{Number\ of\ Animats}$', fontsize=fontsize)
+    plt.title('$\mathrm{Histogram\ of\ Animat\ Performance:\ ' +
+              str(params['NGEN']) + '\ generations,\ population\ size\ ' +
+              str(params['POPSIZE']) + '}$', fontsize=fontsize)
+    plt.grid(True)
+    plt.show()
 
 
-GAME_JSON_FILEPATH = os.path.join(ANALYSIS_DIR, 'game.json')
+# LOD Evolution
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def plot_lod(case_name=CASE_NAME, seed=0, all_seeds=False, gen_interval=500,
+             fontsize=20):
+    input_filepath = os.path.join(RESULT_DIR, case_name)
+    params = load('params', input_filepath)
+    if all_seeds:
+        logbooks = [l['correct'] for l in
+                    load_all_seeds('logbooks', input_filepath).values()]
+    else:
+        logbooks = [load('logbooks', input_filepath)['correct']]
+    for logbook in logbooks:
+        plt.plot(logbook.select('gen')[::gen_interval],
+                 logbook.select('correct')[::gen_interval])
+    plt.xlabel('$\mathrm{Generation}$', fontsize=fontsize)
+    plt.ylabel('$\mathrm{Correct\ trials}$', fontsize=fontsize)
+    plt.title('$\mathrm{Animat\ fitness\ over\ ' + str(params['NGEN']) +
+              '\ generations,\ population\ size\ ' + str(params['POPSIZE']) +
+              '}$', fontsize=fontsize)
+    plt.ylim([60, 130])
+    plt.yticks(np.arange(64, 128, 4))
+    plt.grid(True)
+    plt.show()
 
 
-def make_json_record(input_filepath=RESULT_DIR, output_file=GAME_JSON_FILEPATH,
-                     seed=0, lineage=0, age=0):
-    result_path = os.path.join(input_filepath, 'seed-{}'.format(seed))
+# Visual interface
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    with open(os.path.join(result_path, PARAM_FILENAME), 'rb') as f:
-        params = pickle.load(f)
+def get_game_states(params):
+    trials = []
+    # Task
+    for task in params['TASKS']:
+        # Directions (left/right)
+        for direction in (-1, 1):
+            # Agent starting position
+            for agent_pos in range(params['WORLD_WIDTH']):
+                trials.append({
+                    'task': {
+                        'goalIsCatch': task[0],
+                        'block': task[1],
+                    },
+                    'direction': direction,
+                    'initAgentPos': agent_pos,
+                })
+    # TODO finish
+
+
+def make_json_record(case_name=CASE_NAME, seed=0, lineage=0, age=0):
+    input_filepath = os.path.join(RESULT_DIR, case_name)
+    output_file = os.path.join(ensure_exists(os.path.join(
+        ANALYSIS_DIR, case_name, 'seed-{}'.format(seed))), 'game.json')
+
+    params = load('params', input_filepath, seed)
 
     TASKS = [(task[0], int(task[1][::-1], 2)) for task in params['TASKS']]
     hit_multipliers, patterns = zip(*TASKS)
 
-    with open(os.path.join(result_path, LINEAGES_FILENAME), 'rb') as f:
-        d = pickle.load(f)
+    lineages = load('lineages', input_filepath, seed)
 
     def i2s(i):
         return tuple((i >> n) & 1 for n in range(params['NUM_NODES']))
 
-    ind = Individual(d[lineage][age].genome)
+    ind = Individual(lineages[lineage][age].genome)
     transitions = ind.play_game(hit_multipliers, patterns)
     states = [ps[:params['NUM_SENSORS']] + cs[params['NUM_SENSORS']:]
               for ps, cs in zip(map(i2s, transitions[0]),
@@ -88,9 +187,8 @@ def make_json_record(input_filepath=RESULT_DIR, output_file=GAME_JSON_FILEPATH,
             for i in range(params['NUM_TRIALS'])
         ],
     }
-
     with open(output_file, 'w') as f:
-        json.dump(json_dict, f)
+            json.dump(json_dict, f)
     print('Saved game representation to `{}`.'.format(output_file))
 
     return json_dict
