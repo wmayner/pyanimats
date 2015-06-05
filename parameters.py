@@ -53,6 +53,7 @@ param_name_and_types = {
     '--num-gen': ('NGEN', int),
     '--pop-size': ('POPSIZE', int),
     '--mut-prob': ('MUTATION_PROB', float),
+    '--scramble': ('SCRAMBLE_WORLD', bool),
     '--dup-prob': ('DUPLICATION_PROB', float),
     '--del-prob': ('DELETION_PROB', float),
     '--max-length': ('MAX_GENOME_LENGTH', int),
