@@ -34,6 +34,10 @@ def ensure_exists(path):
     return path
 
 
+def get_task_name(tasks):
+    return '[' + ', '.join(str(task[1].count('1')) for task in tasks) + ']'
+
+
 # Result loading
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -100,24 +104,34 @@ def plot_correct_counts(case_name=CASE_NAME, force=False,
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def plot_lod(case_name=CASE_NAME, seed=0, all_seeds=False, gen_interval=500,
-             fontsize=20):
+             fontsize=20, avg=False):
     input_filepath = os.path.join(RESULT_DIR, case_name)
     params = load('params', input_filepath)
+
     if all_seeds:
         logbooks = [l['correct'] for l in
                     load_all_seeds('logbooks', input_filepath).values()]
     else:
         logbooks = [load('logbooks', input_filepath)['correct']]
-    for logbook in logbooks:
-        plt.plot(logbook.select('gen')[::gen_interval],
-                 logbook.select('correct')[::gen_interval])
+
+    if avg:
+        d = np.array([logbook.select('correct')[::gen_interval]
+                      for logbook in logbooks])
+        plt.plot(logbooks[0].select('gen')[::gen_interval], d.mean(0))
+    else:
+        for logbook in logbooks:
+            plt.plot(logbook.select('gen')[::gen_interval],
+                     logbook.select('correct')[::gen_interval])
+
     plt.xlabel('$\mathrm{Generation}$', fontsize=fontsize)
     plt.ylabel('$\mathrm{Correct\ trials}$', fontsize=fontsize)
-    plt.title('$\mathrm{Animat\ fitness\ over\ ' + str(params['NGEN']) +
-              '\ generations,\ population\ size\ ' + str(params['POPSIZE']) +
+    plt.title('$\mathrm{' + ('Average\ a' if avg else 'A') +
+              'nimat\ fitness\ over\ ' + str(params['NGEN']) +
+              '\ generations,\ task\ ' + get_task_name(params['TASKS']) +
+              ',\ population\ size\ ' + str(params['POPSIZE']) +
               '}$', fontsize=fontsize)
     plt.ylim([60, 130])
-    plt.yticks(np.arange(64, 128, 4))
+    plt.yticks(np.arange(64, 129, 4))
     plt.grid(True)
     plt.show()
 
