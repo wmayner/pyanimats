@@ -3,12 +3,40 @@
 # evolve.py
 
 """
-Main script for animat evolution.
+PyAnimats
+---------
+Evolve animats.
+
+Usage:
+    evolve.py <output_dir> <tasks.yml> <params.yml> [options]
+    evolve.py <output_dir> <tasks.yml> [options]
+    evolve.py --list-fitness-funcs
+    evolve.py -h | --help
+    evolve.py -v | --version
+
+Options:
+    -h, --help              Show this.
+    -v, --version           Show version.
+    --list-fitness-funcs    List available fitness functions.
+    -n, --num-gen <int>     Number of generations to simulate [default: 10].
+    -s, --seed <int>        RNG seed [default: 0].
+    -f, --fitness <str>     Fitness function [default: natural].
+    -l, --log-freq <int>    Status printing interval [default: 1].
+    -p, --pop-size <int>    Population size [default: 100].
+    -m, --mut-prob <float>  Nucleotide mutation probability [default: 0.005].
+    --scramble              Randomly rearrange the world for every trial.
+    --dup-prob <float       Duplication probability [default: 0.05].
+    --del-prob <float>      Deletion probability [default: 0.02].
+    --max-length <int>      Maximum genome length [default: 10000].
+    --min-length <int>      Minimum genome length [default: 1000].
+    --min-dup-del <float>   Minimum length of duplicated/deleted genome part.
+    --nat-fit-base <float>  Base used in the natural fitness function.
+
+Note: command-line arguments override parameters in the <params.yml> file.
 """
 
-__version__ = '0.0.3'
+__version__ = '0.0.4'
 
-import sys
 import os
 import pickle
 import random
@@ -16,38 +44,25 @@ import numpy
 from time import time
 import cProfile
 
-import parameters
-from parameters import NGEN, POPSIZE, SEED, FITNESS_FUNCTION
-random.seed(SEED)
-from individual import Individual
+from parameters import params
 import fitness_functions
-
+from individual import Individual
 from deap import creator, base, tools
-toolbox = base.Toolbox()
 
 
 PROFILING = False
-# Status will be printed at this interval.
-LOG_FREQ = 10
-
-RESULTS_DIR = 'raw_results/test/seed-{}'.format(SEED)
-if len(sys.argv) >= 4:
-    RESULTS_DIR = sys.argv[3]
-if not os.path.exists(RESULTS_DIR):
-    os.makedirs(RESULTS_DIR)
 
 
 def select(individuals, k):
-    """Select *k* individuals from the input *individuals* using the variant of
-    roulette-wheel selection used in the C++ code.
+    """Select *k* individuals from the given list of individuals using the
+    variant of roulette-wheel selection used in the old C++ code.
 
     :param individuals: A list of individuals to select from.
     :param k: The number of individuals to select.
     :returns: A list of selected individuals.
 
-    This function uses the :func:`~random.random` function from the python base
-    :mod:`random` module.
-    """
+    This function uses the :func:`~random.random` function from the built-in
+    :mod:`random` module."""
     max_fitness = max([ind.fitness.values[0] for ind in individuals])
     chosen = []
     for i in range(k):
@@ -58,49 +73,81 @@ def select(individuals, k):
                                        max_fitness)
         chosen.append(candidate)
     return chosen
-toolbox.register('select', select)
 
 
 def mutate(ind):
     ind.mutate()
     return (ind,)
-toolbox.register('mutate', mutate)
+mutate.__doc__ = Individual.mutate.__doc__
 
 
-# Register the desired fitness function.
-toolbox.register('evaluate', fitness_functions.__dict__[FITNESS_FUNCTION])
-creator.create('Fitness', base.Fitness, weights=(1.0,))
-creator.create('Individual', Individual, fitness=creator.Fitness)
-toolbox.register('individual', creator.Individual)
-toolbox.register('population', tools.initRepeat, list, toolbox.individual)
+def main(arguments):
 
-fitness_stats = tools.Statistics(key=lambda ind: ind.fitness.values)
-fitness_stats.register('avg', numpy.mean)
-fitness_stats.register('std', numpy.std)
-fitness_stats.register('min', numpy.min)
-fitness_stats.register('max', numpy.max)
+    if arguments['--list-fitness-funcs']:
+        fitness_functions.print_functions()
+        return
 
-correct_stats = tools.Statistics(key=lambda ind: (ind.animat.correct,
-                                                  ind.animat.incorrect))
-correct_stats.register('correct', lambda x: numpy.max(x, 0)[0])
-correct_stats.register('incorrect', lambda x: numpy.max(x, 0)[1])
+    # Ensure output directory exists.
+    output_dir = arguments['<output_dir>']
+    del arguments['<output_dir>']
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
-logbook1 = tools.Logbook()
-logbook2 = tools.Logbook()
+    # Status will be printed at this interval.
+    LOG_FREQ = int(arguments['--log-freq'])
+    del arguments['--log-freq']
 
-hof = tools.HallOfFame(maxsize=POPSIZE)
+    # Load parameters.
+    if arguments['<params.yml>']:
+        params.load_from_file(arguments['<params.yml>'])
+        del arguments['<params.yml>']
+    params.load_from_args(arguments)
 
+    print('Parameters:')
+    print(params)
 
-def main():
-    parameters.print_parameters()
-    print('')
+    # Setup
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    toolbox = base.Toolbox()
+
+    # Register the various genetic algorithm components to the toolbox.
+    creator.create('Fitness', base.Fitness, weights=(1.0,))
+    creator.create('Individual', Individual, fitness=creator.Fitness)
+    toolbox.register('individual', creator.Individual, params.INIT_GENOME)
+    toolbox.register('population', tools.initRepeat, list, toolbox.individual)
+    toolbox.register('evaluate',
+                     fitness_functions.__dict__[params.FITNESS_FUNCTION])
+    toolbox.register('select', select)
+    toolbox.register('mutate', mutate)
+
+    # Create statistics trackers.
+    fitness_stats = tools.Statistics(key=lambda ind: ind.fitness.values)
+    fitness_stats.register('avg', numpy.mean)
+    fitness_stats.register('std', numpy.std)
+    fitness_stats.register('min', numpy.min)
+    fitness_stats.register('max', numpy.max)
+
+    correct_stats = tools.Statistics(key=lambda ind: (ind.animat.correct,
+                                                      ind.animat.incorrect))
+    correct_stats.register('correct', lambda x: numpy.max(x, 0)[0])
+    correct_stats.register('incorrect', lambda x: numpy.max(x, 0)[1])
+
+    # Initialize logbooks and hall of fame.
+    logbook1, logbook2 = tools.Logbook(), tools.Logbook()
+    hof = tools.HallOfFame(maxsize=params.POPSIZE)
+
+    print('\nSimulating {} generations...'.format(params.NGEN))
 
     if PROFILING:
         pr = cProfile.Profile()
         pr.enable()
     start = time()
 
-    population = toolbox.population(n=POPSIZE)
+    # Simulation
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    population = toolbox.population(n=params.POPSIZE)
 
     # Evaluate the initial population.
     fitnesses = toolbox.map(toolbox.evaluate, population)
@@ -135,15 +182,18 @@ def main():
         return offspring
 
     # Evolution.
-    for gen in range(1, NGEN + 1):
+    for gen in range(1, params.NGEN + 1):
         population = process_gen(population)
         if gen % LOG_FREQ == 0:
             print('[Generation] {}  [Max Correct] {}  [Max Incorrect] {}  '
-                  '[Avg. Fitness] {}'.format(
-                      str(gen).rjust(len(str(NGEN))),
+                  '[Avg. Fitness]  {}'.format(
+                      str(gen).rjust(len(str(params.NGEN))),
                       str(logbook2[-1]['correct']).rjust(3),
                       str(logbook2[-1]['incorrect']).rjust(3),
                       logbook1[-1]['max']))
+
+    # Finish
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     end = time()
     if PROFILING:
@@ -151,11 +201,11 @@ def main():
         pr.dump_stats('profiling/profile.pstats')
 
     print("Simulated {} generations in {} seconds.".format(
-        NGEN, round(end - start, 2)))
+        params.NGEN, round(end - start, 2)))
 
     # Save data.
     data = {
-        'params': parameters.params,
+        'params': params,
         'lineages': [tuple(ind.lineage()) for ind in population],
         'logbooks': {
             'fitness': logbook1,
@@ -168,12 +218,12 @@ def main():
         }
     }
     for key in data:
-        with open(os.path.join(RESULTS_DIR, '{}.pkl'.format(key)), 'wb') as f:
+        with open(os.path.join(output_dir, '{}.pkl'.format(key)), 'wb') as f:
             pickle.dump(data[key], f)
 
-    print('')
-    parameters.print_parameters()
 
-
+from docopt import docopt
 if __name__ == '__main__':
-    main()
+    # Get command-line arguments from docopt.
+    arguments = docopt(__doc__, version='PyAnimats v{}'.format(__version__))
+    main(arguments)

@@ -6,35 +6,26 @@
 Parameters for controlling animat evolution.
 """
 
-import sys
+from pprint import pformat
+import numpy as np
+import yaml
 import animat
-from pprint import pprint
 
 
-# Read seed and number of generations from the command-line as first and second
-# arguments.
-SEED = False
-if len(sys.argv) >= 2:
-    SEED = int(sys.argv[1])
-NGEN = False
-if len(sys.argv) >= 3:
-    NGEN = int(sys.argv[2])
-
-
-params = {
-    # Simulation parameters
-    'NGEN': NGEN or 10,
+DEFAULTS = {
+    # Simulation parameters.
+    'NGEN': 10,
     'FITNESS_FUNCTION': 'natural',
-    'SEED': SEED or 0,
+    'SEED': 0,
     'TASKS': (
-        ( 1, '1110000000000000'),
-        (-1, '1111000000000000'),
-        ( 1, '1111110000000000'),
-        (-1, '1111100000000000'),
+        ( 1, '1000000000000000'),
+        (-1, '1110000000000000'),
+        ( 1, '1000000000000000'),
+        (-1, '1110000000000000'),
     ),
     'SCRAMBLE_WORLD': False,
     'POPSIZE': 100,
-    # Evolution parameters
+    # Evolution parameters.
     'MUTATION_PROB': 0.005,
     'NATURAL_FITNESS_BASE': 1.02,
     'DUPLICATION_PROB': 0.05,
@@ -44,7 +35,8 @@ params = {
     'MIN_DUP_DEL_WIDTH': 15,
     'MAX_DUP_DEL_WIDTH': 511,
     'INIT_GENOME': [127] * 5000,
-    # Game parameters
+    # Game parameters.
+    # TODO make these configurable
     'WORLD_WIDTH': animat.WORLD_WIDTH,
     'WORLD_HEIGHT': animat.WORLD_HEIGHT,
     'NUM_NODES': animat.NUM_NODES,
@@ -52,24 +44,90 @@ params = {
     'NUM_MOTORS': animat.NUM_MOTORS,
     'DETERMINISTIC': animat.DETERMINISTIC,
 }
-# Number of tasks * two directions * number of starting points for the animat
-params['NUM_TRIALS'] = len(params['TASKS']) * 2 * params['WORLD_WIDTH']
 
 
-# Update module namespace with parameters
-sys.modules[__name__].__dict__.update(params)
+# Map command-line argument names to parameter names and types.
+param_name_and_types = {
+    '--fitness': ('FITNESS_FUNCTION', str),
+    '--seed': ('SEED', int),
+    '--num-gen': ('NGEN', int),
+    '--pop-size': ('POPSIZE', int),
+    '--mut-prob': ('MUTATION_PROB', float),
+    '--dup-prob': ('DUPLICATION_PROB', float),
+    '--del-prob': ('DELETION_PROB', float),
+    '--max-length': ('MAX_GENOME_LENGTH', int),
+    '--min-length': ('MIN_GENOME_LENGTH', int),
+    '--min-dup-del': ('MIN_DUP_DEL_WIDTH', int),
+    '--nat-fit-base': ('NATURAL_FITNESS_BASE', float),
+}
 
 
-def printable_params():
-    d = params.copy()
-    # Don't print initial genome
-    del d['INIT_GENOME']
-    return d
+class Parameters(dict):
+
+    """
+    Holds evolution parameter values.
+
+    Do not set any parameters directly with this object; use command-line
+    arguments or a configuration file instead.
+    """
+
+    def __init__(self, **kwargs):
+        dict.__init__(self, kwargs)
+        self._refresh()
+
+    def __getstate__(self):
+        return self
+
+    def __setstate__(self, state):
+        self.update(state)
+        self._refresh()
+
+    def __repr__(self):
+        printable = self.copy()
+        # Cast initial genome to a NumPy array for compact printing.
+        printable['INIT_GENOME'] = np.array(printable['INIT_GENOME'])
+        return pformat(printable, indent=1)
+
+    def __str__(self):
+        return repr(self)
+
+    def load_from_args(self, arguments):
+        """Set parameters from command-line arguments."""
+        # Prune optional arguments that weren't used.
+        arguments = {key: value for key, value in arguments.items()
+                     if not (value == False or value is None)}
+        # Load tasks from file if a filename was given.
+        if '<tasks.yml>' in arguments:
+            with open(arguments['<tasks.yml>'], 'r') as f:
+                self['TASKS'] = yaml.load(f)
+            del arguments['<tasks.yml>']
+        # Set the rest of the parameters.
+        for key, value in arguments.items():
+            name, cast = param_name_and_types[key]
+            self[name] = cast(value)
+        self._refresh()
+
+    def load_from_file(self, param_file):
+        """Set parameters from a YAML file."""
+        print('Using parameters from `{}`.\n'.format(param_file))
+        with open(param_file, 'r') as f:
+            file_params = yaml.load(f)
+        self.update(file_params)
+        self._refresh()
+
+    def _refresh(self):
+        """Call this after anything changes."""
+        # (number of tasks * two directions *
+        #  number of initial positions for the animat)
+        self['NUM_TRIALS'] = len(self['TASKS']) * 2 * self['WORLD_WIDTH']
+        # Convert world-strings into integers. Note that in the C++
+        # implementation, the world is mirrored; hence the reversal of the
+        # string.
+        int_tasks = [(task[0], int(task[1][::-1], 2))
+                     for task in self['TASKS']]
+        self['HIT_MULTIPLIERS'], self['BLOCK_PATTERNS'] = zip(*int_tasks)
+        # Make entries accessible via dot-notation.
+        self.__dict__ = self
 
 
-def print_parameters():
-    print(''.center(50, '-'))
-    print('PARAMETERS:')
-    print(''.center(50, '-'))
-    pprint(printable_params())
-    print(''.center(50, '-'))
+params = Parameters(**DEFAULTS)

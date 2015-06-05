@@ -4,17 +4,13 @@
 
 import numpy as np
 from copy import deepcopy
-from parameters import (SEED, INIT_GENOME, MUTATION_PROB, DUPLICATION_PROB,
-                        DELETION_PROB, MAX_GENOME_LENGTH, MIN_GENOME_LENGTH,
-                        MIN_DUP_DEL_WIDTH, MAX_DUP_DEL_WIDTH)
-import animat
-animat.seed(SEED)
+from parameters import params
 from animat import Animat
 
 
 class Individual:
 
-    def __init__(self, genome=INIT_GENOME, parent=None):
+    def __init__(self, genome, parent=None):
         self.parent = parent
         self.animat = Animat(genome)
         # Mark whether the animat's phenotype needs updating.
@@ -34,7 +30,7 @@ class Individual:
     @property
     def cm(self):
         """The animat's connectivity matrix."""
-        cm = np.zeros((animat.NUM_NODES, animat.NUM_NODES), int)
+        cm = np.zeros((params.NUM_NODES, params.NUM_NODES), int)
         cm[list(zip(*self.edges))] = 1
         return cm
 
@@ -73,16 +69,22 @@ class Individual:
 
     def mutate(self):
         """Mutate the animat's genome in-place."""
-        self.animat.mutate(MUTATION_PROB, DUPLICATION_PROB, DELETION_PROB,
-                           MIN_GENOME_LENGTH, MAX_GENOME_LENGTH)
+        self.animat.mutate(params.MUTATION_PROB, params.DUPLICATION_PROB,
+                           params.DELETION_PROB, params.MIN_GENOME_LENGTH,
+                           params.MAX_GENOME_LENGTH)
         self._dirty_phenotype = True
 
-    def play_game(self, hit_multipliers, patterns, scramble_world=False):
+    def play_game(self):
         """Return the list of state transitions the animat goes through when
         playing the game."""
         self._update_phenotype()
-        return self.animat.play_game(hit_multipliers, patterns,
-                                     scramble_world=scramble_world)
+        transitions = self.animat.play_game(params.HIT_MULTIPLIERS,
+                                            params.BLOCK_PATTERNS,
+                                            scramble_world=params.SCRAMBLE_WORLD)
+        # TODO remove at some point for speed
+        # Check that everything adds up.
+        assert self.animat.correct + self.animat.incorrect == params.NUM_TRIALS
+        return transitions
 
     def lineage(self):
         """Return a generator for the lineage of this individual."""
