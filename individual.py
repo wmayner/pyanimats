@@ -78,10 +78,11 @@ class Individual:
         """Return the list of state transitions the animat goes through when
         playing the game."""
         self._update_phenotype()
-        transitions = self.animat.play_game(params.HIT_MULTIPLIERS,
-                                            params.BLOCK_PATTERNS,
-                                            scramble_world=params.SCRAMBLE_WORLD)
-        # TODO remove at some point for speed
+        transitions = self.animat.play_game(
+            params.HIT_MULTIPLIERS,
+            params.BLOCK_PATTERNS,
+            scramble_world=params.SCRAMBLE_WORLD)
+        # TODO remove this assertion at some point for speed
         # Check that everything adds up.
         assert self.animat.correct + self.animat.incorrect == params.NUM_TRIALS
         return transitions
