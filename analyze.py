@@ -35,7 +35,7 @@ def ensure_exists(path):
 
 
 def get_task_name(tasks):
-    return '[' + ', '.join(str(task[1].count('1')) for task in tasks) + ']'
+    return '[' + ',\ '.join(str(task[1].count('1')) for task in tasks) + ']'
 
 
 # Result loading
@@ -127,7 +127,9 @@ def plot_lod(case_name=CASE_NAME, seed=0, all_seeds=False, gen_interval=500,
     plt.ylabel('$\mathrm{Correct\ trials}$', fontsize=fontsize)
     plt.title('$\mathrm{' + ('Average\ a' if avg else 'A') +
               'nimat\ fitness\ over\ ' + str(params['NGEN']) +
-              '\ generations,\ task\ ' + get_task_name(params['TASKS']) +
+              '\ generations,\ ' + ('{}\ seeds'.format(len(logbooks)) if
+                                    all_seeds else 'seed\ {}'.format(seed)) +
+              ',\ task\ ' + get_task_name(params['TASKS']) +
               ',\ population\ size\ ' + str(params['POPSIZE']) +
               '}$', fontsize=fontsize)
     plt.ylim([60, 130])
