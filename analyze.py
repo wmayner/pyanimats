@@ -38,6 +38,21 @@ def get_task_name(tasks):
     return '[' + ',\ '.join(str(task[1].count('1')) for task in tasks) + ']'
 
 
+def get_desc(params, seed=False, num_seeds=False):
+    if not seed and not num_seeds:
+        raise Exception('Must provide either a single seed number or the '
+                        'number of seeds.')
+    return (str(params['NGEN']) + '\ generations,\ ' +
+            ('{}\ seeds'.format(num_seeds) if num_seeds
+             else 'seed\ {}'.format(seed)) + ',\ task\ ' +
+            get_task_name(params['TASKS']) + ',\ population\ size\ '
+            + str(params['POPSIZE']))
+
+def get_correct_trials_axis_label(params):
+    return ('$\mathrm{Correct\ trials\ (out\ of\ ' + str(params['NUM_TRIALS'])
+            + ')}$')
+
+
 # Result loading
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -58,18 +73,21 @@ def load_all_seeds(filetype, input_filepath=RESULT_DIR):
             data[filename] = pickle.load(f)
     return data
 
+def already_exists_msg(output_filepath):
+    return ('Using existing data file `{}`. Use `force=True` to recompute '
+            'from raw data and overwrite.'.format(output_filepath))
+
 
 # Correct counts
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def get_correct_counts(case_name=CASE_NAME, force=False):
+def get_final_correct(case_name=CASE_NAME, force=False):
     input_filepath = os.path.join(RESULT_DIR, case_name)
     output_filepath = os.path.join(
         ensure_exists(os.path.join(ANALYSIS_DIR, case_name)),
-        'correct_counts.pkl')
+        'final-correct-counts.pkl')
     if os.path.exists(output_filepath) and not force:
-        print('Output file `{}` already exists. Use `force=True` to recompute '
-              'and overwrite.'.format(output_filepath))
+        print(already_exists_msg(output_filepath))
         with open(output_filepath, 'rb') as f:
             return pickle.load(f)
     correct_counts = []
@@ -77,65 +95,81 @@ def get_correct_counts(case_name=CASE_NAME, force=False):
                                              input_filepath).items():
         correct_counts.append(logbooks['correct'][-1]['correct'])
     params = load('params', input_filepath)
+    data = {'correct_counts': correct_counts, 'params': params}
     with open(output_filepath, 'wb') as f:
-        pickle.dump({
-            'correct_counts': correct_counts,
-            'params': params,
-        }, f)
-    print('Saved correct counts to `{}`.'.format(output_filepath))
-    return correct_counts
+        pickle.dump(data, f)
+    print('Saved final correct counts to `{}`.'.format(output_filepath))
+    return data
 
 
-def plot_correct_counts(case_name=CASE_NAME, force=False,
-                        bins=np.arange(64, 128, 2), fontsize=20):
-    data = get_correct_counts(case_name, force)
+def plot_final_correct(case_name=CASE_NAME, force=False,
+                       bins=np.arange(64, 128, 2), fontsize=20):
+    data = get_final_correct(case_name, force)
     correct_counts, params = data['correct_counts'], data['params']
+    fig = plt.figure(figsize=(14,12))
     plt.hist(correct_counts, bins, normed=True, facecolor='blue', alpha=0.8)
-    plt.xlabel('$\mathrm{Fitness}$', fontsize=fontsize)
-    plt.ylabel('$\mathrm{Number\ of\ Animats}$', fontsize=fontsize)
-    plt.title('$\mathrm{Histogram\ of\ Animat\ Performance:\ ' +
-              str(params['NGEN']) + '\ generations,\ population\ size\ ' +
-              str(params['POPSIZE']) + '}$', fontsize=fontsize)
+    plt.xlabel(get_correct_trials_axis_label(params), fontsize=fontsize)
+    plt.ylabel('$\mathrm{Normalized\ number\ of\ animats}$', fontsize=fontsize)
+    plt.title('$\mathrm{Histogram\ of\ animat\ performance:\ '
+              + get_desc(params, num_seeds=len(correct_counts))
+              + '}$', fontsize=fontsize)
     plt.grid(True)
-    plt.show()
+    fig.show()
+    return fig, data
 
 
 # LOD Evolution
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def plot_lod(case_name=CASE_NAME, seed=0, all_seeds=False, gen_interval=500,
-             fontsize=20, avg=False):
+def get_lods(case_name=CASE_NAME, force=False, gen_interval=500, seed=0,
+             all_seeds=False):
     input_filepath = os.path.join(RESULT_DIR, case_name)
-    params = load('params', input_filepath)
-
+    if all_seeds:
+        output_filename = 'all-lods'
+    else:
+        output_filename = 'lods-seed-{}'.format(seed)
+    output_filepath = os.path.join(
+        ensure_exists(os.path.join(ANALYSIS_DIR, case_name)),
+        output_filename + '-every-{}-gen.pkl'.format(gen_interval))
+    if os.path.exists(output_filepath) and not force:
+        print(already_exists_msg(output_filepath))
+        with open(output_filepath, 'rb') as f:
+            return pickle.load(f)
     if all_seeds:
         logbooks = [l['correct'] for l in
                     load_all_seeds('logbooks', input_filepath).values()]
     else:
-        logbooks = [load('logbooks', input_filepath)['correct']]
+        logbooks = [load('logbooks', input_filepath, seed)['correct']]
+    lods = np.array([logbook.select('correct')[::gen_interval]
+                     for logbook in logbooks])
+    params = load('params', input_filepath)
+    data = {'lods': lods, 'params': params}
+    with open(output_filepath, 'wb') as f:
+        pickle.dump(data, f)
+    print('Saved LODs to `{}`.'.format(output_filepath))
+    return data
 
+
+def plot_lod(case_name=CASE_NAME, force=False, gen_interval=500, seed=0,
+             all_seeds=False, avg=False, fontsize=20):
+    data = get_lods(case_name, force, gen_interval, seed, all_seeds)
+    lods, params = data['lods'], data['params']
+    fig = plt.figure(figsize=(14,12))
     if avg:
-        d = np.array([logbook.select('correct')[::gen_interval]
-                      for logbook in logbooks])
-        plt.plot(logbooks[0].select('gen')[::gen_interval], d.mean(0))
+        plt.plot(np.arange(lods.shape[1]) * gen_interval, lods.mean(0))
     else:
-        for logbook in logbooks:
-            plt.plot(logbook.select('gen')[::gen_interval],
-                     logbook.select('correct')[::gen_interval])
-
+        for row in lods:
+            plt.plot(np.arrange(lods.shape[1]) * gen_interval, row)
     plt.xlabel('$\mathrm{Generation}$', fontsize=fontsize)
-    plt.ylabel('$\mathrm{Correct\ trials}$', fontsize=fontsize)
+    plt.ylabel(get_correct_trials_axis_label(params), fontsize=fontsize)
     plt.title('$\mathrm{' + ('Average\ a' if avg else 'A') +
-              'nimat\ fitness\ over\ ' + str(params['NGEN']) +
-              '\ generations,\ ' + ('{}\ seeds'.format(len(logbooks)) if
-                                    all_seeds else 'seed\ {}'.format(seed)) +
-              ',\ task\ ' + get_task_name(params['TASKS']) +
-              ',\ population\ size\ ' + str(params['POPSIZE']) +
-              '}$', fontsize=fontsize)
+              'nimat\ fitness:\ ' + get_desc(params, num_seeds=len(lods))
+              + '}$', fontsize=fontsize)
     plt.ylim([60, 130])
     plt.yticks(np.arange(64, 129, 4))
     plt.grid(True)
-    plt.show()
+    fig.show()
+    return fig, data
 
 
 # Visual interface
