@@ -24,6 +24,10 @@ FILENAMES = {
 }
 
 
+# Utilities
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
 def close():
     """Close a matplotlib figure window."""
     plt.close()
@@ -47,6 +51,7 @@ def get_desc(params, seed=False, num_seeds=False):
              else 'seed\ {}'.format(seed)) + ',\ task\ ' +
             get_task_name(params['TASKS']) + ',\ population\ size\ '
             + str(params['POPSIZE']))
+
 
 def get_correct_trials_axis_label(params):
     return ('$\mathrm{Correct\ trials\ (out\ of\ ' + str(params['NUM_TRIALS'])
@@ -72,6 +77,7 @@ def load_all_seeds(filetype, input_filepath=RESULT_DIR):
         with open(filename, 'rb') as f:
             data[filename] = pickle.load(f)
     return data
+
 
 def already_exists_msg(output_filepath):
     return ('Using existing data file `{}`. Use `force=True` to recompute '
@@ -154,7 +160,7 @@ def plot_lod(case_name=CASE_NAME, force=False, gen_interval=500, seed=0,
              all_seeds=False, avg=False, fontsize=20):
     data = get_lods(case_name, force, gen_interval, seed, all_seeds)
     lods, params = data['lods'], data['params']
-    fig = plt.figure(figsize=(14,12))
+    fig = plt.figure(figsize=(14, 12))
     if avg:
         plt.plot(np.arange(lods.shape[1]) * gen_interval, lods.mean(0))
     else:
@@ -170,6 +176,14 @@ def plot_lod(case_name=CASE_NAME, force=False, gen_interval=500, seed=0,
     plt.grid(True)
     fig.show()
     return fig, data
+
+
+# Metadata
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def get_avg_elapsed(case_name=CASE_NAME):
+    metadata = load_all_seeds('metadata', os.path.join(RESULT_DIR, case_name))
+    return np.array([d['elapsed'] for d in metadata.values()]).mean()
 
 
 # Visual interface
