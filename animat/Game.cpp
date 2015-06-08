@@ -29,21 +29,29 @@ vector< vector<int> > executeGame(Agent* agent, vector<int> hitMultipliers,
     worldTransform.resize(WORLD_WIDTH);
     for (int i = 0; i < WORLD_WIDTH; i++) worldTransform[i] = i;
 
-    int initAgentPos, agentPos, past_state, current_state;
+    int initAgentPos, agentPos, current_state;
     int patternIndex, direction, timestep;
     int action;
 
-    // This holds the state transitions over the agent's lifetime
-    vector< vector<int> > stateTransitions;
-    stateTransitions.clear();
-    stateTransitions.resize(2);
+    // number of trials = (number of patterns * number of directions
+    //                     * number of animat starting positions)
+    int numTrials = (int)patterns.size() * 2 * WORLD_WIDTH;
 
+    // Initialize state transition vector with the right size. The outer vector
+    // holds trials and the inner vector holds the states from a single trial.
+    vector< vector<int> > stateTransitions(numTrials, vector<int>(WORLD_HEIGHT));
+
+    int currentTrialNum = -1;
     // Block patterns
     for (patternIndex = 0; patternIndex < (int)patterns.size(); patternIndex++) {
         // Directions (left/right)
         for (direction = -1; direction < 2; direction += 2) {
             // Agent starting position
             for (initAgentPos = 0; initAgentPos < WORLD_WIDTH; initAgentPos++) {
+                // Update trial number
+                currentTrialNum++;
+
+                // Set agent position
                 agentPos = initAgentPos;
 
                 // Larissa: Change environment after 30,000 Gen, if patterns is
@@ -94,13 +102,6 @@ vector< vector<int> > executeGame(Agent* agent, vector<int> hitMultipliers,
                     // TODO(wmayner) parameterize changing sensors mid-evolution
                     // Larissa: Set to 0 to evolve agents with just one sensor
 
-                    past_state = 0;
-                    for (int n = 0; n < NUM_NODES; n++) {
-                        // Set the nth bit to the nth node's state
-                        past_state |= (agent->states[n] & 1) << n;
-                    }
-                    stateTransitions[0].push_back(past_state);
-
                     agent->updateStates();
 
                     current_state = 0;
@@ -108,7 +109,7 @@ vector< vector<int> > executeGame(Agent* agent, vector<int> hitMultipliers,
                         // Set the nth bit to the nth node's state
                         current_state |= (agent->states[n] & 1) << n;
                     }
-                    stateTransitions[1].push_back(current_state);
+                    stateTransitions[currentTrialNum][timestep] = current_state;
 
                     // TODO(wmayner) switch motors and cases to be less
                     // confusing
