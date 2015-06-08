@@ -1,6 +1,7 @@
 #!/bin/bash
 
 python="/home/will/.virtualenvs/deap/bin/python"
+$python ./setup.py build_ext --inplace
 
 ngen=60000
 log_freq=500
