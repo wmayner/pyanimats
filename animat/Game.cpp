@@ -91,6 +91,11 @@ vector< vector<int> > executeGame(Agent* agent, vector<int> hitMultipliers,
                     agent->states[0] = (world_state >> worldTransform[agentPos]) & 1;
                     agent->states[1] = (world_state >> worldTransform[wrap(agentPos + 2)]) & 1;
 
+                    // Set motors to 0 to prevent them from influencing next
+                    // animat state
+                    agent->states[6] = 0;
+                    agent->states[7] = 0;
+
                     // TODO(wmayner) parameterize changing sensors mid-evolution
                     // Larissa: Set to 0 to evolve agents with just one sensor
 
