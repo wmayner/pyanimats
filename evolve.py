@@ -15,22 +15,26 @@ Usage:
     evolve.py -v | --version
 
 Options:
-    -h, --help              Show this.
-    -v, --version           Show version.
-    --list-fitness-funcs    List available fitness functions.
-    -n, --num-gen <int>     Number of generations to simulate [default: 10].
-    -s, --seed <int>        RNG seed [default: 0].
-    -f, --fitness <str>     Fitness function [default: natural].
-    -l, --log-freq <int>    Status printing interval [default: 1].
-    -p, --pop-size <int>    Population size [default: 100].
-    -m, --mut-prob <float>  Nucleotide mutation probability [default: 0.005].
-    --scramble              Randomly rearrange the world for every trial.
-    --dup-prob <float       Duplication probability [default: 0.05].
-    --del-prob <float>      Deletion probability [default: 0.02].
-    --max-length <int>      Maximum genome length [default: 10000].
-    --min-length <int>      Minimum genome length [default: 1000].
-    --min-dup-del <float>   Minimum length of duplicated/deleted genome part.
-    --nat-fit-base <float>  Base used in the natural fitness function.
+    -h, --help                Show this
+    -v, --version             Show version
+        --list-fitness-funcs  List available fitness functions
+    -n, --num-gen=NGEN        Number of generations to simulate [default: 10]
+    -s, --seed=SEED           Random number generator seed [default: 0]
+    -f, --fitness=FUNC        Fitness function [default: natural]
+    -l, --log-freq=FREQ       Status printing interval [default: 1]
+    -p, --pop-size=SIZE       Population size [default: 100]
+    -m, --mut-prob=PROB       Nucleotide mutation probability [default: 0.005]
+        --scramble            Randomly rearrange the world in each trial
+        --dup-prob=PROB       Duplication probability [default: 0.05]
+        --del-prob=PROB       Deletion probability [default: 0.02]
+        --max-length=LENGTH   Maximum genome length [default: 10000]
+        --min-length=LENGTH   Minimum genome length [default: 1000]
+        --min-dup-del=LENGTH  Minimum length of duplicated/deleted genome part
+                                [default: 15]
+        --nat-fit-base=FLOAT  Base used in the natural fitness function (see
+                                --list-fitness-funcs) [default: 1.02]
+        --profile=PATH        Profile performance and store results at PATH
+                                [default: profiling/profile.pstats]
 
 Note: command-line arguments override parameters in the <params.yml> file.
 """
@@ -92,6 +96,15 @@ def main(arguments):
     del arguments['<output_dir>']
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
+
+    # Ensure profile directory exists and set profile flag.
+    profile_filepath = arguments['--profile']
+    if profile_filepath:
+        PROFILING = True
+        profile_dir = os.path.dirname(profile_filepath)
+        if not os.path.exists(profile_dir):
+            os.makedirs(profile_dir)
+    del arguments['--profile']
 
     # Status will be printed at this interval.
     LOG_FREQ = int(arguments['--log-freq'])
@@ -198,7 +211,7 @@ def main(arguments):
     end = time()
     if PROFILING:
         pr.disable()
-        pr.dump_stats('profiling/profile.pstats')
+        pr.dump_stats(profile_filepath)
 
     print("Simulated {} generations in {} seconds.".format(
         params.NGEN, round(end - start, 2)))
