@@ -109,14 +109,16 @@ def get_final_correct(case_name=CASE_NAME, force=False):
 
 
 def plot_final_correct(case_name=CASE_NAME, force=False,
-                       bins=np.arange(64, 128, 2), fontsize=20):
+                       bins=np.arange(64, 128, 2), fontsize=20, title=''):
     data = get_final_correct(case_name, force)
     correct_counts, params = data['correct_counts'], data['params']
-    fig = plt.figure(figsize=(14,12))
+    fig = plt.figure(figsize=(14, 12))
     plt.hist(correct_counts, bins, normed=True, facecolor='blue', alpha=0.8)
-    plt.xlabel(get_correct_trials_axis_label(params), fontsize=fontsize)
-    plt.ylabel('$\mathrm{Normalized\ number\ of\ animats}$', fontsize=fontsize)
-    plt.title('$\mathrm{Histogram\ of\ animat\ performance:\ '
+    plt.xlabel(get_correct_trials_axis_label(params), labelpad=20,
+               fontsize=fontsize)
+    plt.ylabel('$\mathrm{Normalized\ number\ of\ animats}$', labelpad=20,
+               fontsize=fontsize)
+    plt.title(title + '$\mathrm{Histogram\ of\ animat\ performance:\ '
               + get_desc(params, num_seeds=len(correct_counts))
               + '}$', fontsize=fontsize)
     plt.grid(True)
@@ -157,7 +159,7 @@ def get_lods(case_name=CASE_NAME, force=False, gen_interval=500, seed=0,
 
 
 def plot_lod(case_name=CASE_NAME, force=False, gen_interval=500, seed=0,
-             all_seeds=False, avg=False, fontsize=20):
+             all_seeds=False, avg=False, fontsize=20, title=''):
     data = get_lods(case_name, force, gen_interval, seed, all_seeds)
     lods, params = data['lods'], data['params']
     fig = plt.figure(figsize=(14, 12))
@@ -166,9 +168,10 @@ def plot_lod(case_name=CASE_NAME, force=False, gen_interval=500, seed=0,
     else:
         for row in lods:
             plt.plot(np.arrange(lods.shape[1]) * gen_interval, row)
-    plt.xlabel('$\mathrm{Generation}$', fontsize=fontsize)
-    plt.ylabel(get_correct_trials_axis_label(params), fontsize=fontsize)
-    plt.title('$\mathrm{' + ('Average\ a' if avg else 'A') +
+    plt.xlabel('$\mathrm{Generation}$', labelpad=20, fontsize=fontsize)
+    plt.ylabel(get_correct_trials_axis_label(params), labelpad=20,
+               fontsize=fontsize)
+    plt.title(title + '$\mathrm{' + ('Average\ a' if avg else 'A') +
               'nimat\ fitness:\ ' + get_desc(params, num_seeds=len(lods))
               + '}$', fontsize=fontsize)
     plt.ylim([60, 130])
