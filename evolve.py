@@ -21,9 +21,12 @@ Options:
     -n, --num-gen=NGEN        Number of generations to simulate [default: 10]
     -s, --seed=SEED           Random number generator seed [default: 0]
     -f, --fitness=FUNC        Fitness function [default: natural]
-    -l, --log-freq=FREQ       Status printing interval [default: 1]
-    -p, --pop-size=SIZE       Population size [default: 100]
     -m, --mut-prob=PROB       Nucleotide mutation probability [default: 0.005]
+    -p, --pop-size=SIZE       Population size [default: 100]
+    -d, --data-record=FREQ    Logbook recording interval [default: 1]
+    -i, --ind-record=FREQ     Full individual recording interval [default: 1]
+    -l, --log-stdout=FREQ     Status printing interval [default: 1]
+    -a, --all-lineages        Save lineages of entire final population
         --scramble            Randomly rearrange the world in each trial
         --dup-prob=PROB       Duplication probability [default: 0.05]
         --del-prob=PROB       Deletion probability [default: 0.02]
@@ -106,9 +109,20 @@ def main(arguments):
             os.makedirs(profile_dir)
     del arguments['--profile']
 
+    # Logbooks will be updated at this interval.
+    DATA_RECORDING_INTERVAL = int(arguments['--data-record'])
+    del arguments['--data-record']
+
+    # Individuals will be recorded in the lineage at this interval.
+    INDIVIDUAL_RECORDING_INTERVAL = int(arguments['--ind-record'])
+    del arguments['--ind-record']
+
     # Status will be printed at this interval.
-    LOG_FREQ = int(arguments['--log-freq'])
-    del arguments['--log-freq']
+    STATUS_PRINTING_INTERVAL = int(arguments['--log-stdout'])
+    del arguments['--log-stdout']
+
+    SAVE_ALL_LINEAGES = arguments['--all-lineages']
+    del arguments['--all-lineages']
 
     # Load parameters.
     if arguments['<params.yml>']:
@@ -173,7 +187,7 @@ def main(arguments):
     record = correct_stats.compile(population)
     logbook2.record(gen=0, **record)
 
-    def process_gen(population):
+    def process_gen(population, gen):
         # Selection.
         population = toolbox.select(population, len(population))
         # Cloning.
@@ -191,16 +205,17 @@ def main(arguments):
             ind.fitness.values = fit
         # Recording.
         hof.update(offspring)
-        record = fitness_stats.compile(offspring)
-        logbook1.record(gen=gen, **record)
-        record = correct_stats.compile(offspring)
-        logbook2.record(gen=gen, **record)
+        if gen % DATA_RECORDING_INTERVAL == 0:
+            record = fitness_stats.compile(offspring)
+            logbook1.record(gen=gen, **record)
+            record = correct_stats.compile(offspring)
+            logbook2.record(gen=gen, **record)
         return offspring
 
     # Evolution.
     for gen in range(1, params.NGEN + 1):
-        population = process_gen(population)
-        if gen % LOG_FREQ == 0:
+        population = process_gen(population, gen)
+        if gen % STATUS_PRINTING_INTERVAL == 0:
             print('[Generation] {}  [Max Correct] {}  [Max Incorrect] {}  '
                   '[Avg. Fitness]  {}'.format(
                       str(gen).rjust(len(str(params.NGEN))),
@@ -219,10 +234,14 @@ def main(arguments):
     print("Simulated {} generations in {} seconds.".format(
         params.NGEN, round(end - start, 2)))
 
+    # Get lineage(s).
+    lineages = [tuple(ind.lineage())[::INDIVIDUAL_RECORDING_INTERVAL]
+                for ind in (population if SAVE_ALL_LINEAGES else
+                            [max(population, key=lambda ind: ind.correct)])]
     # Save data.
     data = {
         'params': params,
-        'lineages': [tuple(ind.lineage()) for ind in population],
+        'lineages': lineages,
         'logbooks': {
             'fitness': logbook1,
             'correct': logbook2,
