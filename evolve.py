@@ -178,6 +178,9 @@ def main(arguments):
         population = toolbox.select(population, len(population))
         # Cloning.
         offspring = [toolbox.clone(ind) for ind in population]
+        for ind in offspring:
+            # Tag offspring with new generation number.
+            ind.gen = gen
         # Variation.
         for i in range(len(offspring)):
             toolbox.mutate(offspring[i])
