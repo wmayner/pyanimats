@@ -10,16 +10,29 @@ from animat import Animat
 
 class Individual:
 
-    def __init__(self, genome, parent=None):
+    def __init__(self, genome, parent=None, gen=0):
         self.parent = parent
         self.animat = Animat(genome)
+        self.gen = gen
         # Mark whether the animat's phenotype needs updating.
         self._dirty_phenotype = True
+
+    def __eq__(self, other):
+        return self.genome == other.genome and self.parent == other.parent
 
     @property
     def genome(self):
         """The animat's genome."""
         return self.animat.genome
+
+    @property
+    def gen(self):
+        """The generation the animat was born."""
+        return self.animat.gen
+
+    @gen.setter
+    def gen(self, value):
+        self.animat.gen = value
 
     @property
     def edges(self):

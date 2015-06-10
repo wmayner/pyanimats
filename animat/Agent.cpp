@@ -13,7 +13,9 @@ Agent::Agent(vector<unsigned char> genome) : genome(genome) {
         states[i] = 0;
         newStates[i] = 0;
     }
+    gen = 0;
     correct = 0;
+    incorrect = 0;
     hmms.clear();
 }
 

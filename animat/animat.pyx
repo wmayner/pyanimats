@@ -35,6 +35,7 @@ cdef extern from 'Agent.hpp':
         Agent(vector[unsigned char] genome)
 
         vector[unsigned char] genome
+        int gen
         int correct
         int incorrect
 
@@ -58,8 +59,9 @@ cdef class Animat:
     # Hold the C++ instance that we're wrapping.
     cdef Agent *thisptr
 
-    def __cinit__(self, genome, correct=0, incorrect=0):
+    def __cinit__(self, genome, gen=0, correct=0, incorrect=0):
         self.thisptr = new Agent(genome)
+        self.thisptr.gen = gen
         self.thisptr.correct = correct
         self.thisptr.incorrect = incorrect
 
@@ -67,20 +69,29 @@ cdef class Animat:
         del self.thisptr
 
     def __deepcopy__(self, memo):
-        return Animat(self.genome, correct=self.thisptr.correct,
+        return Animat(self.genome, gen=self.gen,
+                      correct=self.thisptr.correct,
                       incorrect=self.thisptr.incorrect)
 
     def __copy__(self):
         return self.__deepcopy__()
 
     def __reduce__(self):
-        return (Animat, (self.thisptr.genome, self.thisptr.correct,
-                         self.thisptr.incorrect))
+        return (Animat, (self.thisptr.genome, self.thisptr.gen,
+                         self.thisptr.correct, self.thisptr.incorrect))
 
     property genome:
 
         def __get__(self):
             return self.thisptr.genome
+
+    property gen:
+
+        def __get__(self):
+            return self.thisptr.gen
+
+        def __set__(self, v):
+            self.thisptr.gen = v
 
     property correct:
 
