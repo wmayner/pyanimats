@@ -17,8 +17,8 @@ int wrap(int i) {
  * Executes a game, updates the agent's hit count accordingly, and returns a
  * vector of the agent's state transitions over the course of the game.
  */
-vector< vector<int> > executeGame(Agent* agent, vector<int> hitMultipliers,
-        vector<int> patterns, bool scrambleWorld) {
+vector< vector< vector<unsigned char> > > executeGame(Agent* agent, vector<int>
+        hitMultipliers, vector<int> patterns, bool scrambleWorld) {
     vector<int> world;
     world.clear();
     world.resize(WORLD_HEIGHT);
@@ -29,7 +29,7 @@ vector< vector<int> > executeGame(Agent* agent, vector<int> hitMultipliers,
     worldTransform.resize(WORLD_WIDTH);
     for (int i = 0; i < WORLD_WIDTH; i++) worldTransform[i] = i;
 
-    int initAgentPos, agentPos, current_state;
+    int initAgentPos, agentPos;
     int patternIndex, direction, timestep;
     int action;
 
@@ -39,7 +39,9 @@ vector< vector<int> > executeGame(Agent* agent, vector<int> hitMultipliers,
 
     // Initialize state transition vector with the right size. The outer vector
     // holds trials and the inner vector holds the states from a single trial.
-    vector< vector<int> > stateTransitions(numTrials, vector<int>(WORLD_HEIGHT));
+    vector< vector< vector<unsigned char> > >
+        stateTransitions(numTrials, vector< vector<unsigned char> >(WORLD_HEIGHT,
+                    vector<unsigned char>(NUM_NODES)));
 
     int currentTrialNum = -1;
     // Block patterns
@@ -102,14 +104,16 @@ vector< vector<int> > executeGame(Agent* agent, vector<int> hitMultipliers,
                     // TODO(wmayner) parameterize changing sensors mid-evolution
                     // Larissa: Set to 0 to evolve agents with just one sensor
 
+                    // Record state of sensors
+                    for (int n = 0; n < NUM_SENSORS; n++)
+                        stateTransitions[currentTrialNum][timestep][n] = agent->states[n];
+
                     agent->updateStates();
 
-                    current_state = 0;
-                    for (int n = 0; n < NUM_NODES; n++) {
-                        // Set the nth bit to the nth node's state
-                        current_state |= (agent->states[n] & 1) << n;
+                    // Record state of hidden units and motors after updating animat
+                    for (int n = NUM_SENSORS; n < NUM_NODES; n++) {
+                        stateTransitions[currentTrialNum][timestep][n] = agent->states[n];
                     }
-                    stateTransitions[currentTrialNum][timestep] = current_state;
 
                     // TODO(wmayner) switch motors and cases to be less
                     // confusing

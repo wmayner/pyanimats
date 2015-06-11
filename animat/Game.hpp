@@ -10,7 +10,7 @@
 
 using std::vector;
 
-vector< vector<int> > executeGame(
+vector< vector< vector<unsigned char> > > executeGame(
         Agent* agent, vector<int> hit_multipliers, vector<int> patterns, bool
         scrambleWorld);
 
