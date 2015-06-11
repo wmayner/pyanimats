@@ -32,9 +32,12 @@ def print_functions():
         print('')
 
 
+# Natural fitness
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 @register
-def natural(ind):
-    """Animats are evaluated based on the number of game trials they
+def nat(ind):
+    """Natural: Animats are evaluated based on the number of game trials they
     successfully complete. Each additional correct trial is weighted
     exponentially higher than the last in order to keep selection pressure more
     even.
@@ -45,28 +48,40 @@ def natural(ind):
     return (params.NATURAL_FITNESS_BASE**ind.animat.correct,)
 
 
+# Mutual information
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+def bitlist(i, padlength):
+    """Return a list of the bits of an integer, padded up to ``padlength``."""
+    return list(map(int, bin(i)[2:].zfill(padlength)))
+
+
+NUM_SENSOR_STATES = 2**params.NUM_SENSORS
+NUM_MOTOR_STATES = 2**params.NUM_MOTORS
+SENSOR_MOTOR_STATES = [
+    ((i, j), bitlist(i, params.NUM_SENSORS) + bitlist(j, params.NUM_MOTORS))
+    for i in range(NUM_SENSOR_STATES) for j in range(NUM_MOTOR_STATES)
+]
+
+
 @register
 def mi(ind):
     # TODO implement mutual information
-    """Animats are evaluated based on the mutual information between the
-    sensors and motors."""
+    """Mutual information: Animats are evaluated based on the mutual
+    information between their sensors and motors."""
     # Play the game and get the state transitions for each trial.
-    game = ind.play_game()
+    game = np.array(ind.play_game())
     # The contingency matrix has a row for every sensors state and a column for
     # every motor state.
-    c = np.zeros([2**params.NUM_SENSORS, 2**params.NUM_MOTORS])
+    contingency = np.zeros([NUM_SENSOR_STATES, NUM_MOTOR_STATES])
+    # Get only the sensor and motor states.
+    sensor_motor = np.concatenate([game[:, :, :params.NUM_SENSORS],
+                                   game[:, :, -params.NUM_MOTORS:]], axis=2)
     # Count!
-    for trial in game:
-        for state in trial:
-            # Get contingency matrix row and column indices from sensor and
-            # motor states and increment the count.
-            i, j = 0, 0
-            for node in state[:params.NUM_SENSORS]:
-                i = (i << 1) | node
-            for node in state[-params.NUM_MOTORS:]:
-                j = (j << 1) | node
-            c[i, j] += 1
+    for idx, state in SENSOR_MOTOR_STATES:
+        contingency[idx] = (sensor_motor == state).all(axis=2).sum()
     # Calculate mutual information in nats.
-    mi_nats = mutual_info_score(None, None, contingency=c)
+    mi_nats = mutual_info_score(None, None, contingency=contingency)
     # Convert from nats to bits and return as a tuple for DEAP.
     return (mi_nats / math.log(2),)
