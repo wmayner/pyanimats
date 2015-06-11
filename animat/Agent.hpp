@@ -21,6 +21,7 @@ class Agent {
     int gen;
     int correct;
     int incorrect;
+    // TODO(wmayner) change these to bool?
     unsigned char states[NUM_NODES], newStates[NUM_NODES];
 
     void injectStartCodons(int n);

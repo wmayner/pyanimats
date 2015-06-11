@@ -11,6 +11,9 @@ from libcpp cimport bool
 cimport cython
 
 
+ctypedef unsigned char NodeState
+ctypedef unsigned char Nucleotide
+
 # Expose #defined constants to Python.
 cdef extern from 'constants.hpp':
     cdef int _NUM_NODES 'NUM_NODES'
@@ -32,9 +35,9 @@ NUM_MOTORS = _NUM_MOTORS
 cdef extern from 'Agent.hpp':
     void srand(int s)
     cdef cppclass Agent:
-        Agent(vector[unsigned char] genome)
+        Agent(vector[Nucleotide] genome)
 
-        vector[unsigned char] genome
+        vector[Nucleotide] genome
         int gen
         int correct
         int incorrect
@@ -49,7 +52,7 @@ cdef extern from 'Agent.hpp':
 
 
 cdef extern from 'Game.hpp':
-    cdef vector[vector[int]] executeGame(
+    cdef vector[vector[vector[NodeState]]] executeGame(
         Agent* agent, vector[int] hitMultipliers, vector[int] patterns, bool
         scrambleWorld);
 
