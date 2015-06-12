@@ -17,9 +17,6 @@ class Individual:
         # Mark whether the animat's phenotype needs updating.
         self._dirty_phenotype = True
 
-    def __eq__(self, other):
-        return self.genome == other.genome and self.parent == other.parent
-
     @property
     def genome(self):
         """The animat's genome."""
