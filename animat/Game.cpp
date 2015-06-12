@@ -17,8 +17,8 @@ int wrap(int i) {
  * Executes a game, updates the agent's hit count accordingly, and returns a
  * vector of the agent's state transitions over the course of the game.
  */
-int* executeGame(Agent* agent, vector<int> hitMultipliers, vector<int>
-        patterns, bool scrambleWorld) {
+void executeGame(vector<unsigned char> &stateTransitions, Agent* agent,
+        vector<int> hitMultipliers, vector<int> patterns, bool scrambleWorld) {
     vector<int> world;
     world.clear();
     world.resize(WORLD_HEIGHT);
@@ -32,13 +32,6 @@ int* executeGame(Agent* agent, vector<int> hitMultipliers, vector<int>
     int initAgentPos, agentPos;
     int patternIndex, direction, timestep;
     int action;
-
-    // number of trials = (number of patterns * number of directions
-    //                     * number of animat starting positions)
-    int numTrials = (int)patterns.size() * 2 * WORLD_WIDTH;
-    // Initialize state transition vector with the right size.
-    vector<int> stateTransitions(
-            numTrials * WORLD_HEIGHT * NUM_NODES);
 
     int stateTransitionsIndex = 0;
     // Block patterns
@@ -100,13 +93,13 @@ int* executeGame(Agent* agent, vector<int> hitMultipliers, vector<int>
 
                     // Record state of sensors
                     for (int n = 0; n < NUM_SENSORS; n++)
-                        stateTransitions[stateTransitionsIndex++] = (int)agent->states[n];
+                        stateTransitions[stateTransitionsIndex++] = agent->states[n];
 
                     agent->updateStates();
 
                     // Record state of hidden units and motors after updating animat
                     for (int n = NUM_SENSORS; n < NUM_NODES; n++) {
-                        stateTransitions[stateTransitionsIndex++] = (int)agent->states[n];
+                        stateTransitions[stateTransitionsIndex++] = agent->states[n];
                     }
 
                     // TODO(wmayner) switch motors and cases to be less
@@ -165,5 +158,4 @@ int* executeGame(Agent* agent, vector<int> hitMultipliers, vector<int>
             }  // Agent starting position
         }  // Directions
     }  // Block patterns
-    return stateTransitions.data();
 }  // executeGame

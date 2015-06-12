@@ -15,10 +15,7 @@ from cpython cimport PyObject, Py_INCREF
 cimport cython
 
 import numpy as np
-cimport numpy as np
-np.import_array()
-
-import ctypes
+cimport numpy as cnp
 
 
 ctypedef unsigned char NodeState
@@ -62,48 +59,54 @@ cdef extern from 'Agent.hpp':
 
 
 cdef extern from 'Game.hpp':
-    cdef int* executeGame(
-        Agent* agent, vector[int] hitMultipliers, vector[int] patterns, bool
-        scrambleWorld);
+    cdef void executeGame(
+        vector[NodeState] stateTransitions, Agent* agent, vector[int]
+        hitMultipliers, vector[int] patterns, bool scrambleWorld);
 
 
-cdef class ArrayWrapper:
-    """Creates a NumPy array from already allocated memory."""
-    # See https://gist.github.com/GaelVaroquaux/1249305
-    cdef void* data_ptr
-    cdef int size
-    cdef int dtype
-
-    cdef set_data(self, int size, int dtype, void* data_ptr):
-        """Set the data of the array.
-
-        This cannot be done in the constructor as it must recieve C-level
-        arguments.
-
-        Parameters:
-            size (int) Length of the array.
-            data_ptr (void*): Pointer to the data.
-        """
-        self.data_ptr = data_ptr
-        self.size = size
-        self.dtype = dtype
-
-    def __array__(self):
-        """Here we use the ``__array__`` method, that is called when NumPy
-        tries to get an array from the object."""
-        cdef np.npy_intp shape[1]
-        shape[0] = <np.npy_intp> self.size
-        # Create a 1D array, of length 'size'
-        ndarray = np.PyArray_SimpleNewFromData(1, shape, self.dtype,
-                                               self.data_ptr)
-        return ndarray
-
-    def __dealloc__(self):
-        """Frees the array. This is called by Python when all the references to
-        the object are gone. """
-        free(<void*>self.data_ptr)
+cdef extern from 'asvoid.hpp':
+    void *asvoid(vector[NodeState] *buf)
 
 
+class StdVectorBase:
+    pass
+
+
+# See https://groups.google.com/d/topic/cython-users/13Bo4zXb930/discussion
+cdef class NodeStateWrapper:
+
+
+    cdef vector[NodeState] *buf 
+
+    def __cinit__(NodeStateWrapper self, n): 
+        self.buf = NULL 
+
+    def __init__(NodeStateWrapper self, cnp.intp_t n): 
+        self.buf = new vector[NodeState](n) 
+
+    def __dealloc__(NodeStateWrapper self): 
+        if self.buf != NULL: 
+            del self.buf 
+
+    def asarray(NodeStateWrapper self): 
+        """Interpret the vector as an np.ndarray without copying the data.""" 
+        base = StdVectorBase() 
+        intbuf = <cnp.uintp_t> asvoid(self.buf) 
+        n = <cnp.intp_t> self.buf.size()
+        dtype = np.dtype(np.uint8) 
+        base.__array_interface__ = dict( 
+            data=(intbuf, False), 
+            descr=dtype.descr, 
+            shape=(n,),
+            strides=(dtype.itemsize,), 
+            typestr=dtype.str, 
+            version=3,
+        ) 
+        base.vector_wrapper = self 
+        return np.asarray(base) 
+
+
+# TODO(wmayner) does this help?
 @cython.freelist(60000)
 cdef class Animat:
     # Hold the C++ instance that we're wrapping.
@@ -178,27 +181,22 @@ cdef class Animat:
                                   maxGenomeLength);
 
     def play_game(self, hit_multipliers, patterns, scramble_world=False):
+        # Reset the animat's hit and miss counts every time the game is played.
         self.thisptr.correct = 0
         self.thisptr.incorrect = 0
-
-        cdef int* stateTransitions = executeGame(
-            self.thisptr, hit_multipliers, patterns, scramble_world)
-
+        # Calculate the size of the state transition vector, which has an entry
+        # for every node state of every timestep of every trial, and initialize.
         num_trials = len(patterns) * 2 * WORLD_WIDTH
         size = num_trials * WORLD_HEIGHT * NUM_NODES
+        cdef NodeStateWrapper state_transitions = NodeStateWrapper(size)
+        # Play the game, updating the animats hit and miss counts and filling
+        # the given transition vector with the states the animat went through.
+        executeGame(state_transitions.buf[0], self.thisptr, hit_multipliers,
+                    patterns, scramble_world)
+        # Return the state transitions as a NumPy array.
+        return state_transitions.asarray()
 
-        array_wrapper = ArrayWrapper()
-        array_wrapper.set_data(size, np.NPY_UINT8, <void*> stateTransitions) 
-
-        cdef np.ndarray result = np.array(array_wrapper, copy=False)
-        # Assign our object to the 'base' of the ndarray object.
-        result.base = <PyObject*> array_wrapper
-        # Increment the reference count, as the above assignement was done in
-        # C, and Python does not know that there is this additional reference.
-        Py_INCREF(array_wrapper)
-        return result
-
-
+         
 def seed(s):
     """Initialize the C++ random number generator with the given seed."""
     srand(s)
