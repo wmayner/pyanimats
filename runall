@@ -3,13 +3,15 @@
 python="/home/will/.virtualenvs/deap/bin/python"
 $python ./setup.py build_ext --inplace
 
+tasks="tasks/3-4-6-5.yml"
+fitness="mi"
 ngen=60000
-log_freq=500
+ind_record_interval="500"
+log_freq=10
+params="params.yml"
 
 for ((seed=0; seed < 32; seed++))
 do
-  output_dir="raw_results/motor-coercion/0.0.4/3-4-6-5/seed-$seed"
-  tasks="tasks/3-4-6-5.yml"
-  params="params.yml"
-  $python ./evolve.py $output_dir $tasks $params -n $ngen -s $seed -l $log_freq &
+  output_dir="raw_results/0.0.5/mi/3-4-6-5/seed-$seed"
+  $python ./pyanimats.py $output_dir $tasks $params -f $fitness -n $ngen -s $seed -i $ind_record_interval -l $log_freq &
 done
