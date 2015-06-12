@@ -17,8 +17,8 @@ int wrap(int i) {
  * Executes a game, updates the agent's hit count accordingly, and returns a
  * vector of the agent's state transitions over the course of the game.
  */
-vector< vector< vector<unsigned char> > > executeGame(Agent* agent, vector<int>
-        hitMultipliers, vector<int> patterns, bool scrambleWorld) {
+void executeGame(vector<unsigned char> &stateTransitions, Agent* agent,
+        vector<int> hitMultipliers, vector<int> patterns, bool scrambleWorld) {
     vector<int> world;
     world.clear();
     world.resize(WORLD_HEIGHT);
@@ -33,26 +33,13 @@ vector< vector< vector<unsigned char> > > executeGame(Agent* agent, vector<int>
     int patternIndex, direction, timestep;
     int action;
 
-    // number of trials = (number of patterns * number of directions
-    //                     * number of animat starting positions)
-    int numTrials = (int)patterns.size() * 2 * WORLD_WIDTH;
-
-    // Initialize state transition vector with the right size. The outer vector
-    // holds trials and the inner vector holds the states from a single trial.
-    vector< vector< vector<unsigned char> > >
-        stateTransitions(numTrials, vector< vector<unsigned char> >(WORLD_HEIGHT,
-                    vector<unsigned char>(NUM_NODES)));
-
-    int currentTrialNum = -1;
+    int stateTransitionsIndex = 0;
     // Block patterns
     for (patternIndex = 0; patternIndex < (int)patterns.size(); patternIndex++) {
         // Directions (left/right)
         for (direction = -1; direction < 2; direction += 2) {
             // Agent starting position
             for (initAgentPos = 0; initAgentPos < WORLD_WIDTH; initAgentPos++) {
-                // Update trial number
-                currentTrialNum++;
-
                 // Set agent position
                 agentPos = initAgentPos;
 
@@ -106,13 +93,13 @@ vector< vector< vector<unsigned char> > > executeGame(Agent* agent, vector<int>
 
                     // Record state of sensors
                     for (int n = 0; n < NUM_SENSORS; n++)
-                        stateTransitions[currentTrialNum][timestep][n] = agent->states[n];
+                        stateTransitions[stateTransitionsIndex++] = agent->states[n];
 
                     agent->updateStates();
 
                     // Record state of hidden units and motors after updating animat
                     for (int n = NUM_SENSORS; n < NUM_NODES; n++) {
-                        stateTransitions[currentTrialNum][timestep][n] = agent->states[n];
+                        stateTransitions[stateTransitionsIndex++] = agent->states[n];
                     }
 
                     // TODO(wmayner) switch motors and cases to be less
@@ -171,5 +158,4 @@ vector< vector< vector<unsigned char> > > executeGame(Agent* agent, vector<int>
             }  // Agent starting position
         }  // Directions
     }  // Block patterns
-    return stateTransitions;
 }  // executeGame
