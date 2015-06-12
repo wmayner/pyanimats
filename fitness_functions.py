@@ -63,6 +63,7 @@ SENSOR_MOTOR_STATES = [
     ((i, j), bitlist(i, params.NUM_SENSORS) + bitlist(j, params.NUM_MOTORS))
     for i in range(NUM_SENSOR_STATES) for j in range(NUM_MOTOR_STATES)
 ]
+BIT_CONVERSION_FACTOR = math.log(2)
 
 
 @register
@@ -84,4 +85,4 @@ def mi(ind):
     # Calculate mutual information in nats.
     mi_nats = mutual_info_score(None, None, contingency=contingency)
     # Convert from nats to bits and return as a tuple for DEAP.
-    return (mi_nats / math.log(2),)
+    return (mi_nats / BIT_CONVERSION_FACTOR,)
