@@ -71,7 +71,7 @@ def mi(ind):
     """Mutual information: Animats are evaluated based on the mutual
     information between their sensors and motors."""
     # Play the game and get the state transitions for each trial.
-    game = np.array(ind.play_game())
+    game = np.array(ind.play_game()).reshape(128, 36, 8)
     # The contingency matrix has a row for every sensors state and a column for
     # every motor state.
     contingency = np.zeros([NUM_SENSOR_STATES, NUM_MOTOR_STATES])

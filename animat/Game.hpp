@@ -10,8 +10,7 @@
 
 using std::vector;
 
-vector< vector< vector<unsigned char> > > executeGame(
-        Agent* agent, vector<int> hit_multipliers, vector<int> patterns, bool
-        scrambleWorld);
+int* executeGame(Agent* agent, vector<int> hit_multipliers, vector<int>
+        patterns, bool scrambleWorld);
 
 #endif  // SRC_GAME_H_
