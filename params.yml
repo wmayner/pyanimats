@@ -6,7 +6,7 @@ SEED: 0
 NGEN: 10
 # The fitness function to use. For a list of available functions, use
 # `--list-fitness-funcs`.
-FITNESS_FUNCTION: 'natural'
+FITNESS_FUNCTION: 'nat'
 # The number of individuals in the population at every generation.
 POPSIZE: 100
 # Whether to randomly rearrange the animat's game world on every trial.
@@ -25,5 +25,5 @@ MIN_GENOME_LENGTH: 1000
 MIN_DUP_DEL_WIDTH: 15
 # The duplicated/deleted section will be shorter than this.
 MAX_DUP_DEL_WIDTH: 511
-# Base used in the 'natural' fitness function.
-NATURAL_FITNESS_BASE: 1.02
+# Base used in fitness functions to make fitness increases exponential.
+FITNESS_BASE: 1.02
