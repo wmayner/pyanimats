@@ -42,7 +42,7 @@ Options:
 Note: command-line arguments override parameters in the <params.yml> file.
 """
 
-__version__ = '0.0.6'
+__version__ = '0.0.7'
 
 import os
 import pickle
@@ -61,14 +61,6 @@ from deap import creator, base, tools
 PROFILING = False
 
 
-# Scale raw fitness values so they're in the range 0–128 before using them as
-# an exponent.
-if params.FITNESS_FUNCTION == 'mi':
-    FITNESS_EXPONENT_SCALE = 64
-else:
-    FITNESS_EXPONENT_SCALE = 1
-
-
 class ExponentialFitness:
 
     def __eq__(self, other):
@@ -85,7 +77,8 @@ class ExponentialFitness:
     @value.setter
     def value(self, v):
         self.raw = v
-        self.exponential = params.FITNESS_BASE**(v * FITNESS_EXPONENT_SCALE)
+        self.exponential = params.FITNESS_BASE**(params.FITNESS_EXPONENT_SCALE
+                                                 * v)
 
 
 def select(individuals, k):

@@ -28,6 +28,7 @@ DEFAULTS = {
     # Evolution parameters.
     'MUTATION_PROB': 0.005,
     'NATURAL_FITNESS_BASE': 1.02,
+    'FITNESS_EXPONENT_SCALE': 1,
     'DUPLICATION_PROB': 0.05,
     'DELETION_PROB': 0.02,
     'MAX_GENOME_LENGTH': 10000,
@@ -96,7 +97,7 @@ class Parameters(dict):
         """Set parameters from command-line arguments."""
         # Prune optional arguments that weren't used.
         arguments = {key: value for key, value in arguments.items()
-                     if not (value == False or value is None)}
+                     if not (value is False or value is None)}
         # Load tasks from file if a filename was given.
         if '<tasks.yml>' in arguments:
             with open(arguments['<tasks.yml>'], 'r') as f:
@@ -127,6 +128,10 @@ class Parameters(dict):
         int_tasks = [(task[0], int(task[1][::-1], 2))
                      for task in self['TASKS']]
         self['HIT_MULTIPLIERS'], self['BLOCK_PATTERNS'] = zip(*int_tasks)
+        # Scale raw fitness values so they're in the range 0–128 before using
+        # them as an exponent.
+        if self['FITNESS_FUNCTION'] == 'mi':
+            self['FITNESS_EXPONENT_SCALE'] = 64
         # Make entries accessible via dot-notation.
         self.__dict__ = self
 

@@ -18,6 +18,11 @@ from parameters import params
 
 # A registry of available fitness functions
 functions = {}
+# Mapping from parameter values to descriptive names
+LaTeX_NAMES = {
+    'mi': 'Mutual\ Information',
+    'nat': 'Correct\ Trials'
+}
 
 
 def register(f):
