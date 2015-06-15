@@ -42,10 +42,11 @@ Options:
 Note: command-line arguments override parameters in the <params.yml> file.
 """
 
-__version__ = '0.0.5'
+__version__ = '0.0.6'
 
 import os
 import pickle
+import functools
 import random
 import numpy
 from time import time
@@ -60,6 +61,33 @@ from deap import creator, base, tools
 PROFILING = False
 
 
+# Scale raw fitness values so they're in the range 0–128 before using them as
+# an exponent.
+if params.FITNESS_FUNCTION == 'mi':
+    FITNESS_EXPONENT_SCALE = 64
+else:
+    FITNESS_EXPONENT_SCALE = 1
+
+
+class ExponentialFitness:
+
+    def __eq__(self, other):
+        return self.value == other.value
+
+    @functools.total_ordering
+    def __lt__(self, other):
+        return self.value < other.value
+
+    @property
+    def value(self):
+        return self.exponential
+
+    @value.setter
+    def value(self, v):
+        self.raw = v
+        self.exponential = params.FITNESS_BASE**(v * FITNESS_EXPONENT_SCALE)
+
+
 def select(individuals, k):
     """Select *k* individuals from the given list of individuals using the
     variant of roulette-wheel selection used in the old C++ code.
@@ -70,13 +98,13 @@ def select(individuals, k):
 
     This function uses the :func:`~random.random` function from the built-in
     :mod:`random` module."""
-    max_fitness = max([ind.fitness.values[0] for ind in individuals])
+    max_fitness = max([ind.fitness.value for ind in individuals])
     chosen = []
     for i in range(k):
         done = False
         while not done:
             candidate = random.choice(individuals)
-            done = random.random() <= (candidate.fitness.values[0] /
+            done = random.random() <= (candidate.fitness.value /
                                        max_fitness)
         chosen.append(candidate)
     return chosen
@@ -139,8 +167,7 @@ def main(arguments):
     toolbox = base.Toolbox()
 
     # Register the various genetic algorithm components to the toolbox.
-    creator.create('Fitness', base.Fitness, weights=(1.0,))
-    creator.create('Individual', Individual, fitness=creator.Fitness)
+    creator.create('Individual', Individual, fitness=ExponentialFitness)
     toolbox.register('individual', creator.Individual, params.INIT_GENOME)
     toolbox.register('population', tools.initRepeat, list, toolbox.individual)
     toolbox.register('evaluate',
