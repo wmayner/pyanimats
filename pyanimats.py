@@ -48,7 +48,7 @@ import os
 import pickle
 import functools
 import random
-import numpy
+import numpy as np
 from time import time
 import cProfile
 
@@ -176,22 +176,31 @@ def main(arguments):
     toolbox.register('mutate', mutate)
 
     # Create statistics trackers.
-    fitness_stats = tools.Statistics(key=lambda ind: ind.fitness.values)
-    fitness_stats.register('avg', numpy.mean)
-    fitness_stats.register('std', numpy.std)
-    fitness_stats.register('min', numpy.min)
-    fitness_stats.register('max', numpy.max)
+    fitness_stats = tools.Statistics(key=lambda ind: ind.fitness.raw)
+    fitness_stats.register('avg', np.mean)
+    fitness_stats.register('std', np.std)
+    fitness_stats.register('min', np.min)
+    fitness_stats.register('max', np.max)
+
+    real_fitness_stats = tools.Statistics(key=lambda ind: ind.fitness.value)
+    real_fitness_stats.register('max', np.max)
 
     correct_stats = tools.Statistics(key=lambda ind: (ind.animat.correct,
                                                       ind.animat.incorrect))
-    correct_stats.register('correct', lambda x: numpy.max(x, 0)[0])
-    correct_stats.register('incorrect', lambda x: numpy.max(x, 0)[1])
+    correct_stats.register('correct', lambda x: np.max(x, 0)[0])
+    correct_stats.register('incorrect', lambda x: np.max(x, 0)[1])
+
+    # Initialize a MultiStatistics object for convenience that allows for only
+    # one call to compile.
+    mstats = tools.MultiStatistics(correct=correct_stats,
+                                   fitness=fitness_stats,
+                                   real_fitness=real_fitness_stats)
 
     # Initialize logbooks and hall of fame.
-    logbook1, logbook2 = tools.Logbook(), tools.Logbook()
+    logbook = tools.Logbook()
     hof = tools.HallOfFame(maxsize=params.POPSIZE)
 
-    print('\nSimulating {} generations...'.format(params.NGEN))
+    print('\nSimulating {} generations...\n'.format(params.NGEN))
 
     if PROFILING:
         pr = cProfile.Profile()
@@ -206,13 +215,13 @@ def main(arguments):
     # Evaluate the initial population.
     fitnesses = toolbox.map(toolbox.evaluate, population)
     for ind, fitness in zip(population, fitnesses):
-        ind.fitness.values = fitness
+        ind.fitness.value = fitness
     # Record stats for initial population.
     hof.update(population)
-    record = fitness_stats.compile(population)
-    logbook1.record(gen=0, **record)
-    record = correct_stats.compile(population)
-    logbook2.record(gen=0, **record)
+    record = mstats.compile(population)
+    logbook.record(gen=0, **record)
+
+    print(logbook)
 
     def process_gen(population, gen):
         # Selection.
@@ -228,27 +237,20 @@ def main(arguments):
             offspring[i].parent = population[i]
         # Evaluation.
         fitnesses = toolbox.map(toolbox.evaluate, offspring)
-        for ind, fit in zip(offspring, fitnesses):
-            ind.fitness.values = fit
+        for ind, fitness in zip(offspring, fitnesses):
+            ind.fitness.value = fitness
         # Recording.
         hof.update(offspring)
         if gen % DATA_RECORDING_INTERVAL == 0:
-            record = fitness_stats.compile(offspring)
-            logbook1.record(gen=gen, **record)
-            record = correct_stats.compile(offspring)
-            logbook2.record(gen=gen, **record)
+            record = mstats.compile(offspring)
+            logbook.record(gen=gen, **record)
         return offspring
 
     # Evolution.
     for gen in range(1, params.NGEN + 1):
         population = process_gen(population, gen)
         if gen % STATUS_PRINTING_INTERVAL == 0:
-            print('[Generation] {}  [Max Correct] {}  [Max Incorrect] {}  '
-                  '[Avg. Fitness]  {}'.format(
-                      str(gen).rjust(len(str(params.NGEN))),
-                      str(logbook2[-1]['correct']).rjust(3),
-                      str(logbook2[-1]['incorrect']).rjust(3),
-                      logbook1[-1]['max']))
+            print(logbook.__str__(startindex=gen))
 
     # Finish
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -258,7 +260,7 @@ def main(arguments):
         pr.disable()
         pr.dump_stats(profile_filepath)
 
-    print("Simulated {} generations in {} seconds.".format(
+    print("\nSimulated {} generations in {} seconds.".format(
         params.NGEN, round(end - start, 2)))
 
     # Get lineage(s).
@@ -269,10 +271,7 @@ def main(arguments):
     data = {
         'params': params,
         'lineages': lineages,
-        'logbooks': {
-            'fitness': logbook1,
-            'correct': logbook2,
-        },
+        'logbook': logbook,
         'hof': [ind.animat for ind in hof],
         'metadata': {
             'elapsed': end - start,
