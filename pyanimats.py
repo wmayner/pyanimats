@@ -257,9 +257,16 @@ def main(arguments):
         params.NGEN, round(end - start, 2)))
 
     # Get lineage(s).
-    lineages = [tuple(ind.lineage())[::INDIVIDUAL_RECORDING_INTERVAL]
-                for ind in (population if SAVE_ALL_LINEAGES else
-                            [max(population, key=lambda ind: ind.correct)])]
+    if SAVE_ALL_LINEAGES:
+        to_save = population
+    else:
+        to_save = [max(population, key=lambda ind: ind.correct)]
+    if INDIVIDUAL_RECORDING_INTERVAL > 0:
+        lineages = [tuple(ind.lineage())[::INDIVIDUAL_RECORDING_INTERVAL]
+                    for ind in to_save]
+    else:
+        lineages = [(ind.animat,) for ind in to_save]
+
     # Save data.
     data = {
         'params': params,
