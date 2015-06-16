@@ -9,6 +9,7 @@ Fitness functions for driving animat evolution.
 import math
 import numpy as np
 from sklearn.metrics import mutual_info_score
+import pyphi
 
 import textwrap
 wrapper = textwrap.TextWrapper(width=80)
@@ -92,3 +93,32 @@ def mi(ind):
     mi_nats = mutual_info_score(None, None, contingency=contingency)
     # Convert from nats to bits and return.
     return mi_nats / BIT_CONVERSION_FACTOR
+
+
+# Extrinsic cause information
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def most_frequent_states(game, n=5):
+    """Return the ``n`` most frequent states given a game history."""
+    # TODO implement most_frequent_states
+    pass
+
+
+@register
+def ex(ind):
+    """Extrinsic cause information: Animats are evaluated based on the sum of φ
+    for concepts that are “about” the sensors."""
+    # TODO implement extrinsic cause info
+    game = ind.play_game()
+    state = [0] * 8
+    subsystem = ind.brain_and_sensors(state)
+
+    hidden = subsystem.indices2nodes(params.HIDDEN_INDICES)
+    sensors = subsystem.indices2nodes(params.SENSOR_INDICES)
+
+    mechanisms = tuple(pyphi.utils.powerset(hidden))
+    purviews = tuple(pyphi.utils.powerset(sensors))
+
+    mice = [subsystem.core_cause(mechanism, purviews)
+            for mechanism in mechanisms]
+    return sum(m.phi for m in mice)
