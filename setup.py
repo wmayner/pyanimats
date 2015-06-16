@@ -33,9 +33,10 @@ setup_requires = [
 ]
 
 install_requires = setup_requires + [
-    'deap'
     'yaml'
+    'deap'
     'docopt'
+    'pyphi'
 ]
 
 setup(

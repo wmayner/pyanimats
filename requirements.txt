@@ -1,5 +1,6 @@
+yaml
 cython
 numpy
 deap
 docopt
-yaml
+pyphi

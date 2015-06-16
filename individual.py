@@ -4,6 +4,8 @@
 
 import numpy as np
 from copy import deepcopy
+import pyphi
+
 from parameters import params
 from animat import Animat
 
@@ -14,6 +16,7 @@ class Individual:
         self.parent = parent
         self.animat = Animat(genome)
         self.gen = gen
+        self._network = False
         # Mark whether the animat's phenotype needs updating.
         self._dirty_phenotype = True
 
@@ -51,6 +54,16 @@ class Individual:
         return np.array(self.animat.tpm).astype(float)
 
     @property
+    def network(self):
+        """The PyPhi network representing the animat in the given state."""
+        if self._network is False:
+            # TODO remove state as network parameters, not used
+            state = [0]*params.NUM_NODES
+            self._network = pyphi.Network(self.tpm, state,
+                                          connectivity_matrix=self.cm)
+        return self._network
+
+    @property
     def correct(self):
         """The number of correct catches/avoidances in the game."""
         return self.animat.correct
@@ -76,6 +89,27 @@ class Individual:
             if key not in ('animat', 'parent'):
                 copy.__dict__[key] = deepcopy(val, memo)
         return copy
+
+    def as_subsystem(self, state):
+        """Return the PyPhi subsystem consisting of all the animat's nodes."""
+        return pyphi.Subsystem(range(params.NUM_NODES), self.network)
+
+    def brain(self, state):
+        """Return the PyPhi subsystem consisting of the animat's hidden
+        units."""
+        return pyphi.Subsystem(params.HIDDEN_INDICES, self.network)
+
+    def brain_and_sensors(self, state):
+        """Return the PyPhi subsystem consisting of the animat's hidden
+        units and sensors."""
+        return pyphi.Subsystem(params.HIDDEN_INDICES + params.SENSOR_INDICES,
+                               self.network)
+
+    def brain_and_motors(self, state):
+        """Return the PyPhi subsystem consisting of the animat's hidden
+        units and motors."""
+        return pyphi.Subsystem(params.HIDDEN_INDICES + params.MOTOR_INDICES,
+                               self.network)
 
     def mutate(self):
         """Mutate the animat's genome in-place."""
