@@ -132,6 +132,13 @@ class Parameters(dict):
         # them as an exponent.
         if self['FITNESS_FUNCTION'] == 'mi':
             self['FITNESS_EXPONENT_SCALE'] = 64
+        # Get sensor, hidden unit, and motor indices.
+        self['SENSOR_INDICES'] = tuple(range(self['NUM_SENSORS']))
+        self['HIDDEN_INDICES'] = tuple(
+            range(self['NUM_SENSORS'], (self['NUM_NODES'] -
+                                        self['NUM_MOTORS'])))
+        self['MOTOR_INDICES'] = tuple(
+            range(self['NUM_NODES'] - self['NUM_MOTORS'], self['NUM_NODES']))
         # Make entries accessible via dot-notation.
         self.__dict__ = self
 
