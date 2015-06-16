@@ -92,10 +92,11 @@ class Individual:
             params.HIT_MULTIPLIERS,
             params.BLOCK_PATTERNS,
             scramble_world=params.SCRAMBLE_WORLD)
-        # TODO remove this assertion at some point for speed
         # Check that everything adds up.
         assert self.animat.correct + self.animat.incorrect == params.NUM_TRIALS
-        return transitions
+        return transitions.reshape(
+            params.NUM_TRIALS, params.WORLD_HEIGHT, params.NUM_NODES)
+
 
     def lineage(self):
         """Return a generator for the lineage of this individual."""

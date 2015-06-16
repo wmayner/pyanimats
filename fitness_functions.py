@@ -59,8 +59,7 @@ def nat(ind):
 # Mutual information
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
-def bitlist(i, padlength):
+def _bitlist(i, padlength):
     """Return a list of the bits of an integer, padded up to ``padlength``."""
     return list(map(int, bin(i)[2:].zfill(padlength)))
 
@@ -68,7 +67,7 @@ def bitlist(i, padlength):
 NUM_SENSOR_STATES = 2**params.NUM_SENSORS
 NUM_MOTOR_STATES = 2**params.NUM_MOTORS
 SENSOR_MOTOR_STATES = [
-    ((i, j), bitlist(i, params.NUM_SENSORS) + bitlist(j, params.NUM_MOTORS))
+    ((i, j), _bitlist(i, params.NUM_SENSORS) + _bitlist(j, params.NUM_MOTORS))
     for i in range(NUM_SENSOR_STATES) for j in range(NUM_MOTOR_STATES)
 ]
 BIT_CONVERSION_FACTOR = math.log(2)
@@ -76,12 +75,10 @@ BIT_CONVERSION_FACTOR = math.log(2)
 
 @register
 def mi(ind):
-    # TODO implement mutual information
     """Mutual information: Animats are evaluated based on the mutual
     information between their sensors and motors."""
     # Play the game and get the state transitions for each trial.
-    game = np.array(ind.play_game()).reshape(
-        params.NUM_TRIALS, params.WORLD_HEIGHT, params.NUM_NODES)
+    game = ind.play_game()
     # The contingency matrix has a row for every sensors state and a column for
     # every motor state.
     contingency = np.zeros([NUM_SENSOR_STATES, NUM_MOTOR_STATES])
