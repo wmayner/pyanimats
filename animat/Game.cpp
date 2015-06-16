@@ -85,8 +85,18 @@ void executeGame(vector<unsigned char> &stateTransitions, Agent* agent,
 
                     // Activate sensors if block is in line of sight
                     // TODO(wmayner) parametrize sensor location on agent body
-                    agent->states[0] = (world_state >> worldTransform[agentPos]) & 1;
-                    agent->states[1] = (world_state >> worldTransform[wrap(agentPos + 2)]) & 1;
+                    if (NUM_SENSORS == 2) {
+                        agent->states[0] = (world_state >>
+                                worldTransform[agentPos]) & 1;
+                        agent->states[1] = (world_state >>
+                                worldTransform[wrap(agentPos + 2)]) & 1;
+                    }
+                    if (NUM_SENSORS == 3) {
+                        for (int i = 0; i < 3; i++)
+                            agent->states[i] = (world_state >>
+                                    worldTransform[agentPos + i]) & 1;
+                    }
+
 
                     // TODO(wmayner) parameterize changing sensors mid-evolution
                     // Larissa: Set to 0 to evolve agents with just one sensor
