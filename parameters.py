@@ -130,7 +130,7 @@ class Parameters(dict):
         self['HIT_MULTIPLIERS'], self['BLOCK_PATTERNS'] = zip(*int_tasks)
         # Scale raw fitness values so they're in the range 0–128 before using
         # them as an exponent.
-        if self['FITNESS_FUNCTION'] == 'mi':
+        if self['FITNESS_FUNCTION'] in ['mi', 'ex']:
             self['FITNESS_EXPONENT_SCALE'] = 64
         # Get sensor, hidden unit, and motor indices.
         self['SENSOR_INDICES'] = tuple(range(self['NUM_SENSORS']))
