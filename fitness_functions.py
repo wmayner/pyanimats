@@ -98,30 +98,24 @@ def mi(ind):
 # Extrinsic cause information
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def _state_counts(game):
-    """Return a dictionary pairing animat states with the number of times they
-    occured in the game."""
-    game = game.reshape(game.shape[0] * game.shape[1], game.shape[2])
-    counts = {}
-    for state in game:
-        key = tuple(state)
-        if key not in counts:
-            counts[key] = 0
-        counts[key] += 1
-    return counts
-
-
-def _sorted_state_counts(game):
-    """Return the ``n`` most frequent states given a game history."""
-    return sorted(_state_counts(game).items(), key=lambda x: x[1],
-                  reverse=True)
-
-
-def _most_frequent_states(game, n=False):
-    counts = _sorted_state_counts(game)
-    if not n:
-        n = len(counts)
-        return list(zip(*counts[:n])[0])
+def _most_common_states(game, n=False):
+    # Get the array in 2D form.
+    game = game.reshape(-1, game.shape[-1])
+    # Lexicographically sort.
+    sorted_game = game[np.lexsort(game.T), :]
+    # Get the indices where a new state appears.
+    diff_idx = np.where(np.any(np.diff(sorted_game, axis=0), 1))[0]
+    # Get the unique states.
+    unique_states = [sorted_game[i] for i in diff_idx] + [sorted_game[-1]]
+    # Get the number of occurences of each unique state (the -1 is needed at
+    # the beginning, rather than 0, because of fencepost concerns).
+    counts = np.diff(np.insert(diff_idx, 0, -1))
+    # Return all by default.
+    if n is False or n > counts.size:
+        n = counts.size
+    # Return the (row, count) pairs sorted by count.
+    return list(sorted(zip(unique_states, counts), key=lambda x: x[1],
+                       reverse=True))[:n]
 
 
 @register
@@ -129,9 +123,9 @@ def ex(ind):
     """Extrinsic cause information: Animats are evaluated based on the sum of φ
     for concepts that are “about” the sensors."""
     game = ind.play_game()
-    states = _state_counts(game).keys()
-    sums = np.empty(len(states))
-    for i, state in enumerate(states):
+    unique_states_and_counts = _most_common_states(game)
+    sums = np.empty(len(unique_states_and_counts))
+    for i, (state, count) in enumerate(unique_states_and_counts):
         subsystem = ind.brain_and_sensors(state)
 
         hidden = subsystem.indices2nodes(params.HIDDEN_INDICES)
