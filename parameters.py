@@ -128,10 +128,15 @@ class Parameters(dict):
         int_tasks = [(task[0], int(task[1][::-1], 2))
                      for task in self['TASKS']]
         self['HIT_MULTIPLIERS'], self['BLOCK_PATTERNS'] = zip(*int_tasks)
-        # Scale raw fitness values so they're in the range 0–128 before using
-        # them as an exponent.
-        if self['FITNESS_FUNCTION'] in ['mi', 'ex']:
+        # Scale raw mutual information values so they're in the range 0–128
+        # before using them as an exponent (the max is 2 bits).
+        if self['FITNESS_FUNCTION'] == 'mi':
             self['FITNESS_EXPONENT_SCALE'] = 64
+        # Scale raw extrinsic cause information values so they're in the same
+        # range (the highest observed so far is around 14 or so, according to
+        # Jaime—this assumes a max of 16).
+        if self['FITNESS_FUNCTION'] == 'ex':
+            self['FITNESS_EXPONENT_SCALE'] = 8
         # Get sensor, hidden unit, and motor indices.
         self['SENSOR_INDICES'] = tuple(range(self['NUM_SENSORS']))
         self['HIDDEN_INDICES'] = tuple(
