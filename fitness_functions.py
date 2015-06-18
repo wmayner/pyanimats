@@ -6,13 +6,13 @@
 Fitness functions for driving animat evolution.
 """
 
+import textwrap
+wrapper = textwrap.TextWrapper(width=80)
+
 import math
 import numpy as np
 from sklearn.metrics import mutual_info_score
 import pyphi
-
-import textwrap
-wrapper = textwrap.TextWrapper(width=80)
 
 from parameters import params
 

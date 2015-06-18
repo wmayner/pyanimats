@@ -20,6 +20,15 @@ class Individual:
         # Mark whether the animat's phenotype needs updating.
         self._dirty_phenotype = True
 
+    def __str__(self):
+        string = ('Individual(gen={}, genome={}, '
+                  'connectivity_matrix=\n{})'.format(
+                      self.gen, np.array(self.genome), self.cm))
+        return string.replace('\n', '\n' + ' ' * 11)
+
+    def __repr__(self):
+        return str(self)
+
     @property
     def genome(self):
         """The animat's genome."""
