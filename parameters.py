@@ -29,6 +29,7 @@ DEFAULTS = {
     'MUTATION_PROB': 0.005,
     'FITNESS_BASE': 1.02,
     'FITNESS_EXPONENT_SCALE': 1,
+    'FITNESS_EXPONENT_ADD': 0,
     'DUPLICATION_PROB': 0.05,
     'DELETION_PROB': 0.02,
     'MAX_GENOME_LENGTH': 10000,
@@ -61,6 +62,8 @@ param_name_and_types = {
     '--min-length': ('MIN_GENOME_LENGTH', int),
     '--min-dup-del': ('MIN_DUP_DEL_WIDTH', int),
     '--fit-base': ('FITNESS_BASE', float),
+    '--fit-exp-add': ('FITNESS_EXPONENT_ADD', float),
+    '--fit-exp-scale': ('FITNESS_EXPONENT_SCALE', float),
 }
 
 
@@ -128,15 +131,19 @@ class Parameters(dict):
         int_tasks = [(task[0], int(task[1][::-1], 2))
                      for task in self['TASKS']]
         self['HIT_MULTIPLIERS'], self['BLOCK_PATTERNS'] = zip(*int_tasks)
-        # Scale raw mutual information values so they're in the range 0–128
-        # before using them as an exponent (the max is 2 bits).
+        # Scale raw mutual information values so they're in the range 64–128
+        # before using them as an exponent (the max is either the number of
+        # sensors or of motors, whichever is smaller).
         if self['FITNESS_FUNCTION'] == 'mi':
-            self['FITNESS_EXPONENT_SCALE'] = 64
-        # Scale raw extrinsic cause information values so they're in the same
-        # range (the highest observed so far is around 14 or so, according to
+            self['FITNESS_EXPONENT_SCALE'] = 64 / min(self['NUM_SENSORS'],
+                                                      self['NUM_MOTORS'])
+            self['FITNESS_EXPONENT_ADD'] = 64
+        # Scale raw extrinsic cause information values so they're in the range
+        # 64–128 (the highest observed so far is around 14 or so, according to
         # Jaime—this assumes a max of 16).
         if self['FITNESS_FUNCTION'] == 'ex':
-            self['FITNESS_EXPONENT_SCALE'] = 8
+            self['FITNESS_EXPONENT_SCALE'] = 64 / 16
+            self['FITNESS_EXPONENT_ADD'] = 64
         # Get sensor, hidden unit, and motor indices.
         self['SENSOR_INDICES'] = tuple(range(self['NUM_SENSORS']))
         self['HIDDEN_INDICES'] = tuple(

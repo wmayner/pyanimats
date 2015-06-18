@@ -15,28 +15,31 @@ Usage:
     evolve.py -v | --version
 
 Options:
-    -h, --help                Show this
-    -v, --version             Show version
-        --list-fitness-funcs  List available fitness functions
-    -n, --num-gen=NGEN        Number of generations to simulate [default: 10]
-    -s, --seed=SEED           Random number generator seed [default: 0]
-    -f, --fitness=FUNC        Fitness function [default: nat]
-    -m, --mut-prob=PROB       Nucleotide mutation probability [default: 0.005]
-    -p, --pop-size=SIZE       Population size [default: 100]
-    -d, --data-record=FREQ    Logbook recording interval [default: 1]
-    -i, --ind-record=FREQ     Full individual recording interval [default: 1]
-    -l, --log-stdout=FREQ     Status printing interval [default: 1]
-    -a, --all-lineages        Save lineages of entire final population
-        --scramble            Randomly rearrange the world in each trial
-        --dup-prob=PROB       Duplication probability [default: 0.05]
-        --del-prob=PROB       Deletion probability [default: 0.02]
-        --max-length=LENGTH   Maximum genome length [default: 10000]
-        --min-length=LENGTH   Minimum genome length [default: 1000]
-        --min-dup-del=LENGTH  Minimum length of duplicated/deleted genome part
-                                [default: 15]
-        --fit-base=FLOAT      Base used in the fitness function (see
-                                --list-fitness-funcs) [default: 1.02]
-        --profile=PATH        Profile performance and store results at PATH
+    -h, --help                 Show this
+    -v, --version              Show version
+        --list-fitness-funcs   List available fitness functions
+    -n, --num-gen=NGEN         Number of generations to simulate [default: 10]
+    -s, --seed=SEED            Random number generator seed [default: 0]
+    -f, --fitness=FUNC         Fitness function [default: nat]
+    -m, --mut-prob=PROB        Nucleotide mutation probability [default: 0.005]
+    -p, --pop-size=SIZE        Population size [default: 100]
+    -d, --data-record=FREQ     Logbook recording interval [default: 1]
+    -i, --ind-record=FREQ      Full individual recording interval [default: 1]
+    -l, --log-stdout=FREQ      Status printing interval [default: 1]
+    -a, --all-lineages         Save lineages of entire final population
+        --scramble             Randomly rearrange the world in each trial
+        --dup-prob=PROB        Duplication probability [default: 0.05]
+        --del-prob=PROB        Deletion probability [default: 0.02]
+        --max-length=LENGTH    Maximum genome length [default: 10000]
+        --min-length=LENGTH    Minimum genome length [default: 1000]
+        --min-dup-del=LENGTH   Minimum length of duplicated/deleted genome part
+                                 [default: 15]
+        --fit-base=FLOAT       Base used in the fitness function (see
+                                 --list-fitness-funcs) [default: 1.02]
+        --fit-exp-add=FLOAT    Add this term to the fitness exponent.
+        --fit-exp-scale=FLOAT  Scale raw fitness values before they're used as
+                                an exponent.
+        --profile=PATH         Profile performance and store results at PATH
                                 [default: profiling/profile.pstats]
 
 Note: command-line arguments override parameters in the <params.yml> file.
@@ -86,8 +89,8 @@ class ExponentialFitness:
     @value.setter
     def value(self, v):
         self.raw = v
-        self.exponential = params.FITNESS_BASE**(params.FITNESS_EXPONENT_SCALE
-                                                 * v)
+        self.exponential = params.FITNESS_BASE**(
+            params.FITNESS_EXPONENT_ADD + params.FITNESS_EXPONENT_SCALE * v)
 
 
 def select(individuals, k):
