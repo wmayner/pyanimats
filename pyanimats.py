@@ -20,7 +20,7 @@ Options:
         --list-fitness-funcs  List available fitness functions
     -n, --num-gen=NGEN        Number of generations to simulate [default: 10]
     -s, --seed=SEED           Random number generator seed [default: 0]
-    -f, --fitness=FUNC        Fitness function [default: natural]
+    -f, --fitness=FUNC        Fitness function [default: nat]
     -m, --mut-prob=PROB       Nucleotide mutation probability [default: 0.005]
     -p, --pop-size=SIZE       Population size [default: 100]
     -d, --data-record=FREQ    Logbook recording interval [default: 1]

@@ -15,7 +15,7 @@ import animat
 DEFAULTS = {
     # Simulation parameters.
     'NGEN': 10,
-    'FITNESS_FUNCTION': 'natural',
+    'FITNESS_FUNCTION': 'nat',
     'SEED': 0,
     'TASKS': (
         ( 1, '1000000000000000'),
