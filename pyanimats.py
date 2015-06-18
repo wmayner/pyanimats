@@ -63,8 +63,17 @@ PROFILING = False
 
 class ExponentialFitness:
 
+    def __init__(self, value=0.0):
+        self.value = value
+
     def __eq__(self, other):
         return self.value == other.value
+
+    def __repr__(self):
+        return 'ExponentialFitness({})'.format(self.raw)
+
+    def __str__(self):
+        return '(raw={}, exponential={})'.format(self.raw, self.exponential)
 
     @functools.total_ordering
     def __lt__(self, other):
