@@ -34,7 +34,7 @@ Options:
         --min-length=LENGTH   Minimum genome length [default: 1000]
         --min-dup-del=LENGTH  Minimum length of duplicated/deleted genome part
                                 [default: 15]
-        --nat-fit-base=FLOAT  Base used in the natural fitness function (see
+        --fit-base=FLOAT      Base used in the fitness function (see
                                 --list-fitness-funcs) [default: 1.02]
         --profile=PATH        Profile performance and store results at PATH
                                 [default: profiling/profile.pstats]

@@ -27,7 +27,7 @@ DEFAULTS = {
     'POPSIZE': 100,
     # Evolution parameters.
     'MUTATION_PROB': 0.005,
-    'NATURAL_FITNESS_BASE': 1.02,
+    'FITNESS_BASE': 1.02,
     'FITNESS_EXPONENT_SCALE': 1,
     'DUPLICATION_PROB': 0.05,
     'DELETION_PROB': 0.02,
@@ -60,7 +60,7 @@ param_name_and_types = {
     '--max-length': ('MAX_GENOME_LENGTH', int),
     '--min-length': ('MIN_GENOME_LENGTH', int),
     '--min-dup-del': ('MIN_DUP_DEL_WIDTH', int),
-    '--nat-fit-base': ('NATURAL_FITNESS_BASE', float),
+    '--fit-base': ('FITNESS_BASE', float),
 }
 
 
