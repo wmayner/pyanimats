@@ -17,8 +17,9 @@ class Individual:
         self.animat = Animat(genome)
         self.gen = gen
         self._network = False
-        # Mark whether the animat's phenotype needs updating.
+        # Mark whether the animat's phenotype and network need updating.
         self._dirty_phenotype = True
+        self._dirty_network = True
 
     def __str__(self):
         string = ('Individual(gen={}, genome={}, '
@@ -65,11 +66,12 @@ class Individual:
     @property
     def network(self):
         """The PyPhi network representing the animat in the given state."""
-        if self._network is False:
+        if self._dirty_network:
             # TODO remove state as network parameters, not used
             state = [0]*params.NUM_NODES
             self._network = pyphi.Network(self.tpm, state,
                                           connectivity_matrix=self.cm)
+            self._dirty_network = False
         return self._network
 
     @property
@@ -92,33 +94,37 @@ class Individual:
         return False
 
     def __deepcopy__(self, memo):
-        # Don't copy the animat or the parent.
+        # Don't copy the underlying animat, parent, or PyPhi network.
         copy = Individual(genome=self.animat.genome, parent=self.parent)
         for key, val in self.__dict__.items():
-            if key not in ('animat', 'parent'):
+            if key not in ('animat', 'parent', '_network', '_dirty_network'):
                 copy.__dict__[key] = deepcopy(val, memo)
         return copy
 
+    def as_network(self, state):
+        """Return the PyPhi subsystem consisting of all the animat's nodes."""
+        return pyphi.Network(self.tpm, state, connectivity_matrix=self.cm)
+
     def as_subsystem(self, state):
         """Return the PyPhi subsystem consisting of all the animat's nodes."""
-        return pyphi.Subsystem(range(params.NUM_NODES), self.network)
+        return pyphi.Subsystem(range(params.NUM_NODES), self.as_network(state))
 
     def brain(self, state):
         """Return the PyPhi subsystem consisting of the animat's hidden
         units."""
-        return pyphi.Subsystem(params.HIDDEN_INDICES, self.network)
+        return pyphi.Subsystem(params.HIDDEN_INDICES, self.as_network(state))
 
     def brain_and_sensors(self, state):
         """Return the PyPhi subsystem consisting of the animat's hidden
         units and sensors."""
         return pyphi.Subsystem(params.HIDDEN_INDICES + params.SENSOR_INDICES,
-                               self.network)
+                               self.as_network(state))
 
     def brain_and_motors(self, state):
         """Return the PyPhi subsystem consisting of the animat's hidden
         units and motors."""
         return pyphi.Subsystem(params.HIDDEN_INDICES + params.MOTOR_INDICES,
-                               self.network)
+                               self.as_network(state))
 
     def mutate(self):
         """Mutate the animat's genome in-place."""
@@ -126,6 +132,7 @@ class Individual:
                            params.DELETION_PROB, params.MIN_GENOME_LENGTH,
                            params.MAX_GENOME_LENGTH)
         self._dirty_phenotype = True
+        self._dirty_network = True
 
     def play_game(self):
         """Return the list of state transitions the animat goes through when
