@@ -67,9 +67,7 @@ class Individual:
     def network(self):
         """The PyPhi network representing the animat in the given state."""
         if self._dirty_network:
-            # TODO remove state as network parameters, not used
-            state = [0]*params.NUM_NODES
-            self._network = pyphi.Network(self.tpm, state,
+            self._network = pyphi.Network(self.tpm,
                                           connectivity_matrix=self.cm)
             self._dirty_network = False
         return self._network
@@ -101,30 +99,26 @@ class Individual:
                 copy.__dict__[key] = deepcopy(val, memo)
         return copy
 
-    def as_network(self, state):
-        """Return the PyPhi subsystem consisting of all the animat's nodes."""
-        return pyphi.Network(self.tpm, state, connectivity_matrix=self.cm)
-
     def as_subsystem(self, state):
         """Return the PyPhi subsystem consisting of all the animat's nodes."""
-        return pyphi.Subsystem(range(params.NUM_NODES), self.as_network(state))
+        return pyphi.Subsystem(self.network, state, range(params.NUM_NODES))
 
     def brain(self, state):
         """Return the PyPhi subsystem consisting of the animat's hidden
         units."""
-        return pyphi.Subsystem(params.HIDDEN_INDICES, self.as_network(state))
+        return pyphi.Subsystem(self.network, state, params.HIDDEN_INDICES)
 
     def brain_and_sensors(self, state):
         """Return the PyPhi subsystem consisting of the animat's hidden
         units and sensors."""
-        return pyphi.Subsystem(params.HIDDEN_INDICES + params.SENSOR_INDICES,
-                               self.as_network(state))
+        return pyphi.Subsystem(self.network, state,
+                               params.HIDDEN_INDICES + params.SENSOR_INDICES)
 
     def brain_and_motors(self, state):
         """Return the PyPhi subsystem consisting of the animat's hidden
         units and motors."""
-        return pyphi.Subsystem(params.HIDDEN_INDICES + params.MOTOR_INDICES,
-                               self.as_network(state))
+        return pyphi.Subsystem(self.network, state,
+                               params.HIDDEN_INDICES + params.MOTOR_INDICES)
 
     def mutate(self):
         """Mutate the animat's genome in-place."""
