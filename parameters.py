@@ -156,7 +156,7 @@ class Parameters(dict):
         # Jaime—this assumes a max of 16).
         if self['FITNESS_FUNCTION'] == 'ex':
             if '--fit-exp-scale' not in self._arguments:
-                self['FITNESS_EXPONENT_SCALE'] = 64 / 32
+                self['FITNESS_EXPONENT_SCALE'] = 64 / 4
             if '--fit-exp-add' not in self._arguments:
                 self['FITNESS_EXPONENT_ADD'] = 64
         # Make entries accessible via dot-notation.
