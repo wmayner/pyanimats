@@ -76,8 +76,9 @@ class Parameters(dict):
     arguments or a configuration file instead.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         dict.__init__(self, kwargs)
+        self._arguments = None
         self._refresh()
 
     def __getstate__(self):
@@ -110,6 +111,9 @@ class Parameters(dict):
         for key, value in arguments.items():
             name, cast = param_name_and_types[key]
             self[name] = cast(value)
+        # Save arguments.
+        self._arguments = arguments
+        # Update dervied parameters.
         self._refresh()
 
     def load_from_file(self, param_file):
@@ -131,19 +135,6 @@ class Parameters(dict):
         int_tasks = [(task[0], int(task[1][::-1], 2))
                      for task in self['TASKS']]
         self['HIT_MULTIPLIERS'], self['BLOCK_PATTERNS'] = zip(*int_tasks)
-        # Scale raw mutual information values so they're in the range 64–128
-        # before using them as an exponent (the max is either the number of
-        # sensors or of motors, whichever is smaller).
-        if self['FITNESS_FUNCTION'] == 'mi':
-            self['FITNESS_EXPONENT_SCALE'] = 64 / min(self['NUM_SENSORS'],
-                                                      self['NUM_MOTORS'])
-            self['FITNESS_EXPONENT_ADD'] = 64
-        # Scale raw extrinsic cause information values so they're in the range
-        # 64–128 (the highest observed so far is around 14 or so, according to
-        # Jaime—this assumes a max of 16).
-        if self['FITNESS_FUNCTION'] == 'ex':
-            self['FITNESS_EXPONENT_SCALE'] = 64 / 16
-            self['FITNESS_EXPONENT_ADD'] = 64
         # Get sensor, hidden unit, and motor indices.
         self['SENSOR_INDICES'] = tuple(range(self['NUM_SENSORS']))
         self['HIDDEN_INDICES'] = tuple(
@@ -151,6 +142,23 @@ class Parameters(dict):
                                         self['NUM_MOTORS'])))
         self['MOTOR_INDICES'] = tuple(
             range(self['NUM_NODES'] - self['NUM_MOTORS'], self['NUM_NODES']))
+        # Scale raw mutual information values so they're in the range 64–128
+        # before using them as an exponent (the max is either the number of
+        # sensors or of motors, whichever is smaller).
+        if self['FITNESS_FUNCTION'] == 'mi':
+            if '--fit-exp-scale' not in self._arguments:
+                self['FITNESS_EXPONENT_SCALE'] = 64 / min(self['NUM_SENSORS'],
+                                                          self['NUM_MOTORS'])
+            if '--fit-exp-add' not in self._arguments:
+                self['FITNESS_EXPONENT_ADD'] = 64
+        # Scale raw extrinsic cause information values so they're in the range
+        # 64–128 (the highest observed so far is around 14 or so, according to
+        # Jaime—this assumes a max of 16).
+        if self['FITNESS_FUNCTION'] == 'ex':
+            if '--fit-exp-scale' not in self._arguments:
+                self['FITNESS_EXPONENT_SCALE'] = 64 / 32
+            if '--fit-exp-add' not in self._arguments:
+                self['FITNESS_EXPONENT_ADD'] = 64
         # Make entries accessible via dot-notation.
         self.__dict__ = self
 
