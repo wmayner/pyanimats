@@ -15,39 +15,42 @@ Usage:
     evolve.py -v | --version
 
 Options:
-    -h, --help                Show this
-    -v, --version             Show version
-        --list-fitness-funcs  List available fitness functions
-    -n, --num-gen=NGEN        Number of generations to simulate [default: 10]
-    -s, --seed=SEED           Random number generator seed [default: 0]
-    -f, --fitness=FUNC        Fitness function [default: natural]
-    -m, --mut-prob=PROB       Nucleotide mutation probability [default: 0.005]
-    -p, --pop-size=SIZE       Population size [default: 100]
-    -d, --data-record=FREQ    Logbook recording interval [default: 1]
-    -i, --ind-record=FREQ     Full individual recording interval [default: 1]
-    -l, --log-stdout=FREQ     Status printing interval [default: 1]
-    -a, --all-lineages        Save lineages of entire final population
-        --scramble            Randomly rearrange the world in each trial
-        --dup-prob=PROB       Duplication probability [default: 0.05]
-        --del-prob=PROB       Deletion probability [default: 0.02]
-        --max-length=LENGTH   Maximum genome length [default: 10000]
-        --min-length=LENGTH   Minimum genome length [default: 1000]
-        --min-dup-del=LENGTH  Minimum length of duplicated/deleted genome part
-                                [default: 15]
-        --nat-fit-base=FLOAT  Base used in the natural fitness function (see
-                                --list-fitness-funcs) [default: 1.02]
-        --profile=PATH        Profile performance and store results at PATH
+    -h, --help                 Show this
+    -v, --version              Show version
+        --list-fitness-funcs   List available fitness functions
+    -n, --num-gen=NGEN         Number of generations to simulate [default: 10]
+    -s, --seed=SEED            Random number generator seed [default: 0]
+    -f, --fitness=FUNC         Fitness function [default: nat]
+    -m, --mut-prob=PROB        Nucleotide mutation probability [default: 0.005]
+    -p, --pop-size=SIZE        Population size [default: 100]
+    -d, --data-record=FREQ     Logbook recording interval [default: 1]
+    -i, --ind-record=FREQ      Full individual recording interval [default: 1]
+    -l, --log-stdout=FREQ      Status printing interval [default: 1]
+    -a, --all-lineages         Save lineages of entire final population
+        --scramble             Randomly rearrange the world in each trial
+        --dup-prob=PROB        Duplication probability [default: 0.05]
+        --del-prob=PROB        Deletion probability [default: 0.02]
+        --max-length=LENGTH    Maximum genome length [default: 10000]
+        --min-length=LENGTH    Minimum genome length [default: 1000]
+        --min-dup-del=LENGTH   Minimum length of duplicated/deleted genome part
+                                 [default: 15]
+        --fit-base=FLOAT       Base used in the fitness function (see
+                                 --list-fitness-funcs) [default: 1.02]
+        --fit-exp-add=FLOAT    Add this term to the fitness exponent.
+        --fit-exp-scale=FLOAT  Scale raw fitness values before they're used as
+                                an exponent.
+        --profile=PATH         Profile performance and store results at PATH
                                 [default: profiling/profile.pstats]
 
 Note: command-line arguments override parameters in the <params.yml> file.
 """
 
-__version__ = '0.0.5'
+__version__ = '0.0.8'
 
 import os
 import pickle
 import random
-import numpy
+import numpy as np
 from time import time
 import cProfile
 
@@ -70,13 +73,13 @@ def select(individuals, k):
 
     This function uses the :func:`~random.random` function from the built-in
     :mod:`random` module."""
-    max_fitness = max([ind.fitness.values[0] for ind in individuals])
+    max_fitness = max([ind.fitness.value for ind in individuals])
     chosen = []
     for i in range(k):
         done = False
         while not done:
             candidate = random.choice(individuals)
-            done = random.random() <= (candidate.fitness.values[0] /
+            done = random.random() <= (candidate.fitness.value /
                                        max_fitness)
         chosen.append(candidate)
     return chosen
@@ -139,9 +142,7 @@ def main(arguments):
     toolbox = base.Toolbox()
 
     # Register the various genetic algorithm components to the toolbox.
-    creator.create('Fitness', base.Fitness, weights=(1.0,))
-    creator.create('Individual', Individual, fitness=creator.Fitness)
-    toolbox.register('individual', creator.Individual, params.INIT_GENOME)
+    toolbox.register('individual', Individual, params.INIT_GENOME)
     toolbox.register('population', tools.initRepeat, list, toolbox.individual)
     toolbox.register('evaluate',
                      fitness_functions.__dict__[params.FITNESS_FUNCTION])
@@ -149,22 +150,31 @@ def main(arguments):
     toolbox.register('mutate', mutate)
 
     # Create statistics trackers.
-    fitness_stats = tools.Statistics(key=lambda ind: ind.fitness.values)
-    fitness_stats.register('avg', numpy.mean)
-    fitness_stats.register('std', numpy.std)
-    fitness_stats.register('min', numpy.min)
-    fitness_stats.register('max', numpy.max)
+    fitness_stats = tools.Statistics(key=lambda ind: ind.fitness.raw)
+    fitness_stats.register('avg', np.mean)
+    fitness_stats.register('std', np.std)
+    fitness_stats.register('min', np.min)
+    fitness_stats.register('max', np.max)
+
+    real_fitness_stats = tools.Statistics(key=lambda ind: ind.fitness.value)
+    real_fitness_stats.register('max', np.max)
 
     correct_stats = tools.Statistics(key=lambda ind: (ind.animat.correct,
                                                       ind.animat.incorrect))
-    correct_stats.register('correct', lambda x: numpy.max(x, 0)[0])
-    correct_stats.register('incorrect', lambda x: numpy.max(x, 0)[1])
+    correct_stats.register('correct', lambda x: np.max(x, 0)[0])
+    correct_stats.register('incorrect', lambda x: np.max(x, 0)[1])
+
+    # Initialize a MultiStatistics object for convenience that allows for only
+    # one call to compile.
+    mstats = tools.MultiStatistics(correct=correct_stats,
+                                   fitness=fitness_stats,
+                                   real_fitness=real_fitness_stats)
 
     # Initialize logbooks and hall of fame.
-    logbook1, logbook2 = tools.Logbook(), tools.Logbook()
+    logbook = tools.Logbook()
     hof = tools.HallOfFame(maxsize=params.POPSIZE)
 
-    print('\nSimulating {} generations...'.format(params.NGEN))
+    print('\nSimulating {} generations...\n'.format(params.NGEN))
 
     if PROFILING:
         pr = cProfile.Profile()
@@ -179,13 +189,13 @@ def main(arguments):
     # Evaluate the initial population.
     fitnesses = toolbox.map(toolbox.evaluate, population)
     for ind, fitness in zip(population, fitnesses):
-        ind.fitness.values = fitness
+        ind.fitness.value = fitness
     # Record stats for initial population.
     hof.update(population)
-    record = fitness_stats.compile(population)
-    logbook1.record(gen=0, **record)
-    record = correct_stats.compile(population)
-    logbook2.record(gen=0, **record)
+    record = mstats.compile(population)
+    logbook.record(gen=0, **record)
+
+    print(logbook)
 
     def process_gen(population, gen):
         # Selection.
@@ -201,27 +211,20 @@ def main(arguments):
             offspring[i].parent = population[i]
         # Evaluation.
         fitnesses = toolbox.map(toolbox.evaluate, offspring)
-        for ind, fit in zip(offspring, fitnesses):
-            ind.fitness.values = fit
+        for ind, fitness in zip(offspring, fitnesses):
+            ind.fitness.value = fitness
         # Recording.
         hof.update(offspring)
         if gen % DATA_RECORDING_INTERVAL == 0:
-            record = fitness_stats.compile(offspring)
-            logbook1.record(gen=gen, **record)
-            record = correct_stats.compile(offspring)
-            logbook2.record(gen=gen, **record)
+            record = mstats.compile(offspring)
+            logbook.record(gen=gen, **record)
         return offspring
 
     # Evolution.
     for gen in range(1, params.NGEN + 1):
         population = process_gen(population, gen)
         if gen % STATUS_PRINTING_INTERVAL == 0:
-            print('[Generation] {}  [Max Correct] {}  [Max Incorrect] {}  '
-                  '[Avg. Fitness]  {}'.format(
-                      str(gen).rjust(len(str(params.NGEN))),
-                      str(logbook2[-1]['correct']).rjust(3),
-                      str(logbook2[-1]['incorrect']).rjust(3),
-                      logbook1[-1]['max']))
+            print(logbook.__str__(startindex=gen))
 
     # Finish
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -231,21 +234,25 @@ def main(arguments):
         pr.disable()
         pr.dump_stats(profile_filepath)
 
-    print("Simulated {} generations in {} seconds.".format(
+    print("\nSimulated {} generations in {} seconds.".format(
         params.NGEN, round(end - start, 2)))
 
     # Get lineage(s).
-    lineages = [tuple(ind.lineage())[::INDIVIDUAL_RECORDING_INTERVAL]
-                for ind in (population if SAVE_ALL_LINEAGES else
-                            [max(population, key=lambda ind: ind.correct)])]
+    if SAVE_ALL_LINEAGES:
+        to_save = population
+    else:
+        to_save = [max(population, key=lambda ind: ind.correct)]
+    if INDIVIDUAL_RECORDING_INTERVAL > 0:
+        lineages = tuple(tuple(ind.lineage())[::INDIVIDUAL_RECORDING_INTERVAL]
+                         for ind in to_save)
+    else:
+        lineages = tuple((ind.animat,) for ind in to_save)
+
     # Save data.
     data = {
         'params': params,
         'lineages': lineages,
-        'logbooks': {
-            'fitness': logbook1,
-            'correct': logbook2,
-        },
+        'logbook': logbook,
         'hof': [ind.animat for ind in hof],
         'metadata': {
             'elapsed': end - start,

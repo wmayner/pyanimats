@@ -15,7 +15,7 @@ import animat
 DEFAULTS = {
     # Simulation parameters.
     'NGEN': 10,
-    'FITNESS_FUNCTION': 'natural',
+    'FITNESS_FUNCTION': 'nat',
     'SEED': 0,
     'TASKS': (
         ( 1, '1000000000000000'),
@@ -27,7 +27,9 @@ DEFAULTS = {
     'POPSIZE': 100,
     # Evolution parameters.
     'MUTATION_PROB': 0.005,
-    'NATURAL_FITNESS_BASE': 1.02,
+    'FITNESS_BASE': 1.02,
+    'FITNESS_EXPONENT_SCALE': 1,
+    'FITNESS_EXPONENT_ADD': 0,
     'DUPLICATION_PROB': 0.05,
     'DELETION_PROB': 0.02,
     'MAX_GENOME_LENGTH': 10000,
@@ -59,8 +61,13 @@ param_name_and_types = {
     '--max-length': ('MAX_GENOME_LENGTH', int),
     '--min-length': ('MIN_GENOME_LENGTH', int),
     '--min-dup-del': ('MIN_DUP_DEL_WIDTH', int),
-    '--nat-fit-base': ('NATURAL_FITNESS_BASE', float),
+    '--fit-base': ('FITNESS_BASE', float),
+    '--fit-exp-add': ('FITNESS_EXPONENT_ADD', float),
+    '--fit-exp-scale': ('FITNESS_EXPONENT_SCALE', float),
 }
+
+# Holds the currently loaded command-line arguments.
+ARGUMENTS = {}
 
 
 class Parameters(dict):
@@ -72,8 +79,9 @@ class Parameters(dict):
     arguments or a configuration file instead.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         dict.__init__(self, kwargs)
+        self._arguments = None
         self._refresh()
 
     def __getstate__(self):
@@ -96,7 +104,7 @@ class Parameters(dict):
         """Set parameters from command-line arguments."""
         # Prune optional arguments that weren't used.
         arguments = {key: value for key, value in arguments.items()
-                     if not (value == False or value is None)}
+                     if not (value is False or value is None)}
         # Load tasks from file if a filename was given.
         if '<tasks.yml>' in arguments:
             with open(arguments['<tasks.yml>'], 'r') as f:
@@ -106,6 +114,9 @@ class Parameters(dict):
         for key, value in arguments.items():
             name, cast = param_name_and_types[key]
             self[name] = cast(value)
+        # Save arguments.
+        ARGUMENTS = arguments
+        # Update dervied parameters.
         self._refresh()
 
     def load_from_file(self, param_file):
@@ -127,6 +138,43 @@ class Parameters(dict):
         int_tasks = [(task[0], int(task[1][::-1], 2))
                      for task in self['TASKS']]
         self['HIT_MULTIPLIERS'], self['BLOCK_PATTERNS'] = zip(*int_tasks)
+        # Get sensor, hidden unit, and motor indices.
+        self['SENSOR_INDICES'] = tuple(range(self['NUM_SENSORS']))
+        self['HIDDEN_INDICES'] = tuple(
+            range(self['NUM_SENSORS'], (self['NUM_NODES'] -
+                                        self['NUM_MOTORS'])))
+        self['MOTOR_INDICES'] = tuple(
+            range(self['NUM_NODES'] - self['NUM_MOTORS'], self['NUM_NODES']))
+        # Scale raw mutual information values so they're in the range 64–128
+        # before using them as an exponent (the max is either the number of
+        # sensors or of motors, whichever is smaller).
+        if self['FITNESS_FUNCTION'] == 'mi':
+            if '--fit-exp-scale' not in ARGUMENTS:
+                self['FITNESS_EXPONENT_SCALE'] = 64 / min(self['NUM_SENSORS'],
+                                                          self['NUM_MOTORS'])
+            if '--fit-exp-add' not in ARGUMENTS:
+                self['FITNESS_EXPONENT_ADD'] = 64
+        # Scale raw extrinsic cause information values so they're in the range
+        # 64–128, assuming a max of 4.
+        if self['FITNESS_FUNCTION'] == 'ex':
+            if '--fit-exp-scale' not in ARGUMENTS:
+                self['FITNESS_EXPONENT_SCALE'] = 64 / 4
+            if '--fit-exp-add' not in ARGUMENTS:
+                self['FITNESS_EXPONENT_ADD'] = 64
+        # Scale raw sum of small-phi values so they're in the range 64–128,
+        # assuming a max of 4.
+        if self['FITNESS_FUNCTION'] == 'sp':
+            if '--fit-exp-scale' not in ARGUMENTS:
+                self['FITNESS_EXPONENT_SCALE'] = 64 / 4
+            if '--fit-exp-add' not in ARGUMENTS:
+                self['FITNESS_EXPONENT_ADD'] = 64
+        # Scale raw big-phi values so they're in the range 64–128, assuming a
+        # max of 4.
+        if self['FITNESS_FUNCTION'] == 'bp':
+            if '--fit-exp-scale' not in ARGUMENTS:
+                self['FITNESS_EXPONENT_SCALE'] = 64 / 4
+            if '--fit-exp-add' not in ARGUMENTS:
+                self['FITNESS_EXPONENT_ADD'] = 64
         # Make entries accessible via dot-notation.
         self.__dict__ = self
 
