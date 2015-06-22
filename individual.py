@@ -4,10 +4,40 @@
 
 import numpy as np
 from copy import deepcopy
+import functools
 import pyphi
 
 from parameters import params
 from animat import Animat
+
+
+class ExponentialFitness:
+
+    def __init__(self, value=0.0):
+        self.value = value
+
+    def __eq__(self, other):
+        return self.value == other.value
+
+    def __repr__(self):
+        return 'ExponentialFitness({})'.format(self.raw)
+
+    def __str__(self):
+        return '(raw={}, exponential={})'.format(self.raw, self.exponential)
+
+    @functools.total_ordering
+    def __lt__(self, other):
+        return self.value < other.value
+
+    @property
+    def value(self):
+        return self.exponential
+
+    @value.setter
+    def value(self, v):
+        self.raw = v
+        self.exponential = params.FITNESS_BASE**(
+            params.FITNESS_EXPONENT_ADD + params.FITNESS_EXPONENT_SCALE * v)
 
 
 class Individual:
@@ -16,6 +46,7 @@ class Individual:
         self.parent = parent
         self.animat = Animat(genome)
         self.gen = gen
+        self.fitness = ExponentialFitness()
         self._network = False
         # Mark whether the animat's phenotype and network need updating.
         self._dirty_phenotype = True

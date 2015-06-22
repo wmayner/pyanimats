@@ -49,7 +49,6 @@ __version__ = '0.0.7'
 
 import os
 import pickle
-import functools
 import random
 import numpy as np
 from time import time
@@ -62,35 +61,6 @@ from deap import creator, base, tools
 
 
 PROFILING = False
-
-
-class ExponentialFitness:
-
-    def __init__(self, value=0.0):
-        self.value = value
-
-    def __eq__(self, other):
-        return self.value == other.value
-
-    def __repr__(self):
-        return 'ExponentialFitness({})'.format(self.raw)
-
-    def __str__(self):
-        return '(raw={}, exponential={})'.format(self.raw, self.exponential)
-
-    @functools.total_ordering
-    def __lt__(self, other):
-        return self.value < other.value
-
-    @property
-    def value(self):
-        return self.exponential
-
-    @value.setter
-    def value(self, v):
-        self.raw = v
-        self.exponential = params.FITNESS_BASE**(
-            params.FITNESS_EXPONENT_ADD + params.FITNESS_EXPONENT_SCALE * v)
 
 
 def select(individuals, k):
@@ -172,8 +142,7 @@ def main(arguments):
     toolbox = base.Toolbox()
 
     # Register the various genetic algorithm components to the toolbox.
-    creator.create('Individual', Individual, fitness=ExponentialFitness)
-    toolbox.register('individual', creator.Individual, params.INIT_GENOME)
+    toolbox.register('individual', Individual, params.INIT_GENOME)
     toolbox.register('population', tools.initRepeat, list, toolbox.individual)
     toolbox.register('evaluate',
                      fitness_functions.__dict__[params.FITNESS_FUNCTION])
