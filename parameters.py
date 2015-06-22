@@ -66,6 +66,9 @@ param_name_and_types = {
     '--fit-exp-scale': ('FITNESS_EXPONENT_SCALE', float),
 }
 
+# Holds the currently loaded command-line arguments.
+ARGUMENTS = {}
+
 
 class Parameters(dict):
 
@@ -112,7 +115,7 @@ class Parameters(dict):
             name, cast = param_name_and_types[key]
             self[name] = cast(value)
         # Save arguments.
-        self._arguments = arguments
+        ARGUMENTS = arguments
         # Update dervied parameters.
         self._refresh()
 
@@ -146,10 +149,10 @@ class Parameters(dict):
         # before using them as an exponent (the max is either the number of
         # sensors or of motors, whichever is smaller).
         if self['FITNESS_FUNCTION'] == 'mi':
-            if '--fit-exp-scale' not in self._arguments:
+            if '--fit-exp-scale' not in ARGUMENTS:
                 self['FITNESS_EXPONENT_SCALE'] = 64 / min(self['NUM_SENSORS'],
                                                           self['NUM_MOTORS'])
-            if '--fit-exp-add' not in self._arguments:
+            if '--fit-exp-add' not in ARGUMENTS:
                 self['FITNESS_EXPONENT_ADD'] = 64
         # Scale raw extrinsic cause information values so they're in the range
         # 64–128 (the highest observed so far is around 14 or so, according to
