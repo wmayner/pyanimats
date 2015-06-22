@@ -13,7 +13,7 @@ from individual import Individual
 from fitness_functions import LaTeX_NAMES as fit_funcnames
 
 
-CASE_NAME = os.path.join('0.0.6', 'mi-scaled', '3-4-6-5')
+CASE_NAME = os.path.join('0.0.7', 'ex', '3-4-6-5', '3-sensors')
 RESULT_DIR = 'raw_results'
 ANALYSIS_DIR = 'compiled_results'
 FILENAMES = {
@@ -97,6 +97,8 @@ def get_final_correct(case_name=CASE_NAME, force=False):
         print(already_exists_msg(output_filepath))
         with open(output_filepath, 'rb') as f:
             return pickle.load(f)
+    else:
+        print('No already-compiled data found; processing raw data...')
     correct_counts = []
     for filename, logbook in load_all_seeds('logbook', input_filepath).items():
         correct_counts.append(logbook.chapters['correct'][-1]['correct'])
@@ -143,6 +145,9 @@ def get_lods(case_name=CASE_NAME, force=False, gen_interval=500, seed=0,
         print(already_exists_msg(output_filepath))
         with open(output_filepath, 'rb') as f:
             return pickle.load(f)
+    else:
+        print('Compiled-data file {} does not exist yet; processing raw '
+              'data...'.format(output_filename))
     if all_seeds:
         logbooks = [l.chapters[chapter] for l in
                     load_all_seeds('logbook', input_filepath).values()]
@@ -180,8 +185,6 @@ def plot_lods(case_name=CASE_NAME, force=False, gen_interval=500, seed=0,
     plt.title(title + '$\mathrm{' + ('Average\ a' if avg else 'A') +
               'nimat\ fitness:\ ' + _get_desc(params, num_seeds=len(lods))
               + '}$', fontsize=fontsize)
-    plt.ylim([60, 130])
-    plt.yticks(np.arange(64, 129, 4))
     plt.grid(True)
     fig.show()
     return fig, data
