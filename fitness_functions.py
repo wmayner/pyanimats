@@ -177,3 +177,15 @@ def sp(ind, state, count):
     constellation = pyphi.compute.constellation(
         subsystem, mechanism_indices_to_check=brain_mechanisms)
     return sum(concept.phi for concept in constellation)
+
+
+# Big phi
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+@_register
+@_average_over_game_states
+def bp(ind, state, count):
+    """ϕ: Animats are evaluated based on the ϕ-value of their brains, averaged
+    over every unique state the animat goes into during a game."""
+    subsystem = ind.brain(state)
+    return pyphi.compute.big_phi(subsystem)
