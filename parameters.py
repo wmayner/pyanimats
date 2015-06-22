@@ -155,12 +155,25 @@ class Parameters(dict):
             if '--fit-exp-add' not in ARGUMENTS:
                 self['FITNESS_EXPONENT_ADD'] = 64
         # Scale raw extrinsic cause information values so they're in the range
-        # 64–128 (the highest observed so far is around 14 or so, according to
-        # Jaime—this assumes a max of 16).
+        # 64–128, assuming a max of 4.
         if self['FITNESS_FUNCTION'] == 'ex':
-            if '--fit-exp-scale' not in self._arguments:
+            if '--fit-exp-scale' not in ARGUMENTS:
                 self['FITNESS_EXPONENT_SCALE'] = 64 / 4
-            if '--fit-exp-add' not in self._arguments:
+            if '--fit-exp-add' not in ARGUMENTS:
+                self['FITNESS_EXPONENT_ADD'] = 64
+        # Scale raw sum of small-phi values so they're in the range 64–128,
+        # assuming a max of 4.
+        if self['FITNESS_FUNCTION'] == 'sp':
+            if '--fit-exp-scale' not in ARGUMENTS:
+                self['FITNESS_EXPONENT_SCALE'] = 64 / 4
+            if '--fit-exp-add' not in ARGUMENTS:
+                self['FITNESS_EXPONENT_ADD'] = 64
+        # Scale raw big-phi values so they're in the range 64–128, assuming a
+        # max of 4.
+        if self['FITNESS_FUNCTION'] == 'bp':
+            if '--fit-exp-scale' not in ARGUMENTS:
+                self['FITNESS_EXPONENT_SCALE'] = 64 / 4
+            if '--fit-exp-add' not in ARGUMENTS:
                 self['FITNESS_EXPONENT_ADD'] = 64
         # Make entries accessible via dot-notation.
         self.__dict__ = self
