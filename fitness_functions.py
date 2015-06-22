@@ -172,7 +172,7 @@ def sp(ind, state, count):
     """Sum of φ: Animats are evaluated based on the sum of φ for all the
     concepts of the animat's hidden units, or “brain”. This sum is averaged
     over every unique state the animat goes into during a game."""
-    subsystem = ind.brain_and_sensors(state)
+    subsystem = ind.brain(state)
     brain_mechanisms = pyphi.utils.powerset(params.HIDDEN_INDICES)
     constellation = pyphi.compute.constellation(
         subsystem, mechanism_indices_to_check=brain_mechanisms)
