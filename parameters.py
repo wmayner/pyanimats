@@ -66,9 +66,6 @@ param_name_and_types = {
     '--fit-exp-scale': ('FITNESS_EXPONENT_SCALE', float),
 }
 
-# Holds the currently loaded command-line arguments.
-ARGUMENTS = {}
-
 
 class Parameters(dict):
 
@@ -95,6 +92,7 @@ class Parameters(dict):
         printable = self.copy()
         # Cast initial genome to a NumPy array for compact printing.
         printable['INIT_GENOME'] = np.array(printable['INIT_GENOME'])
+        del printable['ARGUMENTS']
         return pformat(printable, indent=1)
 
     def __str__(self):
@@ -115,7 +113,7 @@ class Parameters(dict):
             name, cast = param_name_and_types[key]
             self[name] = cast(value)
         # Save arguments.
-        ARGUMENTS = arguments
+        self['ARGUMENTS'] = arguments
         # Update dervied parameters.
         self._refresh()
 
@@ -149,31 +147,31 @@ class Parameters(dict):
         # before using them as an exponent (the max is either the number of
         # sensors or of motors, whichever is smaller).
         if self['FITNESS_FUNCTION'] == 'mi':
-            if '--fit-exp-scale' not in ARGUMENTS:
+            if '--fit-exp-scale' not in self['ARGUMENTS']:
                 self['FITNESS_EXPONENT_SCALE'] = 64 / min(self['NUM_SENSORS'],
                                                           self['NUM_MOTORS'])
-            if '--fit-exp-add' not in ARGUMENTS:
+            if '--fit-exp-add' not in self['ARGUMENTS']:
                 self['FITNESS_EXPONENT_ADD'] = 64
         # Scale raw extrinsic cause information values so they're in the range
         # 64–128, assuming a max of 4.
         if self['FITNESS_FUNCTION'] == 'ex':
-            if '--fit-exp-scale' not in ARGUMENTS:
+            if '--fit-exp-scale' not in self['ARGUMENTS']:
                 self['FITNESS_EXPONENT_SCALE'] = 64 / 4
-            if '--fit-exp-add' not in ARGUMENTS:
+            if '--fit-exp-add' not in self['ARGUMENTS']:
                 self['FITNESS_EXPONENT_ADD'] = 64
         # Scale raw sum of small-phi values so they're in the range 64–128,
         # assuming a max of 4.
         if self['FITNESS_FUNCTION'] == 'sp':
-            if '--fit-exp-scale' not in ARGUMENTS:
+            if '--fit-exp-scale' not in self['ARGUMENTS']:
                 self['FITNESS_EXPONENT_SCALE'] = 64 / 4
-            if '--fit-exp-add' not in ARGUMENTS:
+            if '--fit-exp-add' not in self['ARGUMENTS']:
                 self['FITNESS_EXPONENT_ADD'] = 64
         # Scale raw big-phi values so they're in the range 64–128, assuming a
         # max of 4.
         if self['FITNESS_FUNCTION'] == 'bp':
-            if '--fit-exp-scale' not in ARGUMENTS:
+            if '--fit-exp-scale' not in self['ARGUMENTS']:
                 self['FITNESS_EXPONENT_SCALE'] = 64 / 4
-            if '--fit-exp-add' not in ARGUMENTS:
+            if '--fit-exp-add' not in self['ARGUMENTS']:
                 self['FITNESS_EXPONENT_ADD'] = 64
         # Make entries accessible via dot-notation.
         self.__dict__ = self
