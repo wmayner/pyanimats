@@ -43,9 +43,10 @@ def print_functions():
     print('\n' + wrapper.fill(
         'NB: In order to make selection pressure more even, the fitness '
         'function used in the selection algorithm is transformed so that it '
-        'is exponential. This is accomplished by using the ``FITNESS_BASE`` '
-        'parameter as the base and the fitnesses descibed above as the '
-        'exponent.'))
+        'is exponential, according to the formula F(R) = B^(S*R + A), where '
+        'R is one of the “raw” fitness values described above, and where B, '
+        'S, A are controlled with the FITNESS_BASE, FITNESS_EXPONENT_SCALE, '
+        'and FITNESS_EXPONENT_ADD parameters, respectively.'))
     print('')
 
 
@@ -148,8 +149,8 @@ def mi(ind):
 @_average_over_game_states
 def ex(ind, state, count):
     """Extrinsic cause information: Animats are evaluated based on the sum of φ
-    for concepts that are “about” the sensors. This sum is averaged
-    over every unique state the animat goes into during a game."""
+    for concepts that are “about” the sensors. This sum is averaged over every
+    unique state the animat goes into during a game."""
     subsystem = ind.brain_and_sensors(state)
 
     hidden = subsystem.indices2nodes(params.HIDDEN_INDICES)
