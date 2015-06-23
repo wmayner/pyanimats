@@ -82,12 +82,12 @@ def _average_over_game_states(func, n=False):
     The optional parameter ``n`` can be set to consider only the ``n`` most
     common states."""
     @wraps(func)
-    def wrapper(ind):
+    def wrapper(ind, **kwargs):
         game = ind.play_game()
         unique_states_and_counts = _most_common_states(game, n=n)
         sums = np.empty(len(unique_states_and_counts))
         for i, (state, count) in enumerate(unique_states_and_counts):
-            sums[i] = func(ind, state, count)
+            sums[i] = func(ind, state, count, **kwargs)
         return sums.mean()
     return wrapper
 
@@ -166,6 +166,12 @@ def ex(ind, state, count):
 # Sum of small-phi
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+SENSORS_AND_HIDDEN_POWERSET = pyphi.utils.powerset(params.SENSOR_INDICES +
+                                                   params.HIDDEN_INDICES)
+HIDDEN_AND_MOTOR_POWERSET = pyphi.utils.powerset(params.HIDDEN_INDICES +
+                                                 params.MOTOR_INDICES)
+
+
 @_register
 @_average_over_game_states
 def sp(ind, state, count):
@@ -173,9 +179,10 @@ def sp(ind, state, count):
     concepts of the animat's hidden units, or “brain”. This sum is averaged
     over every unique state the animat goes into during a game."""
     subsystem = ind.brain(state)
-    brain_mechanisms = pyphi.utils.powerset(params.HIDDEN_INDICES)
     constellation = pyphi.compute.constellation(
-        subsystem, mechanism_indices_to_check=brain_mechanisms)
+        subsystem,
+        past_purviews=SENSORS_AND_HIDDEN_POWERSET,
+        future_purviews=HIDDEN_AND_MOTOR_POWERSET)
     return sum(concept.phi for concept in constellation)
 
 
