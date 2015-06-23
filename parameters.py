@@ -78,7 +78,6 @@ class Parameters(dict):
 
     def __init__(self, *args, **kwargs):
         dict.__init__(self, kwargs)
-        self._arguments = None
         self._refresh()
 
     def __getstate__(self):
