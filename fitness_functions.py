@@ -167,10 +167,10 @@ def ex(ind, state, count):
 # Sum of small-phi
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-SENSORS_AND_HIDDEN_POWERSET = pyphi.utils.powerset(params.SENSOR_INDICES +
-                                                   params.HIDDEN_INDICES)
-HIDDEN_AND_MOTOR_POWERSET = pyphi.utils.powerset(params.HIDDEN_INDICES +
-                                                 params.MOTOR_INDICES)
+SENSORS_AND_HIDDEN_POWERSET = tuple(
+    pyphi.utils.powerset(params.SENSOR_INDICES + params.HIDDEN_INDICES))
+HIDDEN_AND_MOTOR_POWERSET = tuple(
+    pyphi.utils.powerset(params.HIDDEN_INDICES + params.MOTOR_INDICES))
 
 
 @_register
