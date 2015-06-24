@@ -75,7 +75,6 @@ class StdVectorBase:
 # See https://groups.google.com/d/topic/cython-users/13Bo4zXb930/discussion
 cdef class NodeStateWrapper:
 
-
     cdef vector[NodeState] *buf 
 
     def __cinit__(NodeStateWrapper self, n): 

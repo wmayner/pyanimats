@@ -94,7 +94,7 @@ void executeGame(vector<unsigned char> &stateTransitions, Agent* agent,
                     if (NUM_SENSORS == 3) {
                         for (int i = 0; i < 3; i++)
                             agent->states[i] = (world_state >>
-                                    worldTransform[agentPos + i]) & 1;
+                                    worldTransform[wrap(agentPos + i)]) & 1;
                     }
 
 
