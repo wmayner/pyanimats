@@ -26,6 +26,7 @@ LaTeX_NAMES = {
     'nat': 'Correct\ Trials',
     'ex': 'Extrinsic\ cause\ information',
     'sp': '\sum\\varphi',
+    'bp': '\Phi',
 }
 
 
