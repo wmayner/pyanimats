@@ -44,11 +44,9 @@ def compress(t, sign=False, pad=u''):
     '''
 
     if isinstance(t, datetime.timedelta):
-        seconds = t.seconds + (t.days * 86400)
+        seconds = t.seconds + (t.days * TIME_DAY)
     elif isinstance(t, (float, int)):
         return compress(datetime.timedelta(seconds=t), sign, pad)
-    else:
-        return compress(datetime.datetime.now() - _to_datetime(t), sign, pad)
 
     parts = []
     if sign:
@@ -71,6 +69,6 @@ def compress(t, sign=False, pad=u''):
         parts.append(u'{}s'.format(seconds))
 
     if not parts:
-        parts = ['0s']
+        parts = [u'{:.2f}s'.format(t.microseconds / 1000000)]
 
     return pad.join(parts)
