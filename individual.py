@@ -14,6 +14,7 @@ from copy import deepcopy
 import functools
 import pyphi
 
+import utils
 from parameters import params
 from animat import Animat
 
@@ -180,6 +181,14 @@ class Individual:
             if key not in ('animat', 'parent', '_network', '_dirty_network'):
                 copy.__dict__[key] = deepcopy(val, memo)
         return copy
+
+    def start_codons(self):
+        """Return the locations of start codons in the genome, if any."""
+        start_codon = [42, 213]
+        genome = np.array(self.genome)
+        window = utils.rolling_window(genome, len(start_codon))
+        occurrences = np.all((window == start_codon), axis=1)
+        return np.where(occurrences)[0]
 
     def as_subsystem(self, state):
         """Return the PyPhi subsystem consisting of all the animat's nodes."""

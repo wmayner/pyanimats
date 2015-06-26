@@ -45,19 +45,20 @@ Options:
 Note: command-line arguments override parameters in the <params.yml> file.
 """
 
-__version__ = '0.0.8'
+__version__ = '0.0.9'
 
 import os
 import pickle
 import random
-import numpy as np
+from utils import compress
 from time import time
+import numpy as np
 import cProfile
 
 from parameters import params
 import fitness_functions
 from individual import Individual
-from deap import creator, base, tools
+from deap import base, tools
 
 
 PROFILING = False
@@ -174,18 +175,23 @@ def main(arguments):
     logbook = tools.Logbook()
     hof = tools.HallOfFame(maxsize=params.POPSIZE)
 
-    print('\nSimulating {} generations...\n'.format(params.NGEN))
+    def print_status(line, time):
+        print(line, compress(time))
+
+    print('\n[Seed {}] Simulating {} generations...\n'.format(params.SEED,
+                                                              params.NGEN))
 
     if PROFILING:
         pr = cProfile.Profile()
         pr.enable()
-    start = time()
+    sim_start = time()
 
     # Simulation
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     population = toolbox.population(n=params.POPSIZE)
 
+    start = time()
     # Evaluate the initial population.
     fitnesses = toolbox.map(toolbox.evaluate, population)
     for ind, fitness in zip(population, fitnesses):
@@ -194,8 +200,8 @@ def main(arguments):
     hof.update(population)
     record = mstats.compile(population)
     logbook.record(gen=0, **record)
-
-    print(logbook)
+    end = time()
+    print_status(logbook, end - start)
 
     def process_gen(population, gen):
         # Selection.
@@ -221,21 +227,24 @@ def main(arguments):
         return offspring
 
     # Evolution.
+    start = time()
     for gen in range(1, params.NGEN + 1):
         population = process_gen(population, gen)
         if gen % STATUS_PRINTING_INTERVAL == 0:
-            print(logbook.__str__(startindex=gen))
+            end = time()
+            print_status(logbook.__str__(startindex=gen), end - start)
+            start = time()
 
     # Finish
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    end = time()
+    sim_end = time()
     if PROFILING:
         pr.disable()
         pr.dump_stats(profile_filepath)
 
-    print("\nSimulated {} generations in {} seconds.".format(
-        params.NGEN, round(end - start, 2)))
+    print('\n[Seed {}] Simulated {} generations in {}.'.format(
+        params.SEED, params.NGEN, compress(sim_end - sim_start)))
 
     # Get lineage(s).
     if SAVE_ALL_LINEAGES:

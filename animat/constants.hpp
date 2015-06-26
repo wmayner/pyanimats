@@ -3,6 +3,9 @@
 #ifndef SRC_CONSTANTS_H_
 #define SRC_CONSTANTS_H_
 
+// Debug flag (comment-out to disable debugging output)
+/* #define _DEBUG */
+
 // Agent parameters
 // ----------------
 #define NUM_NODES 8

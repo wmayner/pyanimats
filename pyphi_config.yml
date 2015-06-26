@@ -34,7 +34,7 @@ MAXIMUM_CACHE_MEMORY_PERCENTAGE: 50
 # Caching
 # ~~~~~~~
 # Controls whether BigMips are cached and retreived.
-CACHE_BIGMIPS: false
+CACHE_BIGMIPS: true
 # Controls whether concepts are cached. Note that concept caching is only
 # available if the caching backend is a database; otherwise, this setting has
 # no effect, and concepts will not be cached.
@@ -90,7 +90,7 @@ PRECISION: 6
 # Miscellaneous
 # ~~~~~~~~~~~~~
 # Controls whether network states are validated upon subsystem creation.		
-VALIDATE_NETWORK_STATE: true
+VALIDATE_NETWORK_STATE: false
 # In some applications of this library, you may prefer to define single-nodes
 # with a self-loop as having 0.5 Phi, a priori.
 SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI: false

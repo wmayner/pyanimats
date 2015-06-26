@@ -79,6 +79,14 @@ void executeGame(vector<unsigned char> &stateTransitions, Agent* agent,
                             worldTransform.end(), randInt);
                 }
 
+                #ifdef _DEBUG
+                    printf("\n-------------------------");
+                    printf("\n   Block pattern: %i", patterns[patternIndex]);
+                    printf("\n       Direction: %i", direction);
+                    printf("\nInitial position: %i", initAgentPos);
+                    printf("\n\n");
+                #endif
+
                 // World loop
                 for (timestep = 0; timestep < WORLD_HEIGHT; timestep++) {
                     world_state = world[timestep];
@@ -94,9 +102,39 @@ void executeGame(vector<unsigned char> &stateTransitions, Agent* agent,
                     if (NUM_SENSORS == 3) {
                         for (int i = 0; i < 3; i++)
                             agent->states[i] = (world_state >>
-                                    worldTransform[agentPos + i]) & 1;
+                                    worldTransform[wrap(agentPos + i)]) & 1;
                     }
 
+                    #ifdef _DEBUG
+                        // Print the world
+                        for(int i = 0; i < (int)WORLD_WIDTH; i++)
+                            printf("%i", (world_state >> i) & 1);
+                        printf("\n");
+
+                        // Print the animat
+                        bool space;
+                        for(int i = 0; i < WORLD_WIDTH; i++) {
+                            space = true;
+                            for (int k = 0; k < 3; k++)
+                                if (wrap(agentPos + k) == i) {
+                                    if (NUM_SENSORS == 3) {
+                                        printf("%i", agent->states[k]);
+                                    } else {
+                                        if (k == 0)
+                                            printf("%i", agent->states[0]);
+                                        if (k == 1)
+                                            printf("-");
+                                        if (k == 2)
+                                            printf("%i", agent->states[1]);
+                                    }
+                                    space = false;
+                                }
+                            if (space) {
+                                printf(" ");
+                            }
+                        }
+                        printf("\n");
+                    #endif
 
                     // TODO(wmayner) parameterize changing sensors mid-evolution
                     // Larissa: Set to 0 to evolve agents with just one sensor
