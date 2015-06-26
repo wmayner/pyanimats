@@ -8,14 +8,17 @@ import json
 from glob import glob
 import numpy as np
 import matplotlib.pyplot as plt
+import parameters
 
 from individual import Individual
 from fitness_functions import LaTeX_NAMES as fit_funcnames
 
 
-CASE_NAME = os.path.join('0.0.7', 'ex', '3-4-6-5', '3-sensors')
+CASE_NAME = '0.0.10/sp/3-4-6-5/sensors-3/gen-4000'
 RESULT_DIR = 'raw_results'
 ANALYSIS_DIR = 'compiled_results'
+RESULT_PATH = os.path.join(RESULT_DIR, CASE_NAME)
+ANALYSIS_PATH = os.path.join(ANALYSIS_DIR, CASE_NAME)
 FILENAMES = {
     'params': 'params.pkl',
     'hof': 'hof.pkl',
@@ -23,7 +26,6 @@ FILENAMES = {
     'lineages': 'lineages.pkl',
     'metadata': 'metadata.pkl',
 }
-
 
 # Utilities
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -62,15 +64,18 @@ def _get_correct_trials_axis_label(params):
 # Result loading
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def load(filetype, input_filepath=RESULT_DIR, seed=0):
+def load(filetype, input_filepath=RESULT_PATH, seed=0):
     result_path = os.path.join(input_filepath, 'seed-{}'.format(seed))
     print('Loading {} from `{}`...'.format(filetype, result_path))
     with open(os.path.join(result_path, FILENAMES[filetype]), 'rb') as f:
         data = pickle.load(f)
+    if filetype == 'params':
+        parameters.params.update(data)
+        print('Updated PyAnimat parameters with the loaded parameters.')
     return data
 
 
-def load_all_seeds(filetype, input_filepath=RESULT_DIR):
+def load_all_seeds(filetype, input_filepath=RESULT_PATH):
     data = {}
     for filename in glob(os.path.join(input_filepath, '**',
                                       FILENAMES[filetype])):
@@ -89,7 +94,7 @@ def already_exists_msg(output_filepath):
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def get_final_correct(case_name=CASE_NAME, force=False):
-    input_filepath = os.path.join(RESULT_DIR, case_name)
+    input_filepath = os.path.join(RESULT_PATH, case_name)
     output_filepath = os.path.join(
         _ensure_exists(os.path.join(ANALYSIS_DIR, case_name)),
         'final-correct-counts.pkl')
