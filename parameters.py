@@ -91,7 +91,8 @@ class Parameters(dict):
         printable = self.copy()
         # Cast initial genome to a NumPy array for compact printing.
         printable['INIT_GENOME'] = np.array(printable['INIT_GENOME'])
-        del printable['ARGUMENTS']
+        if 'ARGUMENTS' in printable:
+            del printable['ARGUMENTS']
         return pformat(printable, indent=1)
 
     def __str__(self):
