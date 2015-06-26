@@ -45,7 +45,7 @@ Options:
 Note: command-line arguments override parameters in the <params.yml> file.
 """
 
-__version__ = '0.0.8'
+__version__ = '0.0.9'
 
 import os
 import pickle
@@ -184,14 +184,14 @@ def main(arguments):
     if PROFILING:
         pr = cProfile.Profile()
         pr.enable()
-    start = time()
+    sim_start = time()
 
     # Simulation
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     population = toolbox.population(n=params.POPSIZE)
 
-    status_start = time()
+    start = time()
     # Evaluate the initial population.
     fitnesses = toolbox.map(toolbox.evaluate, population)
     for ind, fitness in zip(population, fitnesses):
@@ -200,8 +200,8 @@ def main(arguments):
     hof.update(population)
     record = mstats.compile(population)
     logbook.record(gen=0, **record)
-    status_end = time()
-    print_status(logbook, status_end - status_start)
+    end = time()
+    print_status(logbook, end - start)
 
     def process_gen(population, gen):
         # Selection.
@@ -227,25 +227,24 @@ def main(arguments):
         return offspring
 
     # Evolution.
-    status_start = time()
+    start = time()
     for gen in range(1, params.NGEN + 1):
         population = process_gen(population, gen)
         if gen % STATUS_PRINTING_INTERVAL == 0:
-            status_end = time()
-            print_status(logbook.__str__(startindex=gen),
-                         status_end - status_start)
-            status_start = time()
+            end = time()
+            print_status(logbook.__str__(startindex=gen), end - start)
+            start = time()
 
     # Finish
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    end = time()
+    sim_end = time()
     if PROFILING:
         pr.disable()
         pr.dump_stats(profile_filepath)
 
     print('\n[Seed {}] Simulated {} generations in {}.'.format(
-        params.SEED, params.NGEN, compress(end - start)))
+        params.SEED, params.NGEN, compress(sim_end - sim_start)))
 
     # Get lineage(s).
     if SAVE_ALL_LINEAGES:
