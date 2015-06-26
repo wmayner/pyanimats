@@ -54,9 +54,12 @@ def print_functions():
 # Helper functions
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def _most_common_states(game, n=0):
+def most_common_states(game, n=0, of=[]):
     # Get the array in 2D form.
     game = game.reshape(-1, game.shape[-1])
+    # Consider only states of a subset of nodes, if provided.
+    if of:
+        game = game[:, of]
     # Lexicographically sort.
     sorted_game = game[np.lexsort(game.T), :]
     # Get the indices where a new state appears.
