@@ -68,7 +68,8 @@ def most_common_states(game, n=0, of=[]):
     unique_states = [sorted_game[i] for i in diff_idx] + [sorted_game[-1]]
     # Get the number of occurences of each unique state (the -1 is needed at
     # the beginning, rather than 0, because of fencepost concerns).
-    counts = np.diff(np.insert(diff_idx, 0, -1))
+    counts = np.diff(
+        np.append(np.insert(diff_idx, 0, -1), sorted_game.shape[0] - 1))
     # Return all by default.
     if not 0 < n <= counts.size:
         n = counts.size
