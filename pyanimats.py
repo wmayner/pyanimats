@@ -276,5 +276,5 @@ def main(arguments):
 from docopt import docopt
 if __name__ == '__main__':
     # Get command-line arguments from docopt.
-    arguments = docopt(__doc__, version='PyAnimats v{}'.format(__version__))
+    arguments = docopt(__doc__, version=__version__)
     main(arguments)
