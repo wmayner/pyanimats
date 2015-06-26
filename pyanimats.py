@@ -45,7 +45,7 @@ Options:
 Note: command-line arguments override parameters in the <params.yml> file.
 """
 
-__version__ = '0.0.9'
+__version__ = '0.0.10'
 
 import os
 import pickle
