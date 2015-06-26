@@ -74,12 +74,12 @@ def _most_common_states(game, n=False):
                        reverse=True))[:n]
 
 
-def _average_over_game_states(func, n=False):
-    """A decorator that takes an animat and applies a function to every unique
-    state the animat goes into during a game and returns the average.
+def _average_over_visited_states(func, n=False):
+    """A decorator that takes an animat and applies a function for every unique
+    state the animat visits during a game and returns the average.
 
-    The wrapped function must take an animat, state, and count and return a
-    number.
+    The wrapped function must take an animat, state, and optionally count, and
+    return a number.
 
     The optional parameter ``n`` can be set to consider only the ``n`` most
     common states."""
@@ -87,10 +87,28 @@ def _average_over_game_states(func, n=False):
     def wrapper(ind, **kwargs):
         game = ind.play_game()
         unique_states_and_counts = _most_common_states(game, n=n)
-        sums = np.empty(len(unique_states_and_counts))
-        for i, (state, count) in enumerate(unique_states_and_counts):
-            sums[i] = func(ind, state, count, **kwargs)
-        return sums.mean()
+        return np.array([
+            func(ind, state, count=count, **kwargs)
+            for (state, count) in unique_states_and_counts
+        ]).mean()
+    return wrapper
+
+
+POSSIBLE_STATES = [pyphi.convert.loli_index2state(i, params.NUM_NODES)
+                   for i in range(2**params.NUM_NODES)]
+
+
+def _average_over_all_states(func, n=False):
+    """A decorator that takes an animat and applies a function for all possible
+    states and returns the average.
+
+    The wrapped function must take an animat and a state, and return a
+    number."""
+    @wraps(func)
+    def wrapper(ind, **kwargs):
+        return np.array([
+            func(ind, state, **kwargs) for state in POSSIBLE_STATES
+        ]).mean()
     return wrapper
 
 
@@ -147,11 +165,11 @@ def mi(ind):
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 @_register
-@_average_over_game_states
-def ex(ind, state, count):
+@_average_over_visited_states
+def ex(ind, state, count=1):
     """Extrinsic cause information: Animats are evaluated based on the sum of φ
     for concepts that are “about” the sensors. This sum is averaged over every
-    unique state the animat goes into during a game."""
+    unique state the animat visits during a game."""
     subsystem = ind.brain_and_sensors(state)
 
     hidden = subsystem.indices2nodes(params.HIDDEN_INDICES)
@@ -175,11 +193,11 @@ HIDDEN_AND_MOTOR_POWERSET = tuple(
 
 
 @_register
-@_average_over_game_states
-def sp(ind, state, count):
+@_average_over_all_states
+def sp(ind, state, count=1):
     """Sum of φ: Animats are evaluated based on the sum of φ for all the
     concepts of the animat's hidden units, or “brain”. This sum is averaged
-    over every unique state the animat goes into during a game."""
+    over all possible states of the animat."""
     subsystem = ind.brain(state)
     constellation = pyphi.compute.constellation(
         subsystem,
@@ -192,9 +210,9 @@ def sp(ind, state, count):
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 @_register
-@_average_over_game_states
-def bp(ind, state, count):
+@_average_over_visited_states
+def bp(ind, state, count=1):
     """ϕ: Animats are evaluated based on the ϕ-value of their brains, averaged
-    over every unique state the animat goes into during a game."""
+    over every unique state the animat visits during a game."""
     subsystem = ind.brain(state)
     return pyphi.compute.big_phi(subsystem)
