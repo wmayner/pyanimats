@@ -54,7 +54,7 @@ def print_functions():
 # Helper functions
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def _most_common_states(game, n=False):
+def _most_common_states(game, n=0):
     # Get the array in 2D form.
     game = game.reshape(-1, game.shape[-1])
     # Lexicographically sort.
@@ -67,14 +67,14 @@ def _most_common_states(game, n=False):
     # the beginning, rather than 0, because of fencepost concerns).
     counts = np.diff(np.insert(diff_idx, 0, -1))
     # Return all by default.
-    if n is False or n > counts.size:
+    if not 0 < n <= counts.size:
         n = counts.size
     # Return the (row, count) pairs sorted by count.
     return list(sorted(zip(unique_states, counts), key=lambda x: x[1],
                        reverse=True))[:n]
 
 
-def _average_over_visited_states(func, n=False):
+def _average_over_visited_states(n=0):
     """A decorator that takes an animat and applies a function for every unique
     state the animat visits during a game and returns the average.
 
@@ -82,34 +82,38 @@ def _average_over_visited_states(func, n=False):
     return a number.
 
     The optional parameter ``n`` can be set to consider only the ``n`` most
-    common states."""
-    @wraps(func)
-    def wrapper(ind, **kwargs):
-        game = ind.play_game()
-        unique_states_and_counts = _most_common_states(game, n=n)
-        return np.array([
-            func(ind, state, count=count, **kwargs)
-            for (state, count) in unique_states_and_counts
-        ]).mean()
-    return wrapper
+    common states. Nonpositive ``n`` means all states."""
+    def decorator(func):
+        @wraps(func)
+        def wrapper(ind, **kwargs):
+            game = ind.play_game()
+            unique_states_and_counts = _most_common_states(game, n=n)
+            return np.array([
+                func(ind, state, count=count, **kwargs)
+                for (state, count) in unique_states_and_counts
+            ]).mean()
+        return wrapper
+    return decorator
 
 
 POSSIBLE_STATES = [pyphi.convert.loli_index2state(i, params.NUM_NODES)
                    for i in range(2**params.NUM_NODES)]
 
 
-def _average_over_all_states(func, n=False):
-    """A decorator that takes an animat and applies a function for all possible
-    states and returns the average.
+def _average_over_fixed_states(states=POSSIBLE_STATES):
+    """A decorator that takes an animat and applies a function for a fixed set
+    of states (defaulting to all possible states) and returns the average.
 
     The wrapped function must take an animat and a state, and return a
     number."""
-    @wraps(func)
-    def wrapper(ind, **kwargs):
-        return np.array([
-            func(ind, state, **kwargs) for state in POSSIBLE_STATES
-        ]).mean()
-    return wrapper
+    def decorator(func):
+        @wraps(func)
+        def wrapper(ind, **kwargs):
+            return np.array([
+                func(ind, state, **kwargs) for state in states
+            ]).mean()
+        return wrapper
+    return decorator
 
 
 # Natural fitness
@@ -190,10 +194,12 @@ SENSORS_AND_HIDDEN_POWERSET = tuple(
     pyphi.utils.powerset(params.SENSOR_INDICES + params.HIDDEN_INDICES))
 HIDDEN_AND_MOTOR_POWERSET = tuple(
     pyphi.utils.powerset(params.HIDDEN_INDICES + params.MOTOR_INDICES))
+SP_STATES = [[1] * i + [0] * (params.NUM_NODES - i)
+             for i in range(params.NUM_NODES + 1)]
 
 
 @_register
-@_average_over_all_states
+@_average_over_fixed_states(states=SP_STATES)
 def sp(ind, state, count=1):
     """Sum of φ: Animats are evaluated based on the sum of φ for all the
     concepts of the animat's hidden units, or “brain”. This sum is averaged
