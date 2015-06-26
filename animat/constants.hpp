@@ -4,7 +4,7 @@
 #define SRC_CONSTANTS_H_
 
 // Debug flag (comment-out to disable debugging output)
-#define _DEBUG
+/* #define _DEBUG */
 
 // Agent parameters
 // ----------------
