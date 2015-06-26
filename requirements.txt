@@ -1,6 +1,8 @@
-yaml
+pyyaml
 cython
 numpy
 deap
 docopt
 pyphi
+scikit-learn
+matplotlib
