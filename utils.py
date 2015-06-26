@@ -6,6 +6,16 @@
 Utility functions.
 """
 
+import numpy as np
+
+
+def rolling_window(a, size):
+    # See http://stackoverflow.com/a/7100681/1085344
+    shape = a.shape[:-1] + (a.shape[-1] - size + 1, size)
+    strides = a.strides + (a. strides[-1],)
+    return np.lib.stride_tricks.as_strided(a, shape=shape, strides=strides)
+
+
 import datetime
 
 TIME_MINUTE = 60
