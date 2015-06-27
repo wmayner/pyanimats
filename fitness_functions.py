@@ -91,7 +91,7 @@ def _average_over_visited_states(n=0):
         @wraps(func)
         def wrapper(ind, **kwargs):
             game = ind.play_game()
-            unique_states_and_counts = _most_common_states(game, n=n)
+            unique_states_and_counts = most_common_states(game, n=n)
             return np.array([
                 func(ind, state, count=count, **kwargs)
                 for (state, count) in unique_states_and_counts
