@@ -1,17 +1,23 @@
 #!/bin/bash
 
-python="/home/will/.virtualenvs/deap/bin/python"
+python="/home/will/.virtualenvs/pyanimats/bin/python"
 $python ./setup.py build_ext --inplace
 
-tasks="tasks/3-4-6-5.yml"
-fitness="mi"
-ngen=60000
-ind_record_interval="500"
-log_freq=10
+fitness="sp"
+ngen=4000
+taskname="3-4-6-5"
+jumpstart=0
+ind_record_interval=10
+log_freq=1
 params="params.yml"
 
-for ((seed=0; seed < 32; seed++))
+version=`$python ./pyanimats.py --version`
+taskfile="tasks/"$taskname".yml"
+
+output_dir="raw_results/$version/$fitness/$taskname/sensors-3/jumpstart-$jumpstart/gen-$ngen/"
+echo "Writing results to '$output_dir'."
+
+for ((seed=0; seed < 15; seed++))
 do
-  output_dir="raw_results/0.0.5/mi/3-4-6-5/seed-$seed"
-  $python ./pyanimats.py $output_dir $tasks $params -f $fitness -n $ngen -s $seed -i $ind_record_interval -l $log_freq &
+  $python ./pyanimats.py $output_dir/seed-$seed $taskfile $params -f $fitness -n $ngen -s $seed -j $jumpstart -i $ind_record_interval -l $log_freq &
 done
