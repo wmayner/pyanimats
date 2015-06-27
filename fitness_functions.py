@@ -173,7 +173,7 @@ def mi(ind):
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 @_register
-@_average_over_visited_states
+@_average_over_visited_states()
 def ex(ind, state, count=1):
     """Extrinsic cause information: Animats are evaluated based on the sum of φ
     for concepts that are “about” the sensors. This sum is averaged over every
@@ -220,7 +220,7 @@ def sp(ind, state, count=1):
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 @_register
-@_average_over_visited_states
+@_average_over_fixed_states(states=SP_STATES)
 def bp(ind, state, count=1):
     """ϕ: Animats are evaluated based on the ϕ-value of their brains, averaged
     over every unique state the animat visits during a game."""
