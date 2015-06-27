@@ -27,3 +27,5 @@ MIN_DUP_DEL_WIDTH: 15
 MAX_DUP_DEL_WIDTH: 511
 # Base used in fitness functions to make fitness increases exponential.
 FITNESS_BASE: 1.02
+# The number of start codons to insert into the initial genome.
+INIT_START_CODONS: 0

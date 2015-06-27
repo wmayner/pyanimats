@@ -7,10 +7,14 @@ Parameters for controlling animat evolution.
 """
 
 from pprint import pformat
+from copy import copy
 import numpy as np
 import yaml
 import animat
 
+
+START_CODON = [42, 213]
+INIT_GENOME = [127] * 5000
 
 DEFAULTS = {
     # Simulation parameters.
@@ -36,7 +40,8 @@ DEFAULTS = {
     'MIN_GENOME_LENGTH': 1000,
     'MIN_DUP_DEL_WIDTH': 15,
     'MAX_DUP_DEL_WIDTH': 511,
-    'INIT_GENOME': [127] * 5000,
+    'INIT_GENOME': copy(INIT_GENOME),
+    'INIT_START_CODONS': 0,
     # Game parameters.
     # TODO make these configurable
     'WORLD_WIDTH': animat.WORLD_WIDTH,
@@ -55,6 +60,7 @@ param_name_and_types = {
     '--num-gen': ('NGEN', int),
     '--pop-size': ('POPSIZE', int),
     '--mut-prob': ('MUTATION_PROB', float),
+    '--jumpstart': ('INIT_START_CODONS', int),
     '--scramble': ('SCRAMBLE_WORLD', bool),
     '--dup-prob': ('DUPLICATION_PROB', float),
     '--del-prob': ('DELETION_PROB', float),
@@ -143,6 +149,12 @@ class Parameters(dict):
                                         self['NUM_MOTORS'])))
         self['MOTOR_INDICES'] = tuple(
             range(self['NUM_NODES'] - self['NUM_MOTORS'], self['NUM_NODES']))
+        # Insert start codons into the initial genome.
+        if self['INIT_START_CODONS']:
+            self['INIT_GENOME'] = copy(INIT_GENOME)
+            gap = len(self['INIT_GENOME']) // self['INIT_START_CODONS']
+            for i in range(self['INIT_START_CODONS']):
+                self['INIT_GENOME'][(i * gap):(i * gap + 1)] = START_CODON
         # Scale raw mutual information values so they're in the range 64–128
         # before using them as an exponent (the max is either the number of
         # sensors or of motors, whichever is smaller).
