@@ -14,7 +14,7 @@ from individual import Individual
 from fitness_functions import LaTeX_NAMES as fit_funcnames
 
 
-CASE_NAME = '0.0.10/sp/3-4-6-5/sensors-3/gen-4000'
+CASE_NAME = '0.0.10/sp/3-4-6-5/sensors-3/jumpstart-0/gen-4000'
 RESULT_DIR = 'raw_results'
 ANALYSIS_DIR = 'compiled_results'
 RESULT_PATH = os.path.join(RESULT_DIR, CASE_NAME)
@@ -179,7 +179,7 @@ def plot_lods(case_name=CASE_NAME, force=False, gen_interval=500, seed=0,
         plt.plot(np.arange(lods.shape[1]) * gen_interval, lods.mean(0))
     else:
         for row in lods:
-            plt.plot(np.arrange(lods.shape[1]) * gen_interval, row)
+            plt.plot(np.arange(lods.shape[1]) * gen_interval, row)
     plt.xlabel('$\mathrm{Generation}$', labelpad=20, fontsize=fontsize)
     if chapter == 'correct':
         ylabel = _get_correct_trials_axis_label(params)
