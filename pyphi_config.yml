@@ -21,7 +21,7 @@ CUT_ONE_APPROXIMATION: false
 # Controls whether cuts are evaluated in parallel, which requires more
 # memory. If cuts are evaluated sequentially, only two BigMips need to be
 # in memory at a time.
-PARALLEL_CUT_EVALUATION: true
+PARALLEL_CUT_EVALUATION: false
 # The number of CPU cores to use in parallel cut evaluation. -1 means all
 # available cores, -2 means all but one available cores, etc.
 NUMBER_OF_CORES: -1
