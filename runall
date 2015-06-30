@@ -1,15 +1,18 @@
 #!/bin/bash
 
-python="/home/will/.virtualenvs/pyanimats/bin/python"
+python="$HOME/.virtualenvs/pyanimats/bin/python"
 $python ./setup.py build_ext --inplace
 
 fitness="sp"
 ngen=4000
 taskname="3-4-6-5"
 jumpstart=0
-ind_record_interval=10
-log_freq=1
+popsize=100
 params="params.yml"
+
+num_ind_samples=120
+ind_record_interval=$(($ngen / $num_ind_samples))
+log_freq=1
 
 version=`$python ./pyanimats.py --version`
 taskfile="tasks/"$taskname".yml"
@@ -17,7 +20,7 @@ taskfile="tasks/"$taskname".yml"
 output_dir="raw_results/$version/$fitness/$taskname/sensors-3/jumpstart-$jumpstart/gen-$ngen/"
 echo "Writing results to '$output_dir'."
 
-for ((seed=0; seed < 15; seed++))
+for ((seed=0; seed < 30; seed++))
 do
-  $python ./pyanimats.py $output_dir/seed-$seed $taskfile $params -f $fitness -n $ngen -s $seed -j $jumpstart -i $ind_record_interval -l $log_freq &
+  $python ./pyanimats.py $output_dir/seed-$seed $taskfile $params -f $fitness -n $ngen -s $seed -j $jumpstart -p $popsize -i $ind_record_interval -l $log_freq &
 done
