@@ -34,7 +34,7 @@ MAXIMUM_CACHE_MEMORY_PERCENTAGE: 50
 # Caching
 # ~~~~~~~
 # Controls whether BigMips are cached and retreived.
-CACHE_BIGMIPS: true
+CACHE_BIGMIPS: false
 # Controls whether concepts are cached. Note that concept caching is only
 # available if the caching backend is a database; otherwise, this setting has
 # no effect, and concepts will not be cached.

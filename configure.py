@@ -37,7 +37,7 @@ def from_args(args):
         name, cast = arg_name_and_type[key]
         c[name] = cast(value)
     # Update the configuration.
-    _update(c)
+    from_dict(c)
     return args
 
 
@@ -61,7 +61,7 @@ arg_name_and_type = {
 }
 
 
-def _update(c):
+def from_dict(c):
     """Update the configuration from the given dictionary."""
     for key, value in c.items():
         setattr(config, key, value)
@@ -93,7 +93,7 @@ def _update_constants():
     # is used).
     TRANSFORMS = {
         'nat': {'scale': 1, 'add': 0},
-        'mi': {'scale': min(config.NUM_SENSORS, config.NUM_MOTORS), 'add': 63},
+        'mi': {'scale': min(config.NUM_SENSORS, config.NUM_MOTORS), 'add': 64},
         'ex': {'scale': 4, 'add': 64},
         'sp': {'scale': 4, 'add': 64},
         'bp': {'scale': 4, 'add': 64},
@@ -134,8 +134,6 @@ def _update_constants():
                   _bitlist(j, config.NUM_MOTORS)))
         for i in range(_.NUM_SENSOR_STATES) for j in range(_.NUM_MOTOR_STATES)
     ]
-
-
 
 
 def get_dict():
