@@ -164,6 +164,8 @@ def ex(ind, state, count=1):
     """Extrinsic cause information: Animats are evaluated based on the sum of φ
     for concepts that are “about” the sensors. This sum is averaged over every
     unique state the animat visits during a game."""
+    # TODO generate powerset once (change PyPhi to use indices in find_mice
+    # purview restriction)?
     subsystem = ind.brain_and_sensors(state)
 
     hidden = subsystem.indices2nodes(_.HIDDEN_INDICES)
