@@ -93,10 +93,11 @@ def _update_constants():
     # is used).
     TRANSFORMS = {
         'nat': {'scale': 1, 'add': 0},
-        'mi': {'scale': min(config.NUM_SENSORS, config.NUM_MOTORS), 'add': 64},
-        'ex': {'scale': 4, 'add': 64},
-        'sp': {'scale': 4, 'add': 64},
-        'bp': {'scale': 4, 'add': 64},
+        'mi': {'scale': 64 / min(config.NUM_SENSORS, config.NUM_MOTORS),
+               'add': 64},
+        'ex': {'scale': 64 / 4, 'add': 64},
+        'sp': {'scale': 64 / 4, 'add': 64},
+        'bp': {'scale': 64 / 4, 'add': 64},
     }
     ff = config.FITNESS_FUNCTION
     if config.FITNESS_EXPONENT_SCALE is None:
