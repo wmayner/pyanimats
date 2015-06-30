@@ -8,7 +8,7 @@ import json
 from glob import glob
 import numpy as np
 import matplotlib.pyplot as plt
-import parameters
+import configure
 
 from individual import Individual
 from fitness_functions import LaTeX_NAMES as fit_funcnames
@@ -20,7 +20,7 @@ ANALYSIS_DIR = 'compiled_results'
 RESULT_PATH = os.path.join(RESULT_DIR, CASE_NAME)
 ANALYSIS_PATH = os.path.join(ANALYSIS_DIR, CASE_NAME)
 FILENAMES = {
-    'params': 'params.pkl',
+    'config': 'config.pkl',
     'hof': 'hof.pkl',
     'logbook': 'logbook.pkl',
     'lineages': 'lineages.pkl',
@@ -45,19 +45,19 @@ def _get_task_name(tasks):
     return '[' + ',\ '.join(str(task[1].count('1')) for task in tasks) + ']'
 
 
-def _get_desc(params, seed=False, num_seeds=False):
+def _get_desc(config, seed=False, num_seeds=False):
     if not seed and not num_seeds:
         raise Exception('Must provide either a single seed number or the '
                         'number of seeds.')
-    return (str(params['NGEN']) + '\ generations,\ ' +
+    return (str(config['NGEN']) + '\ generations,\ ' +
             ('{}\ seeds'.format(num_seeds) if num_seeds
              else 'seed\ {}'.format(seed)) + ',\ task\ ' +
-            _get_task_name(params['TASKS']) + ',\ population\ size\ '
-            + str(params['POPSIZE']))
+            _get_task_name(config['TASKS']) + ',\ population\ size\ '
+            + str(config['POPSIZE']))
 
 
-def _get_correct_trials_axis_label(params):
-    return ('$\mathrm{Correct\ trials\ (out\ of\ ' + str(params['NUM_TRIALS'])
+def _get_correct_trials_axis_label(config):
+    return ('$\mathrm{Correct\ trials\ (out\ of\ ' + str(config['NUM_TRIALS'])
             + ')}$')
 
 
@@ -69,9 +69,9 @@ def load(filetype, input_filepath=RESULT_PATH, seed=0):
     print('Loading {} from `{}`...'.format(filetype, result_path))
     with open(os.path.join(result_path, FILENAMES[filetype]), 'rb') as f:
         data = pickle.load(f)
-    if filetype == 'params':
-        parameters.params.update(data)
-        print('Updated PyAnimat parameters with the loaded parameters.')
+    if filetype == 'config':
+        configure.from_dict(data)
+        print('Updated PyAnimat configuration with the loaded parameters.')
     return data
 
 
@@ -107,8 +107,8 @@ def get_final_correct(case_name=CASE_NAME, force=False):
     correct_counts = []
     for filename, logbook in load_all_seeds('logbook', input_filepath).items():
         correct_counts.append(logbook.chapters['correct'][-1]['correct'])
-    params = load('params', input_filepath)
-    data = {'correct_counts': correct_counts, 'params': params}
+    config = load('config', input_filepath)
+    data = {'correct_counts': correct_counts, 'config': config}
     with open(output_filepath, 'wb') as f:
         pickle.dump(data, f)
     print('Saved final correct counts to `{}`.'.format(output_filepath))
@@ -118,15 +118,15 @@ def get_final_correct(case_name=CASE_NAME, force=False):
 def plot_final_correct(case_name=CASE_NAME, force=False,
                        bins=np.arange(64, 128, 2), fontsize=20, title=''):
     data = get_final_correct(case_name, force)
-    correct_counts, params = data['correct_counts'], data['params']
+    correct_counts, config = data['correct_counts'], data['config']
     fig = plt.figure(figsize=(14, 12))
     plt.hist(correct_counts, bins, normed=True, facecolor='blue', alpha=0.8)
-    plt.xlabel(_get_correct_trials_axis_label(params), labelpad=20,
+    plt.xlabel(_get_correct_trials_axis_label(config), labelpad=20,
                fontsize=fontsize)
     plt.ylabel('$\mathrm{Normalized\ number\ of\ animats}$', labelpad=20,
                fontsize=fontsize)
     plt.title(title + '$\mathrm{Histogram\ of\ animat\ performance:\ '
-              + _get_desc(params, num_seeds=len(correct_counts))
+              + _get_desc(config, num_seeds=len(correct_counts))
               + '}$', fontsize=fontsize)
     plt.grid(True)
     fig.show()
@@ -160,8 +160,8 @@ def get_lods(case_name=CASE_NAME, force=False, gen_interval=500, seed=0,
         logbooks = [load('logbook', input_filepath, seed).chapters[chapter]]
     lods = np.array([logbook.select(stat)[::gen_interval]
                      for logbook in logbooks])
-    params = load('params', input_filepath)
-    data = {'lods': lods, 'params': params}
+    config = load('config', input_filepath)
+    data = {'lods': lods, 'config': config}
     with open(output_filepath, 'wb') as f:
         pickle.dump(data, f)
     print('Saved LODs to `{}`.'.format(output_filepath))
@@ -173,7 +173,7 @@ def plot_lods(case_name=CASE_NAME, force=False, gen_interval=500, seed=0,
               chapter='fitness', stat='max'):
     data = get_lods(case_name, force, gen_interval, seed, all_seeds, chapter,
                     stat)
-    lods, params = data['lods'], data['params']
+    lods, config = data['lods'], data['config']
     fig = plt.figure(figsize=(14, 12))
     if avg:
         plt.plot(np.arange(lods.shape[1]) * gen_interval, lods.mean(0))
@@ -182,13 +182,13 @@ def plot_lods(case_name=CASE_NAME, force=False, gen_interval=500, seed=0,
             plt.plot(np.arange(lods.shape[1]) * gen_interval, row)
     plt.xlabel('$\mathrm{Generation}$', labelpad=20, fontsize=fontsize)
     if chapter == 'correct':
-        ylabel = _get_correct_trials_axis_label(params)
+        ylabel = _get_correct_trials_axis_label(config)
     elif chapter == 'fitness':
-        ylabel = ('$\mathrm{' + fit_funcnames[params.FITNESS_FUNCTION] + '}$')
+        ylabel = ('$\mathrm{' + fit_funcnames[config.FITNESS_FUNCTION] + '}$')
     plt.ylabel(ylabel, labelpad=20, fontsize=fontsize)
 
     plt.title(title + '$\mathrm{' + ('Average\ a' if avg else 'A') +
-              'nimat\ fitness:\ ' + _get_desc(params, num_seeds=len(lods))
+              'nimat\ fitness:\ ' + _get_desc(config, num_seeds=len(lods))
               + '}$', fontsize=fontsize)
     plt.grid(True)
     fig.show()
@@ -206,14 +206,14 @@ def get_avg_elapsed(case_name=CASE_NAME):
 # Visual interface
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def get_game_states(params):
+def get_game_states(config):
     trials = []
     # Task
-    for task in params['TASKS']:
+    for task in config['TASKS']:
         # Directions (left/right)
         for direction in (-1, 1):
             # Agent starting position
-            for agent_pos in range(params['WORLD_WIDTH']):
+            for agent_pos in range(config['WORLD_WIDTH']):
                 trials.append({
                     'task': {
                         'goalIsCatch': task[0],
@@ -230,31 +230,31 @@ def make_json_record(case_name=CASE_NAME, seed=0, lineage=0, age=0):
     output_file = os.path.join(_ensure_exists(os.path.join(
         ANALYSIS_DIR, case_name, 'seed-{}'.format(seed))), 'game.json')
 
-    params = load('params', input_filepath, seed)
+    config = load('config', input_filepath, seed)
 
-    TASKS = [(task[0], int(task[1][::-1], 2)) for task in params['TASKS']]
+    TASKS = [(task[0], int(task[1][::-1], 2)) for task in config['TASKS']]
     hit_multipliers, patterns = zip(*TASKS)
 
     lineages = load('lineages', input_filepath, seed)
 
     def i2s(i):
-        return tuple((i >> n) & 1 for n in range(params['NUM_NODES']))
+        return tuple((i >> n) & 1 for n in range(config['NUM_NODES']))
 
     ind = Individual(lineages[lineage][age].genome)
     transitions = ind.play_game(hit_multipliers, patterns)
-    states = [ps[:params['NUM_SENSORS']] + cs[params['NUM_SENSORS']:]
+    states = [ps[:config['NUM_SENSORS']] + cs[config['NUM_SENSORS']:]
               for ps, cs in zip(map(i2s, transitions[0]),
                                 map(i2s, transitions[1]))]
 
-    trial_length = params['WORLD_HEIGHT']
+    trial_length = config['WORLD_HEIGHT']
 
     block_sizes = []
     for pattern in patterns:
-        block_sizes += [sum(i2s(pattern))] * int(params['NUM_TRIALS'] /
+        block_sizes += [sum(i2s(pattern))] * int(config['NUM_TRIALS'] /
                                                  len(patterns))
 
     json_dict = {
-        'generation': params['NGEN'] - age,
+        'generation': config['NGEN'] - age,
         'connectivityMatrix': ind.cm.T.tolist(),
         'nodeTypes': {
             'sensors': [0, 1],
@@ -265,7 +265,7 @@ def make_json_record(case_name=CASE_NAME, seed=0, lineage=0, age=0):
         'Trial': [
             {'trialNum': i,
              'lifeTable': states[(i * trial_length):((i + 1) * trial_length)]}
-            for i in range(params['NUM_TRIALS'])
+            for i in range(config['NUM_TRIALS'])
         ],
     }
     with open(output_file, 'w') as f:
