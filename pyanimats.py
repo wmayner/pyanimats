@@ -53,13 +53,16 @@ import pickle
 import random
 from utils import compress
 from time import time
+from pprint import pprint
 import numpy as np
 import cProfile
 
-from parameters import params
 import fitness_functions
 from individual import Individual
 from deap import base, tools
+import config
+import constants as _
+import configure
 
 
 PROFILING = False
@@ -129,14 +132,11 @@ def main(arguments):
     SAVE_ALL_LINEAGES = arguments['--all-lineages']
     del arguments['--all-lineages']
 
-    # Load parameters.
-    if arguments['<params.yml>']:
-        params.load_from_file(arguments['<params.yml>'])
-        del arguments['<params.yml>']
-    params.load_from_args(arguments)
+    # Load configuration.
+    configure.from_args(arguments)
 
-    print('Parameters:')
-    print(params)
+    print('Configuration:')
+    pprint(configure.get_dict())
 
     # Setup
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -144,10 +144,10 @@ def main(arguments):
     toolbox = base.Toolbox()
 
     # Register the various genetic algorithm components to the toolbox.
-    toolbox.register('individual', Individual, params.INIT_GENOME)
+    toolbox.register('individual', Individual, _.INIT_GENOME)
     toolbox.register('population', tools.initRepeat, list, toolbox.individual)
     toolbox.register('evaluate',
-                     fitness_functions.__dict__[params.FITNESS_FUNCTION])
+                     fitness_functions.__dict__[config.FITNESS_FUNCTION])
     toolbox.register('select', select)
     toolbox.register('mutate', mutate)
 
@@ -174,13 +174,13 @@ def main(arguments):
 
     # Initialize logbooks and hall of fame.
     logbook = tools.Logbook()
-    hof = tools.HallOfFame(maxsize=params.POPSIZE)
+    hof = tools.HallOfFame(maxsize=config.POPSIZE)
 
     def print_status(line, time):
         print(line, compress(time))
 
-    print('\n[Seed {}] Simulating {} generations...\n'.format(params.SEED,
-                                                              params.NGEN))
+    print('\n[Seed {}] Simulating {} generations...\n'.format(config.SEED,
+                                                              config.NGEN))
 
     if PROFILING:
         pr = cProfile.Profile()
@@ -190,7 +190,7 @@ def main(arguments):
     # Simulation
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    population = toolbox.population(n=params.POPSIZE)
+    population = toolbox.population(n=config.POPSIZE)
 
     start = time()
     # Evaluate the initial population.
@@ -229,7 +229,7 @@ def main(arguments):
 
     # Evolution.
     start = time()
-    for gen in range(1, params.NGEN + 1):
+    for gen in range(1, config.NGEN + 1):
         population = process_gen(population, gen)
         if gen % STATUS_PRINTING_INTERVAL == 0:
             end = time()
@@ -245,7 +245,7 @@ def main(arguments):
         pr.dump_stats(profile_filepath)
 
     print('\n[Seed {}] Simulated {} generations in {}.'.format(
-        params.SEED, params.NGEN, compress(sim_end - sim_start)))
+        config.SEED, config.NGEN, compress(sim_end - sim_start)))
 
     # Get lineage(s).
     if SAVE_ALL_LINEAGES:
@@ -260,7 +260,7 @@ def main(arguments):
 
     # Save data.
     data = {
-        'params': params,
+        'config': configure.get_dict(),
         'lineages': lineages,
         'logbook': logbook,
         'hof': [ind.animat for ind in hof],

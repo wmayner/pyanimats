@@ -15,7 +15,8 @@ import numpy as np
 from sklearn.metrics import mutual_info_score
 import pyphi
 
-from parameters import params
+import config
+import constants as _
 
 
 # A registry of available fitness functions
@@ -100,11 +101,7 @@ def _average_over_visited_states(n=0):
     return decorator
 
 
-POSSIBLE_STATES = [pyphi.convert.loli_index2state(i, params.NUM_NODES)
-                   for i in range(2**params.NUM_NODES)]
-
-
-def _average_over_fixed_states(states=POSSIBLE_STATES):
+def _average_over_fixed_states(states):
     """A decorator that takes an animat and applies a function for a fixed set
     of states (defaulting to all possible states) and returns the average.
 
@@ -134,17 +131,6 @@ def nat(ind):
 # Mutual information
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def _bitlist(i, padlength):
-    """Return a list of the bits of an integer, padded up to ``padlength``."""
-    return list(map(int, bin(i)[2:].zfill(padlength)))
-
-
-NUM_SENSOR_STATES = 2**params.NUM_SENSORS
-NUM_MOTOR_STATES = 2**params.NUM_MOTORS
-SENSOR_MOTOR_STATES = [
-    ((i, j), _bitlist(i, params.NUM_SENSORS) + _bitlist(j, params.NUM_MOTORS))
-    for i in range(NUM_SENSOR_STATES) for j in range(NUM_MOTOR_STATES)
-]
 NAT_TO_BIT_CONVERSION_FACTOR = 1 / math.log(2)
 
 
@@ -156,12 +142,12 @@ def mi(ind):
     game = ind.play_game()
     # The contingency matrix has a row for every sensors state and a column for
     # every motor state.
-    contingency = np.zeros([NUM_SENSOR_STATES, NUM_MOTOR_STATES])
+    contingency = np.zeros([_.NUM_SENSOR_STATES, _.NUM_MOTOR_STATES])
     # Get only the sensor and motor states.
-    sensor_motor = np.concatenate([game[:, :, :params.NUM_SENSORS],
-                                   game[:, :, -params.NUM_MOTORS:]], axis=2)
+    sensor_motor = np.concatenate([game[:, :, :config.NUM_SENSORS],
+                                   game[:, :, -config.NUM_MOTORS:]], axis=2)
     # Count!
-    for idx, state in SENSOR_MOTOR_STATES:
+    for idx, state in _.SENSOR_MOTOR_STATES:
         contingency[idx] = (sensor_motor == state).all(axis=2).sum()
     # Calculate mutual information in nats.
     mi_nats = mutual_info_score(None, None, contingency=contingency)
@@ -180,8 +166,8 @@ def ex(ind, state, count=1):
     unique state the animat visits during a game."""
     subsystem = ind.brain_and_sensors(state)
 
-    hidden = subsystem.indices2nodes(params.HIDDEN_INDICES)
-    sensors = subsystem.indices2nodes(params.SENSOR_INDICES)
+    hidden = subsystem.indices2nodes(_.HIDDEN_INDICES)
+    sensors = subsystem.indices2nodes(_.SENSOR_INDICES)
 
     mechanisms = tuple(pyphi.utils.powerset(hidden))
     purviews = tuple(pyphi.utils.powerset(sensors))
@@ -194,12 +180,8 @@ def ex(ind, state, count=1):
 # Sum of small-phi
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-SENSORS_AND_HIDDEN_POWERSET = tuple(
-    pyphi.utils.powerset(params.SENSOR_INDICES + params.HIDDEN_INDICES))
-HIDDEN_AND_MOTOR_POWERSET = tuple(
-    pyphi.utils.powerset(params.HIDDEN_INDICES + params.MOTOR_INDICES))
-SP_STATES = [[1] * i + [0] * (params.NUM_NODES - i)
-             for i in range(params.NUM_NODES + 1)]
+SP_STATES = [[1] * i + [0] * (config.NUM_NODES - i)
+             for i in range(config.NUM_NODES + 1)]
 
 
 @_register
@@ -208,11 +190,12 @@ def sp(ind, state, count=1):
     """Sum of φ: Animats are evaluated based on the sum of φ for all the
     concepts of the animat's hidden units, or “brain”. This sum is averaged
     over all possible states of the animat."""
-    subsystem = ind.brain(state)
+    subsystem = ind.as_subsystem(state)
     constellation = pyphi.compute.constellation(
         subsystem,
-        past_purviews=SENSORS_AND_HIDDEN_POWERSET,
-        future_purviews=HIDDEN_AND_MOTOR_POWERSET)
+        mechanisms=_.HIDDEN_POWERSET,
+        past_purviews=_.SENSORS_AND_HIDDEN_POWERSET,
+        future_purviews=_.HIDDEN_AND_MOTOR_POWERSET)
     return sum(concept.phi for concept in constellation)
 
 

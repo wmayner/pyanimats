@@ -14,8 +14,9 @@ from copy import deepcopy
 import functools
 import pyphi
 
+import config
+import constants as _
 import utils
-from parameters import params
 from animat import Animat
 
 
@@ -55,8 +56,8 @@ class ExponentialFitness:
     @value.setter
     def value(self, v):
         self.raw = v
-        self.exponential = params.FITNESS_BASE**(
-            params.FITNESS_EXPONENT_ADD + params.FITNESS_EXPONENT_SCALE * v)
+        self.exponential = config.FITNESS_BASE**(
+            config.FITNESS_EXPONENT_ADD + config.FITNESS_EXPONENT_SCALE * v)
 
 
 class Individual:
@@ -136,7 +137,7 @@ class Individual:
     @property
     def cm(self):
         """The animat's connectivity matrix."""
-        cm = np.zeros((params.NUM_NODES, params.NUM_NODES), int)
+        cm = np.zeros((config.NUM_NODES, config.NUM_NODES), int)
         cm[list(zip(*self.edges))] = 1
         return cm
 
@@ -192,30 +193,30 @@ class Individual:
 
     def as_subsystem(self, state):
         """Return the PyPhi subsystem consisting of all the animat's nodes."""
-        return pyphi.Subsystem(self.network, state, range(params.NUM_NODES))
+        return pyphi.Subsystem(self.network, state, range(config.NUM_NODES))
 
     def brain(self, state):
         """Return the PyPhi subsystem consisting of the animat's hidden
         units."""
-        return pyphi.Subsystem(self.network, state, params.HIDDEN_INDICES)
+        return pyphi.Subsystem(self.network, state, _.HIDDEN_INDICES)
 
     def brain_and_sensors(self, state):
         """Return the PyPhi subsystem consisting of the animat's hidden
         units and sensors."""
-        return pyphi.Subsystem(self.network, state,
-                               params.HIDDEN_INDICES + params.SENSOR_INDICES)
+        return pyphi.Subsystem(
+            self.network, state, _.HIDDEN_INDICES + _.SENSOR_INDICES)
 
     def brain_and_motors(self, state):
         """Return the PyPhi subsystem consisting of the animat's hidden
         units and motors."""
-        return pyphi.Subsystem(self.network, state,
-                               params.HIDDEN_INDICES + params.MOTOR_INDICES)
+        return pyphi.Subsystem(
+            self.network, state, _.HIDDEN_INDICES + _.MOTOR_INDICES)
 
     def mutate(self):
         """Mutate the animat's genome in-place."""
-        self.animat.mutate(params.MUTATION_PROB, params.DUPLICATION_PROB,
-                           params.DELETION_PROB, params.MIN_GENOME_LENGTH,
-                           params.MAX_GENOME_LENGTH)
+        self.animat.mutate(config.MUTATION_PROB, config.DUPLICATION_PROB,
+                           config.DELETION_PROB, config.MIN_GENOME_LENGTH,
+                           config.MAX_GENOME_LENGTH)
         self._dirty_phenotype = True
         self._dirty_network = True
 
@@ -223,14 +224,13 @@ class Individual:
         """Return the list of state transitions the animat goes through when
         playing the game."""
         self._update_phenotype()
-        transitions = self.animat.play_game(
-            params.HIT_MULTIPLIERS,
-            params.BLOCK_PATTERNS,
-            scramble_world=params.SCRAMBLE_WORLD)
+        transitions = self.animat.play_game(_.HIT_MULTIPLIERS,
+                                            _.BLOCK_PATTERNS,
+                                            scramble_world=config.SCRAMBLE_WORLD)
         # Check that everything adds up.
-        assert self.animat.correct + self.animat.incorrect == params.NUM_TRIALS
+        assert self.animat.correct + self.animat.incorrect == _.NUM_TRIALS
         return transitions.reshape(
-            params.NUM_TRIALS, params.WORLD_HEIGHT, params.NUM_NODES)
+            _.NUM_TRIALS, config.WORLD_HEIGHT, config.NUM_NODES)
 
 
     def lineage(self):
