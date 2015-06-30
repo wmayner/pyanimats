@@ -9,6 +9,7 @@ Fitness functions for driving animat evolution.
 import textwrap
 wrapper = textwrap.TextWrapper(width=80)
 
+from collections import OrderedDict
 from functools import wraps
 import math
 import numpy as np
@@ -20,7 +21,7 @@ import constants as _
 
 
 # A registry of available fitness functions
-functions = {}
+functions = OrderedDict()
 # Mapping from parameter values to descriptive names
 LaTeX_NAMES = {
     'mi': 'Mutual\ Information',
@@ -123,7 +124,9 @@ def _average_over_fixed_states(states):
 @_register
 def nat(ind):
     """Natural: Animats are evaluated based on the number of game trials they
-    successfully complete."""
+    successfully complete. For each task given in the ``TASKS`` parameter,
+    there is one trial per direction (left or right) of block descent per
+    initial animat position (determined by ``config.WORLD_WIDTH``)."""
     ind.play_game()
     return ind.animat.correct
 
@@ -137,7 +140,7 @@ NAT_TO_BIT_CONVERSION_FACTOR = 1 / math.log(2)
 @_register
 def mi(ind):
     """Mutual information: Animats are evaluated based on the mutual
-    information between their sensors and motors."""
+    information between their sensors and motor over the course of a game."""
     # Play the game and get the state transitions for each trial.
     game = ind.play_game()
     # The contingency matrix has a row for every sensors state and a column for
@@ -182,6 +185,7 @@ def ex(ind, state, count=1):
 # Sum of small-phi
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+# TODO make this a config value?
 SP_STATES = [[1] * i + [0] * (config.NUM_NODES - i)
              for i in range(config.NUM_NODES + 1)]
 
@@ -191,7 +195,7 @@ SP_STATES = [[1] * i + [0] * (config.NUM_NODES - i)
 def sp(ind, state, count=1):
     """Sum of φ: Animats are evaluated based on the sum of φ for all the
     concepts of the animat's hidden units, or “brain”. This sum is averaged
-    over all possible states of the animat."""
+    over a fixed subset of animat states."""
     subsystem = ind.as_subsystem(state)
     constellation = pyphi.compute.constellation(
         subsystem,
@@ -204,10 +208,30 @@ def sp(ind, state, count=1):
 # Big phi
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+# TODO cache by TPM?
 @_register
 @_average_over_fixed_states(states=SP_STATES)
 def bp(ind, state, count=1):
     """ϕ: Animats are evaluated based on the ϕ-value of their brains, averaged
-    over every unique state the animat visits during a game."""
+    over a fixed subset of animat states."""
     subsystem = ind.brain(state)
     return pyphi.compute.big_phi(subsystem)
+
+
+# Matching
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+@_register
+def mat(ind, state):
+    """Matching: Animats are evaluated based on how well they “match” their
+    environment. Roughly speaking, this captures the degree to which their
+    conceptual structure “resonates” with statistical regularities in the
+    world. This quantity is given by:
+
+        ϕ * (Σφ'(W) - Σφ'(N)),
+
+    where ϕ is just the animat's ϕ-value (averaged over a fixed set of states),
+    Σφ'(W) is the sum of φ for each unique concept that the animat obtains when
+    presented with a stimulus set from the world, and Σφ'(N) is the same but
+    for a stimulus set that has been scrambled first in space and then in
+    time."""
