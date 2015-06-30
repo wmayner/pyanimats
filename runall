@@ -22,5 +22,5 @@ echo "Writing results to '$output_dir'."
 
 for ((seed=0; seed < 30; seed++))
 do
-  $python ./pyanimats.py $output_dir/seed-$seed $taskfile $params -f $fitness -n $ngen -s $seed -j $jumpstart -p $popsize -i $ind_record_interval -l $log_freq && echo "[Seed $seed] Wrote results to '$output_dir'."
+  $python ./pyanimats.py $output_dir/seed-$seed $taskfile $params -f $fitness -n $ngen -s $seed -j $jumpstart -p $popsize -i $ind_record_interval -l $log_freq && echo "[Seed $seed] Wrote results to '$output_dir'." &
 done
