@@ -80,7 +80,7 @@ def most_common_states(game, n=0, of=[]):
                        reverse=True))[:n]
 
 
-def _average_over_visited_states(n=0):
+def _average_over_visited_states(n=0, of=[]):
     """A decorator that takes an animat and applies a function for every unique
     state the animat visits during a game and returns the average.
 
@@ -93,7 +93,7 @@ def _average_over_visited_states(n=0):
         @wraps(func)
         def wrapper(ind, **kwargs):
             game = ind.play_game()
-            unique_states_and_counts = most_common_states(game, n=n)
+            unique_states_and_counts = most_common_states(game, n=n, of=[])
             return np.array([
                 func(ind, state, count=count, **kwargs)
                 for (state, count) in unique_states_and_counts
