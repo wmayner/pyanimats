@@ -38,19 +38,19 @@ def compress(t, sign=False, pad=u''):
     separated by spaces, set ``pad`` to ``' '``.
     :param t: seconds or :class:`datetime.timedelta` object
     :param sign: default ``False``
-    :param pad: default ``u''``
+    :param pad: default ``''``
     >>> compress(1)
-    u'1s'
+    '1s'
     >>> compress(12)
-    u'12s'
+    '12s'
     >>> compress(123)
-    u'2m3s'
+    '2m3s'
     >>> compress(1234)
-    u'20m34s'
+    '20m34s'
     >>> compress(12345)
-    u'3h25m45s'
+    '3h25m45s'
     >>> compress(123456)
-    u'1d10h17m36s'
+    '1d10h17m36s'
     '''
 
     if isinstance(t, datetime.timedelta):
@@ -60,7 +60,7 @@ def compress(t, sign=False, pad=u''):
 
     parts = []
     if sign:
-        parts.append(u'-' if t.days < 0 else u'+')
+        parts.append('-' if t.days < 0 else '+')
 
     weeks, seconds = divmod(seconds, TIME_WEEK)
     days, seconds = divmod(seconds, TIME_DAY)
@@ -68,17 +68,17 @@ def compress(t, sign=False, pad=u''):
     minutes, seconds = divmod(seconds, TIME_MINUTE)
 
     if weeks:
-        parts.append(u'{}w'.format(weeks))
+        parts.append('{}w'.format(weeks))
     if days:
-        parts.append(u'{}d'.format(days))
+        parts.append('{}d'.format(days))
     if hours:
-        parts.append(u'{}h'.format(hours))
+        parts.append('{}h'.format(hours))
     if minutes:
-        parts.append(u'{}m'.format(minutes))
+        parts.append('{}m'.format(minutes))
     if seconds:
-        parts.append(u'{}s'.format(seconds))
+        parts.append('{}s'.format(seconds))
 
     if not parts:
-        parts = [u'{:.2f}s'.format(t.microseconds / 1000000)]
+        parts = ['{:.2f}s'.format(t.microseconds / 1000000)]
 
     return pad.join(parts)
