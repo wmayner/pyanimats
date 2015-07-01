@@ -15,6 +15,7 @@ import math
 import numpy as np
 from sklearn.metrics import mutual_info_score
 import pyphi
+from pyphi.convert import nodes2idices as n2i
 
 import config
 import constants as _
@@ -297,6 +298,22 @@ def bp(ind):
 
 # Matching
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def same_concept(concept, other):
+    """Return whether two concepts are equivalent up to φ, mechanism nodes,
+    mechanism states, purviews, purview states, and repertoires."""
+    return (pyphi.utils.phi_eq(concept.phi, other.phi)
+            and n2i(concept.mechanism) == n2i(other.mechanism)
+            and ([n.state for n in concept.mechanism] ==
+                 [n.state for n in concept.mechanism])
+            and n2i(concept.cause.purview) == n2i(other.cause.purview)
+            and n2i(concept.effect.purview) == n2i(other.effect.purview)
+            and ([n.state for n in concept.cause.purview] ==
+                 [n.state for n in other.cause.purview])
+            and ([n.state for n in concept.effect.purview] ==
+                 [n.state for n in other.effect.purview])
+            and concept.eq_repertoires(other))
+
 
 @_register
 def mat(ind, state):
