@@ -112,6 +112,11 @@ def _update_constants():
     _.MOTOR_INDICES = tuple(range(config.NUM_NODES - config.NUM_MOTORS,
                                   config.NUM_NODES))
 
+    # Get combinations thereof.
+    _.SENSOR_HIDDEN_INDICES = _.SENSOR_INDICES + _.HIDDEN_INDICES
+    _.HIDDEN_MOTOR_INDICES = _.HIDDEN_INDICES + _.MOTOR_INDICES
+    _.SENSOR_MOTOR_INDICES = _.SENSOR_INDICES + _.MOTOR_INDICES
+
     # Get their power sets.
     _.HIDDEN_POWERSET = tuple(pyphi.utils.powerset(_.HIDDEN_INDICES))
     _.SENSORS_AND_HIDDEN_POWERSET = tuple(
