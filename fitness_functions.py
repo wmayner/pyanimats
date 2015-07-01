@@ -56,33 +56,53 @@ def print_functions():
 # Helper functions
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def most_common_states(game, n=0, of=[]):
+# TODO test
+def unique_rows(array, n=0, upto=[], counts=False):
+    """Return the unique rows of the last dimension of an array.
+
+    Args:
+        array (np.ndarray): The array to consider.
+
+    Keyword Args:
+        n (int): Return only the ``n`` most common rows.
+        upto (tuple(int)): Consider uniqueness only up to these row elements.
+        counts (bool): Return the unique rows with their counts (sorted).
+        indirect (bool): Return the indices of the rows.
+    """
     # Get the array in 2D form.
-    game = game.reshape(-1, game.shape[-1])
-    # Consider only states of a subset of nodes, if provided.
-    if of:
-        game = game[:, of]
+    array = array.reshape(-1, array.shape[-1])
     # Lexicographically sort.
-    sorted_game = game[np.lexsort(game.T), :]
+    sorted_array = array[np.lexsort(array.T), :]
+    # Consider only elements of a subset of columns, if provided.
+    sorted_pruned = sorted_array[:, upto] if upto else sorted_array
     # Get the indices where a new state appears.
-    diff_idx = np.where(np.any(np.diff(sorted_game, axis=0), 1))[0]
-    # Get the unique states.
-    unique_states = [sorted_game[i] for i in diff_idx] + [sorted_game[-1]]
+    diff_idx = np.where(np.any(np.diff(sorted_pruned, axis=0), 1))[0]
+    # Get the unique rows.
+    unique = sorted_array[np.append(diff_idx, -1), :]
+    # Return immediately if counts aren't needed.
+    if not counts:
+        if not n:
+            return unique
+        else:
+            return unique[:n]
     # Get the number of occurences of each unique state (the -1 is needed at
     # the beginning, rather than 0, because of fencepost concerns).
     counts = np.diff(
-        np.append(np.insert(diff_idx, 0, -1), sorted_game.shape[0] - 1))
+        np.append(np.insert(diff_idx, 0, -1), sorted_array.shape[0] - 1))
+    # Get (row, count) pairs sorted by count.
+    sorted_by_count = list(sorted(zip(unique, counts), key=lambda x: x[1],
+                                  reverse=True))
     # Return all by default.
     if not 0 < n <= counts.size:
-        n = counts.size
-    # Return the (row, count) pairs sorted by count.
-    return list(sorted(zip(unique_states, counts), key=lambda x: x[1],
-                       reverse=True))[:n]
+        return sorted_by_count
+    # TODO Return (unique, counts) rather than pairs?
+    return sorted_by_count[:n]
 
 
-def _average_over_visited_states(n=0, of=[]):
+def _average_over_visited_states(n=0, upto=False):
     """A decorator that takes an animat and applies a function for every unique
-    state the animat visits during a game and returns the average.
+    (up to sensors and hidden units only) state the animat visits during a game
+    and returns the average.
 
     The wrapped function must take an animat, state, and optionally count, and
     return a number.
@@ -92,11 +112,13 @@ def _average_over_visited_states(n=0, of=[]):
     def decorator(func):
         @wraps(func)
         def wrapper(ind, **kwargs):
+            # TODO don't reshape in Individual.play_game (use default parameter)
+            # TODO return weighted average? (update docs)
+            # TODO don't pass count to func
             game = ind.play_game()
-            unique_states_and_counts = most_common_states(game, n=n, of=[])
+            unique_states = unique_rows(game, n=n, upto=upto)
             return np.array([
-                func(ind, state, count=count, **kwargs)
-                for (state, count) in unique_states_and_counts
+                func(ind, state, **kwargs) for state in unique_states
             ]).mean()
         return wrapper
     return decorator
@@ -104,13 +126,59 @@ def _average_over_visited_states(n=0, of=[]):
 
 def _average_over_fixed_states(states):
     """A decorator that takes an animat and applies a function for a fixed set
-    of states (defaulting to all possible states) and returns the average.
+    of states and returns the average.
 
     The wrapped function must take an animat and a state, and return a
     number."""
     def decorator(func):
         @wraps(func)
         def wrapper(ind, **kwargs):
+            return np.array([
+                func(ind, state, **kwargs) for state in states
+            ]).mean()
+        return wrapper
+    return decorator
+
+
+# TODO test
+def _most_similar_row(row, array):
+    """Return the row in the 2D array most similar to the given row (Hamming
+    distance). Interprets everything as binary arrays."""
+    return array[np.argmin(np.logical_xor(array, row).sum(axis=1))]
+
+
+# TODO test
+def _get_similar_possible(ind, states):
+    """Returns a set of possible states as similar as possible to the given
+    set (Hamming distance)."""
+    valid_states = []
+    invalid_states = []
+    for state in states:
+        try:
+            pyphi.validate.state_reachable(state, ind.network,
+                                           constrained_nodes=_.HIDDEN_)
+            valid_states.append(state)
+        except pyphi.validate.StateUnreachableError:
+            invalid_states.append(state)
+    if invalid_states:
+        possible = unique_rows(ind.tpm)
+        for state in invalid_states:
+            valid_states.append(_most_similar_row(state, possible))
+    return unique_rows(valid_states)
+
+
+def _average_over_subset_of_possible_states(semifixed_states):
+    """A decorator that takes an animat and applies a function for a given set
+    of states and returns the average. If any of the given states is not
+    possible given the animat's TPM, the most similar possible state is used
+    instead (Hamming distance).
+
+    The wrapped function must take an animat and a state, and return a
+    number."""
+    def decorator(func):
+        @wraps(func)
+        def wrapper(ind, **kwargs):
+            states = _get_similar_possible(ind, semifixed_states)
             return np.array([
                 func(ind, state, **kwargs) for state in states
             ]).mean()
@@ -125,8 +193,8 @@ def _average_over_fixed_states(states):
 def nat(ind):
     """Natural: Animats are evaluated based on the number of game trials they
     successfully complete. For each task given in the ``TASKS`` parameter,
-    there is one trial per direction (left or right) of block descent per
-    initial animat position (determined by ``config.WORLD_WIDTH``)."""
+    there is one trial per direction (left or right) of block descent, per
+    initial animat position (given by ``config.WORLD_WIDTH``)."""
     ind.play_game()
     return ind.animat.correct
 
@@ -163,7 +231,7 @@ def mi(ind):
 
 @_register
 @_average_over_visited_states()
-def ex(ind, state, count=1):
+def ex(ind, state):
     """Extrinsic cause information: Animats are evaluated based on the sum of φ
     for concepts that are “about” the sensors. This sum is averaged over every
     unique state the animat visits during a game."""
@@ -185,17 +253,7 @@ def ex(ind, state, count=1):
 # Sum of small-phi
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# TODO make this a config value?
-SP_STATES = [[1] * i + [0] * (config.NUM_NODES - i)
-             for i in range(config.NUM_NODES + 1)]
-
-
-@_register
-@_average_over_fixed_states(states=SP_STATES)
-def sp(ind, state, count=1):
-    """Sum of φ: Animats are evaluated based on the sum of φ for all the
-    concepts of the animat's hidden units, or “brain”. This sum is averaged
-    over a fixed subset of animat states."""
+def _sp_one_state(ind, state):
     subsystem = ind.as_subsystem(state)
     constellation = pyphi.compute.constellation(
         subsystem,
@@ -205,17 +263,36 @@ def sp(ind, state, count=1):
     return sum(concept.phi for concept in constellation)
 
 
-# Big phi
+@_register
+def sp(ind):
+    """Sum of φ: Animats are evaluated based on the sum of φ for all the
+    concepts of the animat's hidden units, or “brain”, averaged
+    over the unique states the animat visits during a game (where uniqueness is
+    considered up to the state of the hidden units)."""
+    game = ind.play_game()
+    unique_states = unique_rows(game, upto=_.HIDDEN_INDICES)
+    # Short-circuit for zero connectivity
+    if ind.cm.sum() == 0:
+        return 0
+    return np.array([
+        _sp_one_state(ind, state) for state in unique_states
+    ]).mean()
+
+
+# Big-Phi
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # TODO cache by TPM?
 @_register
-@_average_over_fixed_states(states=SP_STATES)
-def bp(ind, state, count=1):
+def bp(ind):
     """ϕ: Animats are evaluated based on the ϕ-value of their brains, averaged
-    over a fixed subset of animat states."""
-    subsystem = ind.brain(state)
-    return pyphi.compute.big_phi(subsystem)
+    over the unique states the animat visits during a game (where uniqueness is
+    considered up to the state of the sensors and hidden units)."""
+    game = ind.play_game()
+    unique_states = unique_rows(game, n=5, upto=_.SENSOR_HIDDEN_INDICES)
+    return np.array([
+        pyphi.compute.big_phi(ind.brain(state)) for state in unique_states
+    ]).mean()
 
 
 # Matching
