@@ -15,7 +15,6 @@ import math
 import numpy as np
 from sklearn.metrics import mutual_info_score
 import pyphi
-from pyphi.convert import nodes2idices as n2i
 
 import config
 import constants as _
@@ -30,6 +29,7 @@ LaTeX_NAMES = {
     'ex': 'Extrinsic\ cause\ information',
     'sp': '\sum\\varphi',
     'bp': '\Phi',
+    'mat': 'Matching'
 }
 
 
@@ -57,8 +57,13 @@ def print_functions():
 # Helper functions
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+def contains_row(array, row):
+    """Return whether the array contains the row."""
+    return (array == row).all(axis=1)
+
+
 # TODO test
-def unique_rows(array, n=0, upto=[], counts=False):
+def unique_rows(array, upto=[], counts=False):
     """Return the unique rows of the last dimension of an array.
 
     Args:
@@ -82,10 +87,7 @@ def unique_rows(array, n=0, upto=[], counts=False):
     unique = sorted_array[np.append(diff_idx, -1), :]
     # Return immediately if counts aren't needed.
     if not counts:
-        if not n:
-            return unique
-        else:
-            return unique[:n]
+        return unique
     # Get the number of occurences of each unique state (the -1 is needed at
     # the beginning, rather than 0, because of fencepost concerns).
     counts = np.diff(
@@ -93,14 +95,11 @@ def unique_rows(array, n=0, upto=[], counts=False):
     # Get (row, count) pairs sorted by count.
     sorted_by_count = list(sorted(zip(unique, counts), key=lambda x: x[1],
                                   reverse=True))
-    # Return all by default.
-    if not 0 < n <= counts.size:
-        return sorted_by_count
     # TODO Return (unique, counts) rather than pairs?
-    return sorted_by_count[:n]
+    return sorted_by_count
 
 
-def _average_over_visited_states(n=0, upto=False):
+def _average_over_visited_states(upto=False):
     """A decorator that takes an animat and applies a function for every unique
     (up to sensors and hidden units only) state the animat visits during a game
     and returns the average.
@@ -117,10 +116,9 @@ def _average_over_visited_states(n=0, upto=False):
             # TODO return weighted average? (update docs)
             # TODO don't pass count to func
             game = ind.play_game()
-            unique_states = unique_rows(game, n=n, upto=upto)
-            return np.array([
-                func(ind, state, **kwargs) for state in unique_states
-            ]).mean()
+            unique_states = unique_rows(game, upto=upto)
+            values = [func(ind, state, **kwargs) for state in unique_states]
+            return sum(values) / len(values)
         return wrapper
     return decorator
 
@@ -134,9 +132,8 @@ def _average_over_fixed_states(states):
     def decorator(func):
         @wraps(func)
         def wrapper(ind, **kwargs):
-            return np.array([
-                func(ind, state, **kwargs) for state in states
-            ]).mean()
+            values = [func(ind, state, **kwargs) for state in states]
+            return sum(values) / len(values)
         return wrapper
     return decorator
 
@@ -180,9 +177,8 @@ def _average_over_subset_of_possible_states(semifixed_states):
         @wraps(func)
         def wrapper(ind, **kwargs):
             states = _get_similar_possible(ind, semifixed_states)
-            return np.array([
-                func(ind, state, **kwargs) for state in states
-            ]).mean()
+            values = [func(ind, state, **kwargs) for state in states]
+            return sum(values) / len(values)
         return wrapper
     return decorator
 
@@ -270,14 +266,13 @@ def sp(ind):
     concepts of the animat's hidden units, or “brain”, averaged
     over the unique states the animat visits during a game (where uniqueness is
     considered up to the state of the hidden units)."""
-    game = ind.play_game()
-    unique_states = unique_rows(game, upto=_.HIDDEN_INDICES)
-    # Short-circuit for zero connectivity
+    # Short-circuit if the animat has no connections.
     if ind.cm.sum() == 0:
         return 0
-    return np.array([
-        _sp_one_state(ind, state) for state in unique_states
-    ]).mean()
+    game = ind.play_game()
+    unique_states = unique_rows(game, upto=_.HIDDEN_INDICES)
+    values = [_sp_one_state(ind, state) for state in unique_states]
+    return sum(values) / len(values)
 
 
 # Big-Phi
@@ -287,36 +282,21 @@ def sp(ind):
 @_register
 def bp(ind):
     """ϕ: Animats are evaluated based on the ϕ-value of their brains, averaged
-    over the unique states the animat visits during a game (where uniqueness is
-    considered up to the state of the sensors and hidden units)."""
+    over the 5 most-common unique states the animat visits during a game (where
+    uniqueness is considered up to the state of the sensors and hidden
+    units)."""
     game = ind.play_game()
-    unique_states = unique_rows(game, n=5, upto=_.SENSOR_HIDDEN_INDICES)
-    return np.array([
-        pyphi.compute.big_phi(ind.brain(state)) for state in unique_states
-    ]).mean()
+    unique_states = unique_rows(game, upto=_.SENSOR_HIDDEN_INDICES)[:5]
+    values = [pyphi.compute.big_phi(ind.brain(state))
+              for state in unique_states]
+    return sum(values) / len(values)
 
 
 # Matching
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def same_concept(concept, other):
-    """Return whether two concepts are equivalent up to φ, mechanism nodes,
-    mechanism states, purviews, purview states, and repertoires."""
-    return (pyphi.utils.phi_eq(concept.phi, other.phi)
-            and n2i(concept.mechanism) == n2i(other.mechanism)
-            and ([n.state for n in concept.mechanism] ==
-                 [n.state for n in concept.mechanism])
-            and n2i(concept.cause.purview) == n2i(other.cause.purview)
-            and n2i(concept.effect.purview) == n2i(other.effect.purview)
-            and ([n.state for n in concept.cause.purview] ==
-                 [n.state for n in other.cause.purview])
-            and ([n.state for n in concept.effect.purview] ==
-                 [n.state for n in other.effect.purview])
-            and concept.eq_repertoires(other))
-
-
 @_register
-def mat(ind, state):
+def mat(ind):
     """Matching: Animats are evaluated based on how well they “match” their
     environment. Roughly speaking, this captures the degree to which their
     conceptual structure “resonates” with statistical regularities in the
@@ -324,8 +304,80 @@ def mat(ind, state):
 
         ϕ * (Σφ'(W) - Σφ'(N)),
 
-    where ϕ is just the animat's ϕ-value (averaged over a fixed set of states),
-    Σφ'(W) is the sum of φ for each unique concept that the animat obtains when
-    presented with a stimulus set from the world, and Σφ'(N) is the same but
-    for a stimulus set that has been scrambled first in space and then in
-    time."""
+    where ϕ is just the animat's ϕ-value (averaged over the 5 most-common
+    unique states that it visits during a game), Σφ'(W) is the sum of φ for
+    each *unique* concept that the animat obtains when presented with a
+    stimulus set from the world, and Σφ'(N) is the same but for a stimulus set
+    that has been scrambled first in space and then in time."""
+    # Short-circuit if the animat has no connections.
+    if ind.cm.sum() == 0:
+        return 0
+
+    # Play the game and a scrambled version of it.
+    world = ind.play_game()
+    noise = ind.play_game(scrambled=True)
+
+    # Existence term
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # TODO implement existence, proper uptos
+    # Get top 5 unique states. We consider uniqueness up to the hidden and
+    # sensor indices since sensor states can influence ϕ.
+    world_states = unique_rows(world, upto=_.SENSOR_HIDDEN_INDICES)[:5]
+    big_mips = {
+        tuple(state): pyphi.compute.big_mip(ind.brain(state))
+        for state in world_states
+    }
+    big_phis = [bm.phi for bm in big_mips.values()]
+    existence = sum(big_phis) / len(big_phis)
+
+    # Matching term
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Futher uniquify world states for φ by restricting uniqueness to hidden
+    # indices, since sensor states cannot affect φ of the hidden units (though
+    # they can still be in the purviews). We can reuse the already-uniquified
+    # `world_states` since we're restricting the uniqueness criterion.
+    world_states = unique_rows(world_states, upto=_.HIDDEN_INDICES)
+    # Same for noise states.
+    noise_states = unique_rows(noise, upto=_.HIDDEN_INDICES)
+    # Get unique states that appear in either world or noise, casting to
+    # `tuple` to allow for use as keys. We then calculate the constellation for
+    # that state only once, and build the world and noise constellation sets
+    # from that mapping.
+    all_states = tuple(
+        map(tuple, unique_rows(np.concatenate((world_states, noise_states)),
+                               upto=_.HIDDEN_INDICES)))
+    constellations = {
+        state: set(pyphi.compute.constellation(
+            ind.as_subsystem(state),
+            mechanisms=_.HIDDEN_POWERSET,
+            past_purviews=_.SENSORS_AND_HIDDEN_POWERSET,
+            future_purviews=_.HIDDEN_AND_MOTOR_POWERSET))
+        # Skip the states that we've already calculated ϕ, since we already
+        # have those constellations.
+        for state in all_states if state not in big_mips
+    }
+    # Include the already-computed constellations.
+    constellations.update({state: set(bm.unpartitioned_constellation)
+                           for state, bm in big_mips.items()})
+    # Collect the constellations specified in the world.
+    world_constellations = [constellations[tuple(state)]
+                            for state in world_states]
+    # Collect those specified in noise.
+    noise_constellations = [constellations[tuple(state)]
+                            for state in noise_states]
+    # Join the constellations for every state visited in the world and uniquify
+    # the resulting set of concepts. Concepts should be considered the same
+    # when they have the same φ, same mechanism, same mechanism state, and the
+    # same cause and effect purviews and repertoires.
+    world_concepts = set.union(*(C for C in world_constellations))
+    # Do the same for noise.
+    noise_concepts = set.union(*(C for C in noise_constellations))
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    # Calculate and return the final value for matching: the difference in the
+    # sum of small phi for the unique concepts specified when presented with
+    # the world and that when presented with a scrambled world, weighted by
+    # existence in the world.
+    return existence * (sum(c.phi for c in world_concepts) -
+                        sum(c.phi for c in noise_concepts))

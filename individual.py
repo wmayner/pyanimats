@@ -220,13 +220,15 @@ class Individual:
         self._dirty_phenotype = True
         self._dirty_network = True
 
-    def play_game(self):
+    def play_game(self, scrambled=None):
         """Return the list of state transitions the animat goes through when
         playing the game."""
         self._update_phenotype()
+        if scrambled is None:
+            scrambled = config.SCRAMBLE_WORLD
         transitions = self.animat.play_game(_.HIT_MULTIPLIERS,
                                             _.BLOCK_PATTERNS,
-                                            scramble_world=config.SCRAMBLE_WORLD)
+                                            scramble_world=scrambled)
         # Check that everything adds up.
         assert self.animat.correct + self.animat.incorrect == _.NUM_TRIALS
         return transitions.reshape(
