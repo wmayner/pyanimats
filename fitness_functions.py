@@ -77,11 +77,12 @@ def unique_rows(array, upto=[], counts=False):
     """
     # Get the array in 2D form.
     array = array.reshape(-1, array.shape[-1])
-    # Lexicographically sort.
-    sorted_array = array[np.lexsort(array.T), :]
-    # Consider only elements of a subset of columns, if provided.
-    sorted_pruned = sorted_array[:, upto] if upto else sorted_array
+    # Lexicographically sort, considering only elements of a subset of columns,
+    # if provided.
+    pruned = array[:, upto] if upto else array
+    sorted_array = array[np.lexsort(pruned.T), :]
     # Get the indices where a new state appears.
+    sorted_pruned = sorted_array[:, upto] if upto else sorted_array
     diff_idx = np.where(np.any(np.diff(sorted_pruned, axis=0), 1))[0]
     # Get the unique rows.
     unique = sorted_array[np.append(diff_idx, -1), :]
