@@ -60,12 +60,13 @@ cdef extern from 'Agent.hpp':
 
 cdef extern from 'Game.hpp':
     cdef void executeGame(
-        vector[NodeState] stateTransitions, Agent* agent, vector[int]
-        hitMultipliers, vector[int] patterns, bool scrambleWorld);
+        vector[NodeState] animatStates, vector[int] worldStates, Agent* agent,
+        vector[int] hitMultipliers, vector[int] patterns, bool scrambleWorld);
 
 
 cdef extern from 'asvoid.hpp':
     void *asvoid(vector[NodeState] *buf)
+    void *asvoid(vector[int] *buf)
 
 
 class StdVectorBase:
@@ -93,6 +94,38 @@ cdef class NodeStateWrapper:
         intbuf = <cnp.uintp_t> asvoid(self.buf) 
         n = <cnp.intp_t> self.buf.size()
         dtype = np.dtype(np.uint8) 
+        base.__array_interface__ = dict( 
+            data=(intbuf, False), 
+            descr=dtype.descr, 
+            shape=(n,),
+            strides=(dtype.itemsize,), 
+            typestr=dtype.str, 
+            version=3,
+        ) 
+        base.vector_wrapper = self 
+        return np.asarray(base) 
+
+
+cdef class WorldStateWrapper:
+
+    cdef vector[int] *buf 
+
+    def __cinit__(int self, n): 
+        self.buf = NULL 
+
+    def __init__(int self, cnp.intp_t n): 
+        self.buf = new vector[int](n) 
+
+    def __dealloc__(int self): 
+        if self.buf != NULL: 
+            del self.buf 
+
+    def asarray(int self): 
+        """Interpret the vector as an np.ndarray without copying the data.""" 
+        base = StdVectorBase() 
+        intbuf = <cnp.uintp_t> asvoid(self.buf) 
+        n = <cnp.intp_t> self.buf.size()
+        dtype = np.dtype(np.int32) 
         base.__array_interface__ = dict( 
             data=(intbuf, False), 
             descr=dtype.descr, 
@@ -185,15 +218,16 @@ cdef class Animat:
         self.thisptr.incorrect = 0
         # Calculate the size of the state transition vector, which has an entry
         # for every node state of every timestep of every trial, and initialize.
-        num_trials = len(patterns) * 2 * WORLD_WIDTH
-        size = num_trials * WORLD_HEIGHT * NUM_NODES
-        cdef NodeStateWrapper state_transitions = NodeStateWrapper(size)
+        num_timesteps = len(patterns) * 2 * WORLD_WIDTH * WORLD_HEIGHT
+        cdef NodeStateWrapper animat_states = NodeStateWrapper(num_timesteps *
+                                                               NUM_NODES)
+        cdef WorldStateWrapper world_states = WorldStateWrapper(num_timesteps)
         # Play the game, updating the animats hit and miss counts and filling
         # the given transition vector with the states the animat went through.
-        executeGame(state_transitions.buf[0], self.thisptr, hit_multipliers,
-                    patterns, scramble_world)
-        # Return the state transitions as a NumPy array.
-        return state_transitions.asarray()
+        executeGame(animat_states.buf[0], world_states.buf[0], self.thisptr,
+                    hit_multipliers, patterns, scramble_world)
+        # Return the state transitions and world states as NumPy arrays.
+        return animat_states.asarray(), world_states.asarray()
 
          
 def seed(s):

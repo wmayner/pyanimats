@@ -10,7 +10,8 @@
 
 using std::vector;
 
-void executeGame(std::vector<unsigned char> &stateTransitions, Agent* agent,
-        vector<int> hit_multipliers, vector<int> patterns, bool scrambleWorld);
+void executeGame(std::vector<unsigned char> &allAnimatStates, std::vector<int>
+        &allWorldStates, Agent* agent, vector<int> hit_multipliers, vector<int>
+        patterns, bool scrambleWorld);
 
 #endif  // SRC_GAME_H_

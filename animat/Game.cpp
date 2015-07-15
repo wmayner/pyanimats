@@ -17,8 +17,9 @@ int wrap(int i) {
  * Executes a game, updates the agent's hit count accordingly, and returns a
  * vector of the agent's state transitions over the course of the game.
  */
-void executeGame(vector<unsigned char> &stateTransitions, Agent* agent,
-        vector<int> hitMultipliers, vector<int> patterns, bool scrambleWorld) {
+void executeGame(vector<unsigned char> &allAnimatStates, vector<int>
+        &allWorldStates, Agent* agent, vector<int> hitMultipliers,
+        vector<int> patterns, bool scrambleWorld) {
     vector<int> world;
     world.clear();
     world.resize(WORLD_HEIGHT);
@@ -33,7 +34,8 @@ void executeGame(vector<unsigned char> &stateTransitions, Agent* agent,
     int patternIndex, direction, timestep;
     int action;
 
-    int stateTransitionsIndex = 0;
+    int allAnimatStatesIndex = 0;
+    int allWorldStatesIndex = 0;
     // Block patterns
     for (patternIndex = 0; patternIndex < (int)patterns.size(); patternIndex++) {
         // Directions (left/right)
@@ -54,19 +56,19 @@ void executeGame(vector<unsigned char> &stateTransitions, Agent* agent,
 
                 // Generate world
                 world.resize(WORLD_HEIGHT);
-                int world_state = patterns[patternIndex];
+                int worldState = patterns[patternIndex];
 
                 for (timestep = 0; timestep < WORLD_HEIGHT; timestep++) {
-                    world[timestep] = world_state;
+                    world[timestep] = worldState;
                     // Move the block
                     if (direction == -1) {
                         // Left
-                        world_state = ((world_state >> 1) & 65535) +
-                            ((world_state & 1) << (WORLD_WIDTH - 1));
+                        worldState = ((worldState >> 1) & 65535) +
+                            ((worldState & 1) << (WORLD_WIDTH - 1));
                     } else {
                         // Right
-                        world_state = ((world_state << 1) & 65535) +
-                            ((world_state >> (WORLD_WIDTH - 1)) & 1);
+                        worldState = ((worldState << 1) & 65535) +
+                            ((worldState >> (WORLD_WIDTH - 1)) & 1);
                     }
                 }
 
@@ -89,31 +91,33 @@ void executeGame(vector<unsigned char> &stateTransitions, Agent* agent,
 
                 // World loop
                 for (timestep = 0; timestep < WORLD_HEIGHT; timestep++) {
-                    world_state = world[timestep];
+                    worldState = world[timestep];
+                    // Record the world state
+                    allWorldStates[allWorldStatesIndex++] = worldState;
 
                     // Activate sensors if block is in line of sight
                     // TODO(wmayner) parametrize sensor location on agent body
                     if (NUM_SENSORS == 2) {
-                        agent->states[0] = (world_state >>
+                        agent->states[0] = (worldState >>
                                 worldTransform[agentPos]) & 1;
-                        agent->states[1] = (world_state >>
+                        agent->states[1] = (worldState >>
                                 worldTransform[wrap(agentPos + 2)]) & 1;
                     }
                     if (NUM_SENSORS == 3) {
                         for (int i = 0; i < 3; i++)
-                            agent->states[i] = (world_state >>
+                            agent->states[i] = (worldState >>
                                     worldTransform[wrap(agentPos + i)]) & 1;
                     }
 
                     #ifdef _DEBUG
                         // Print the world
-                        for(int i = 0; i < (int)WORLD_WIDTH; i++)
-                            printf("%i", (world_state >> i) & 1);
+                        for (int i = 0; i < (int)WORLD_WIDTH; i++)
+                            printf("%i", (worldState >> i) & 1);
                         printf("\n");
 
                         // Print the animat
                         bool space;
-                        for(int i = 0; i < WORLD_WIDTH; i++) {
+                        for (int i = 0; i < WORLD_WIDTH; i++) {
                             space = true;
                             for (int k = 0; k < 3; k++)
                                 if (wrap(agentPos + k) == i) {
@@ -141,13 +145,13 @@ void executeGame(vector<unsigned char> &stateTransitions, Agent* agent,
 
                     // Record state of sensors
                     for (int n = 0; n < NUM_SENSORS; n++)
-                        stateTransitions[stateTransitionsIndex++] = agent->states[n];
+                        allAnimatStates[allAnimatStatesIndex++] = agent->states[n];
 
                     agent->updateStates();
 
                     // Record state of hidden units and motors after updating animat
                     for (int n = NUM_SENSORS; n < NUM_NODES; n++) {
-                        stateTransitions[stateTransitionsIndex++] = agent->states[n];
+                        allAnimatStates[allAnimatStatesIndex++] = agent->states[n];
                     }
 
                     // TODO(wmayner) switch motors and cases to be less
@@ -183,7 +187,7 @@ void executeGame(vector<unsigned char> &stateTransitions, Agent* agent,
                 int hit = 0;
                 // TODO(wmayner) un-hardcode agent body size
                 for (int i = 0; i < 3; i++) {
-                    if (((world_state >> (wrap(agentPos + i))) & 1) == 1) {
+                    if (((worldState >> (wrap(agentPos + i))) & 1) == 1) {
                         hit = 1;
                     }
                 }

@@ -226,14 +226,13 @@ class Individual:
         self._update_phenotype()
         if scrambled is None:
             scrambled = config.SCRAMBLE_WORLD
-        transitions = self.animat.play_game(_.HIT_MULTIPLIERS,
-                                            _.BLOCK_PATTERNS,
-                                            scramble_world=scrambled)
+        animat_states, world_states = self.animat.play_game(
+            _.HIT_MULTIPLIERS, _.BLOCK_PATTERNS, scramble_world=scrambled)
         # Check that everything adds up.
         assert self.animat.correct + self.animat.incorrect == _.NUM_TRIALS
-        return transitions.reshape(
-            _.NUM_TRIALS, config.WORLD_HEIGHT, config.NUM_NODES)
-
+        return (animat_states.reshape(_.NUM_TRIALS, config.WORLD_HEIGHT,
+                                      config.NUM_NODES),
+                world_states.reshape(_.NUM_TRIALS, config.WORLD_HEIGHT))
 
     def lineage(self):
         """Return a generator for the lineage of this individual."""

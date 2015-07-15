@@ -116,7 +116,7 @@ def _average_over_visited_states(upto=False):
             # TODO don't reshape in Individual.play_game (use default parameter)
             # TODO return weighted average? (update docs)
             # TODO don't pass count to func
-            game = ind.play_game()
+            game, __ = ind.play_game()
             unique_states = unique_rows(game, upto=upto)
             values = [func(ind, state, **kwargs) for state in unique_states]
             return sum(values) / len(values)
@@ -208,7 +208,7 @@ def mi(ind):
     """Mutual information: Animats are evaluated based on the mutual
     information between their sensors and motor over the course of a game."""
     # Play the game and get the state transitions for each trial.
-    game = ind.play_game()
+    game, __ = ind.play_game()
     # The contingency matrix has a row for every sensors state and a column for
     # every motor state.
     contingency = np.zeros([_.NUM_SENSOR_STATES, _.NUM_MOTOR_STATES])
@@ -270,7 +270,7 @@ def sp(ind):
     # Short-circuit if the animat has no connections.
     if ind.cm.sum() == 0:
         return 0
-    game = ind.play_game()
+    game, __ = ind.play_game()
     unique_states = unique_rows(game, upto=_.HIDDEN_INDICES)
     values = [_sp_one_state(ind, state) for state in unique_states]
     return sum(values) / len(values)
@@ -286,7 +286,7 @@ def bp(ind):
     over the 5 most-common unique states the animat visits during a game (where
     uniqueness is considered up to the state of the sensors and hidden
     units)."""
-    game = ind.play_game()
+    game, __ = ind.play_game()
     unique_states = unique_rows(game, upto=_.SENSOR_HIDDEN_INDICES)[:5]
     values = [pyphi.compute.big_phi(ind.brain(state))
               for state in unique_states]
@@ -315,14 +315,14 @@ def mat(ind):
         return 0
 
     # Play the game and a scrambled version of it.
-    world = ind.play_game()
-    noise = ind.play_game(scrambled=True)
+    world, __ = ind.play_game()
+    noise, __ = ind.play_game(scrambled=True)
 
     # Existence term
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # TODO implement existence, proper uptos
     # Get top 5 unique states. We consider uniqueness up to the hidden and
-    # sensor indices since sensor states can influence ϕ.
+    # sensor indices since sensor states can influence ϕ as background
+    # conditions.
     world_states = unique_rows(world, upto=_.SENSOR_HIDDEN_INDICES)[:5]
     big_mips = {
         tuple(state): pyphi.compute.big_mip(ind.brain(state))
