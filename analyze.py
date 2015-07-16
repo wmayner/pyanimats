@@ -171,7 +171,6 @@ def game_to_json(case_name=CASE_NAME, seed=0, lineage=0, age=0,
         list(map(lambda i: i2s(i, config['WORLD_WIDTH']),
                  world_states.flatten().tolist()))).reshape(
                      world_states.shape + (config['WORLD_WIDTH'],))
-    import pdb; pdb.set_trace()  # XXX BREAKPOINT
     # Generate the JSON
     json_dict = {
         'config': config,
