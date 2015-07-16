@@ -1,24 +1,32 @@
 #!/bin/bash
 
 python="$HOME/.virtualenvs/pyanimats/bin/python"
-$python ./setup.py build_ext --inplace
 
-fitness="bp"
-ngen=2000
+echo "Building animat C++ extension..."
+$python ./setup.py build_ext --inplace
+echo "...finished."
+echo ""
+
+fitness="nat"
+ngen=60000
 taskname="3-4-6-5"
-jumpstart=4
+jumpstart=0
 popsize=100
 params="params.yml"
 
 num_ind_samples=200
 ind_record_interval=$(($ngen / $num_ind_samples))
-log_freq=1
+log_freq=100
+
+echo "Recording genomes every $ind_record_interval generations for a total of $num_ind_samples."
+echo "Printing status every $log_freq generations."
 
 version=`$python ./pyanimats.py --version`
 taskfile="tasks/"$taskname".yml"
 
 output_dir="raw_results/$version/$fitness/$taskname/sensors-3/jumpstart-$jumpstart/gen-$ngen/"
 echo "Writing results to '$output_dir'."
+echo ""
 
 for ((seed=0; seed < 30; seed++))
 do
