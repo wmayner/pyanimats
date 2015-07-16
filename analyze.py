@@ -13,7 +13,7 @@ from pyphi.convert import loli_index2state as i2s
 from individual import Individual
 
 
-CASE_NAME = 'test'
+CASE_NAME = '0.0.13/nat/3-4-6-5/sensors-3/jumpstart-0/gen-60000'
 RESULT_DIR = 'raw_results'
 ANALYSIS_DIR = 'compiled_results'
 RESULT_PATH = os.path.join(RESULT_DIR, CASE_NAME)
@@ -156,7 +156,7 @@ def get_avg_elapsed(case_name=CASE_NAME):
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def game_to_json(case_name=CASE_NAME, seed=0, lineage=0, age=0,
-                 scramble=False):
+                 scrambled=False):
     input_filepath = os.path.join(RESULT_DIR, case_name)
     output_file = os.path.join(_ensure_exists(os.path.join(
         ANALYSIS_DIR, case_name, 'seed-{}'.format(seed))), 'game.json')
@@ -164,7 +164,7 @@ def game_to_json(case_name=CASE_NAME, seed=0, lineage=0, age=0,
     lineages = load('lineages', input_filepath, seed)
     ind = Individual(lineages[lineage][age].genome)
     animat_states, world_states, animat_positions = \
-        ind.play_game(scramble=scramble, return_world=True,
+        ind.play_game(scrambled=scrambled, return_world=True,
                       return_positions=True)
     # Convert world states from the integer encoding to explicit arrays.
     world_states = np.array(
