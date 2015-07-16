@@ -220,19 +220,29 @@ class Individual:
         self._dirty_phenotype = True
         self._dirty_network = True
 
-    def play_game(self, scrambled=None):
+    def play_game(self, scrambled=None, return_world=False,
+                  return_positions=False):
         """Return the list of state transitions the animat goes through when
-        playing the game."""
+        playing the game. Optionally also returns the world states and the
+        positions of the animat."""
         self._update_phenotype()
         if scrambled is None:
             scrambled = config.SCRAMBLE_WORLD
-        animat_states, world_states = self.animat.play_game(
+        animat_states, world_states, animat_positions = self.animat.play_game(
             _.HIT_MULTIPLIERS, _.BLOCK_PATTERNS, scramble_world=scrambled)
-        # Check that everything adds up.
+        animat_states = animat_states.reshape(_.NUM_TRIALS,
+                                              config.WORLD_HEIGHT,
+                                              config.NUM_NODES)
+        world_states = world_states.reshape(_.NUM_TRIALS, config.WORLD_HEIGHT)
+        animat_positions = animat_positions.reshape(_.NUM_TRIALS,
+                                                    config.WORLD_HEIGHT)
         assert self.animat.correct + self.animat.incorrect == _.NUM_TRIALS
-        return (animat_states.reshape(_.NUM_TRIALS, config.WORLD_HEIGHT,
-                                      config.NUM_NODES),
-                world_states.reshape(_.NUM_TRIALS, config.WORLD_HEIGHT))
+        if not return_world and not return_positions:
+            return animat_states
+        elif not return_positions:
+            return (animat_states, world_states)
+        else:
+            return (animat_states, world_states, animat_positions)
 
     def lineage(self):
         """Return a generator for the lineage of this individual."""

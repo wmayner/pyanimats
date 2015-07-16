@@ -18,8 +18,7 @@ import numpy as np
 cimport numpy as cnp
 
 
-ctypedef unsigned char NodeState
-ctypedef unsigned char Nucleotide
+ctypedef unsigned char uchar
 
 # Expose #defined constants to Python.
 cdef extern from 'constants.hpp':
@@ -42,9 +41,9 @@ NUM_MOTORS = _NUM_MOTORS
 cdef extern from 'Agent.hpp':
     void srand(int s)
     cdef cppclass Agent:
-        Agent(vector[Nucleotide] genome)
+        Agent(vector[uchar] genome)
 
-        vector[Nucleotide] genome
+        vector[uchar] genome
         int gen
         int correct
         int incorrect
@@ -60,12 +59,13 @@ cdef extern from 'Agent.hpp':
 
 cdef extern from 'Game.hpp':
     cdef void executeGame(
-        vector[NodeState] animatStates, vector[int] worldStates, Agent* agent,
-        vector[int] hitMultipliers, vector[int] patterns, bool scrambleWorld);
+        vector[uchar] animatStates, vector[int] worldStates, vector[int]
+        animatPositions, Agent* agent, vector[int] hitMultipliers, vector[int]
+        patterns, bool scrambleWorld);
 
 
 cdef extern from 'asvoid.hpp':
-    void *asvoid(vector[NodeState] *buf)
+    void *asvoid(vector[uchar] *buf)
     void *asvoid(vector[int] *buf)
 
 
@@ -74,21 +74,21 @@ class StdVectorBase:
 
 
 # See https://groups.google.com/d/topic/cython-users/13Bo4zXb930/discussion
-cdef class NodeStateWrapper:
+cdef class UnsignedCharWrapper:
 
-    cdef vector[NodeState] *buf 
+    cdef vector[uchar] *buf 
 
-    def __cinit__(NodeStateWrapper self, n): 
+    def __cinit__(UnsignedCharWrapper self, n): 
         self.buf = NULL 
 
-    def __init__(NodeStateWrapper self, cnp.intp_t n): 
-        self.buf = new vector[NodeState](n) 
+    def __init__(UnsignedCharWrapper self, cnp.intp_t n): 
+        self.buf = new vector[uchar](n) 
 
-    def __dealloc__(NodeStateWrapper self): 
+    def __dealloc__(UnsignedCharWrapper self): 
         if self.buf != NULL: 
             del self.buf 
 
-    def asarray(NodeStateWrapper self): 
+    def asarray(UnsignedCharWrapper self): 
         """Interpret the vector as an np.ndarray without copying the data.""" 
         base = StdVectorBase() 
         intbuf = <cnp.uintp_t> asvoid(self.buf) 
@@ -106,7 +106,7 @@ cdef class NodeStateWrapper:
         return np.asarray(base) 
 
 
-cdef class WorldStateWrapper:
+cdef class Int32Wrapper:
 
     cdef vector[int] *buf 
 
@@ -219,15 +219,18 @@ cdef class Animat:
         # Calculate the size of the state transition vector, which has an entry
         # for every node state of every timestep of every trial, and initialize.
         num_timesteps = len(patterns) * 2 * WORLD_WIDTH * WORLD_HEIGHT
-        cdef NodeStateWrapper animat_states = NodeStateWrapper(num_timesteps *
-                                                               NUM_NODES)
-        cdef WorldStateWrapper world_states = WorldStateWrapper(num_timesteps)
+        cdef UnsignedCharWrapper animat_states = \
+            UnsignedCharWrapper(num_timesteps * NUM_NODES)
+        cdef Int32Wrapper world_states = Int32Wrapper(num_timesteps)
+        cdef Int32Wrapper animat_positions = Int32Wrapper(num_timesteps)
         # Play the game, updating the animats hit and miss counts and filling
         # the given transition vector with the states the animat went through.
-        executeGame(animat_states.buf[0], world_states.buf[0], self.thisptr,
-                    hit_multipliers, patterns, scramble_world)
+        executeGame(animat_states.buf[0], world_states.buf[0],
+                    animat_positions.buf[0], self.thisptr, hit_multipliers,
+                    patterns, scramble_world)
         # Return the state transitions and world states as NumPy arrays.
-        return animat_states.asarray(), world_states.asarray()
+        return (animat_states.asarray(), world_states.asarray(),
+                animat_positions.asarray())
 
          
 def seed(s):

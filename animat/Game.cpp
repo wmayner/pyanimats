@@ -18,8 +18,8 @@ int wrap(int i) {
  * vector of the agent's state transitions over the course of the game.
  */
 void executeGame(vector<unsigned char> &allAnimatStates, vector<int>
-        &allWorldStates, Agent* agent, vector<int> hitMultipliers,
-        vector<int> patterns, bool scrambleWorld) {
+        &allWorldStates, vector<int> &allAnimatPositions, Agent* agent,
+        vector<int> hitMultipliers, vector<int> patterns, bool scrambleWorld) {
     vector<int> world;
     world.clear();
     world.resize(WORLD_HEIGHT);
@@ -36,6 +36,7 @@ void executeGame(vector<unsigned char> &allAnimatStates, vector<int>
 
     int allAnimatStatesIndex = 0;
     int allWorldStatesIndex = 0;
+    int allAnimatPositionsIndex = 0;
     // Block patterns
     for (patternIndex = 0; patternIndex < (int)patterns.size(); patternIndex++) {
         // Directions (left/right)
@@ -94,6 +95,7 @@ void executeGame(vector<unsigned char> &allAnimatStates, vector<int>
                     worldState = world[timestep];
                     // Record the world state
                     allWorldStates[allWorldStatesIndex++] = worldState;
+                    allAnimatPositions[allAnimatPositionsIndex++] = agentPos;
 
                     // Activate sensors if block is in line of sight
                     // TODO(wmayner) parametrize sensor location on agent body
@@ -181,7 +183,7 @@ void executeGame(vector<unsigned char> &allAnimatStates, vector<int>
                             agentPos = wrap(agentPos - 1);
                             break;
                     }
-                }
+                } // End world loop
 
                 // Update hitcount
                 int hit = 0;

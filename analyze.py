@@ -8,11 +8,12 @@ import json
 from glob import glob
 import numpy as np
 import configure
+from pyphi.convert import loli_index2state as i2s
 
 from individual import Individual
 
 
-CASE_NAME = '0.0.10/sp/3-4-6-5/sensors-3/jumpstart-0/gen-4000'
+CASE_NAME = 'test'
 RESULT_DIR = 'raw_results'
 ANALYSIS_DIR = 'compiled_results'
 RESULT_PATH = os.path.join(RESULT_DIR, CASE_NAME)
@@ -154,70 +155,48 @@ def get_avg_elapsed(case_name=CASE_NAME):
 # Visual interface
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def get_game_states(config):
-    trials = []
-    # Task
-    for task in config['TASKS']:
-        # Directions (left/right)
-        for direction in (-1, 1):
-            # Agent starting position
-            for agent_pos in range(config['WORLD_WIDTH']):
-                trials.append({
-                    'task': {
-                        'goalIsCatch': task[0],
-                        'block': task[1],
-                    },
-                    'direction': direction,
-                    'initAgentPos': agent_pos,
-                })
-    # TODO finish
-
-
-def make_json_record(case_name=CASE_NAME, seed=0, lineage=0, age=0):
+def game_to_json(case_name=CASE_NAME, seed=0, lineage=0, age=0,
+                 scramble=False):
     input_filepath = os.path.join(RESULT_DIR, case_name)
     output_file = os.path.join(_ensure_exists(os.path.join(
         ANALYSIS_DIR, case_name, 'seed-{}'.format(seed))), 'game.json')
-
     config = load('config', input_filepath, seed)
-
-    TASKS = [(task[0], int(task[1][::-1], 2)) for task in config['TASKS']]
-    hit_multipliers, patterns = zip(*TASKS)
-
     lineages = load('lineages', input_filepath, seed)
-
-    def i2s(i):
-        return tuple((i >> n) & 1 for n in range(config['NUM_NODES']))
-
     ind = Individual(lineages[lineage][age].genome)
-    transitions = ind.play_game(hit_multipliers, patterns)
-    states = [ps[:config['NUM_SENSORS']] + cs[config['NUM_SENSORS']:]
-              for ps, cs in zip(map(i2s, transitions[0]),
-                                map(i2s, transitions[1]))]
-
-    trial_length = config['WORLD_HEIGHT']
-
-    block_sizes = []
-    for pattern in patterns:
-        block_sizes += [sum(i2s(pattern))] * int(config['NUM_TRIALS'] /
-                                                 len(patterns))
-
+    animat_states, world_states, animat_positions = \
+        ind.play_game(scramble=scramble, return_world=True,
+                      return_positions=True)
+    # Convert world states from the integer encoding to explicit arrays.
+    world_states = np.array(
+        list(map(lambda i: i2s(i, config['WORLD_WIDTH']),
+                 world_states.flatten().tolist()))).reshape(
+                     world_states.shape + (config['WORLD_WIDTH'],))
+    import pdb; pdb.set_trace()  # XXX BREAKPOINT
+    # Generate the JSON
     json_dict = {
+        'config': config,
         'generation': config['NGEN'] - age,
-        'connectivityMatrix': ind.cm.T.tolist(),
-        'nodeTypes': {
-            'sensors': [0, 1],
-            'hidden': [2, 3, 4, 5],
-            'motors': [6, 7],
-        },
-        'blockSize': block_sizes,
-        'Trial': [
-            {'trialNum': i,
-             'lifeTable': states[(i * trial_length):((i + 1) * trial_length)]}
-            for i in range(config['NUM_TRIALS'])
+        'cm': ind.cm.tolist(),
+        'trials': [
+            {
+                'num': trialnum,
+                'timesteps': [
+                    {
+                        'num': t,
+                        'world': world_states[trialnum, t].tolist(),
+                        'animat': animat_states[trialnum, t].tolist(),
+                        'pos': animat_positions[trialnum, t].tolist(),
+                    }
+                    for t, world_state in enumerate(world_states[trialnum])
+                ],
+            } for trialnum in range(animat_states.shape[0])
         ],
     }
     with open(output_file, 'w') as f:
             json.dump(json_dict, f)
     print('Saved game representation to `{}`.'.format(output_file))
-
     return json_dict
+
+
+def lineage_to_json():
+    pass
