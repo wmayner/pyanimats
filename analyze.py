@@ -13,7 +13,7 @@ from pyphi.convert import loli_index2state as i2s
 from individual import Individual
 
 
-CASE_NAME = '0.0.13/nat/3-4-6-5/sensors-3/jumpstart-0/gen-60000'
+CASE_NAME = '0.0.13/nat/3-4-6-5/sensors-2/jumpstart-0/gen-60000'
 RESULT_DIR = 'raw_results'
 ANALYSIS_DIR = 'compiled_results'
 RESULT_PATH = os.path.join(RESULT_DIR, CASE_NAME)
@@ -173,7 +173,7 @@ def game_to_json(case_name=CASE_NAME, seed=0, lineage=0, age=0,
                      world_states.shape + (config['WORLD_WIDTH'],))
     # Generate the JSON
     json_dict = {
-        'config': config,
+        'config': configure.get_dict(full=True),
         'generation': config['NGEN'] - age,
         'cm': ind.cm.tolist(),
         'trials': [
