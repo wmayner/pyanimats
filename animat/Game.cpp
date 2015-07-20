@@ -202,9 +202,7 @@ void executeGame(vector<unsigned char> &allAnimatStates, vector<int>
                         break;
                     }
 
-                    // TODO(wmayner) switch motors and cases to be less
-                    // confusing
-                    action = agent->states[6] + (agent->states[7] << 1);
+                    action = (agent->states[6] << 1) + agent->states[7];
 
                     // Move agent
                     switch (action) {
@@ -216,12 +214,12 @@ void executeGame(vector<unsigned char> &allAnimatStates, vector<int>
                         case 3:
                             // Don't move
                             break;
-                        // Left motor on
+                        // Right motor on
                         case 1:
                             // Move right
                             agentPos = wrap(agentPos + 1);
                             break;
-                        // Right motor on
+                        // Left motor on
                         case 2:
                             // Move left
                             agentPos = wrap(agentPos - 1);
