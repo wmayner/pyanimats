@@ -315,8 +315,14 @@ def mat(ind):
         return 0
 
     # Play the game and a scrambled version of it.
-    world = ind.play_game()
-    noise = ind.play_game(scrambled=True)
+    full_world = ind.play_game()
+    full_noise = ind.play_game(scrambled=True)
+
+    # Randomly sample a subset of trials for which to compare world and noise.
+    sample = np.random.choice(np.arange(full_world.shape[0]), size=4,
+                              replace=False)
+    world = full_world[sample]
+    noise = full_noise[sample]
 
     # Existence term
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
