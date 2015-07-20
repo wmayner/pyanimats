@@ -155,42 +155,59 @@ def get_avg_elapsed(case_name=CASE_NAME):
 # Visual interface
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def game_to_json(case_name=CASE_NAME, seed=0, lineage=0, age=0,
-                 scrambled=False):
-    input_filepath = os.path.join(RESULT_DIR, case_name)
-    output_file = os.path.join(_ensure_exists(os.path.join(
-        ANALYSIS_DIR, case_name, 'seed-{}'.format(seed))), 'game.json')
-    config = load('config', input_filepath, seed)
-    lineages = load('lineages', input_filepath, seed)
-    ind = Individual(lineages[lineage][age].genome)
-    animat_states, world_states, animat_positions = \
-        ind.play_game(scrambled=scrambled, return_world=True,
-                      return_positions=True)
+def game_to_json(ind, scrambled=False, age=0):
+    # Get the full configuration dictionary, including derived constants.
+    config = configure.get_dict(full=True)
+    # Play the game.
+    game = ind.play_game(scrambled=scrambled)
     # Convert world states from the integer encoding to explicit arrays.
     world_states = np.array(
         list(map(lambda i: i2s(i, config['WORLD_WIDTH']),
-                 world_states.flatten().tolist()))).reshape(
-                     world_states.shape + (config['WORLD_WIDTH'],))
-    # Generate the JSON
+                 game.world_states.flatten().tolist()))).reshape(
+                     game.world_states.shape + (config['WORLD_WIDTH'],))
+    # Generate the JSON-encodable dictionary.
     json_dict = {
-        'config': configure.get_dict(full=True),
+        'config': config,
         'generation': config['NGEN'] - age,
         'cm': ind.cm.tolist(),
+        'correct': ind.correct,
+        'incorrect': ind.incorrect,
         'trials': [
             {
                 'num': trialnum,
+                # First result bit is whether the block was caught.
+                'catch': bool(game.trial_results[trialnum] & 1),
+                # Second result bit is whether the animat was correct.
+                'correct': bool((game.trial_results[trialnum] >> 1) & 1),
                 'timesteps': [
                     {
                         'num': t,
                         'world': world_states[trialnum, t].tolist(),
-                        'animat': animat_states[trialnum, t].tolist(),
-                        'pos': animat_positions[trialnum, t].tolist(),
+                        'animat': game.animat_states[trialnum, t].tolist(),
+                        'pos': game.animat_positions[trialnum, t].tolist(),
                     }
                     for t, world_state in enumerate(world_states[trialnum])
                 ],
-            } for trialnum in range(animat_states.shape[0])
+            } for trialnum in range(game.animat_states.shape[0])
         ],
     }
+    assert(ind.correct == sum(trial['correct'] for trial in
+                              json_dict['trials']))
+    return json_dict
+
+
+def export_game_to_json(case_name=CASE_NAME, seed=0, lineage=0, age=0,
+                        scrambled=False):
+    input_filepath = os.path.join(RESULT_DIR, case_name)
+    output_file = os.path.join(_ensure_exists(os.path.join(
+        ANALYSIS_DIR, case_name, 'seed-{}'.format(seed))), 'game.json')
+    # Load config.
+    config = load('config', input_filepath, seed)
+    # Load individual.
+    lineages = load('lineages', input_filepath, seed)
+    ind = Individual(lineages[lineage][age].genome)
+    # Get the JSON.
+    json_dict = game_to_json(ind, scrambled=scrambled, age=0)
     with open(output_file, 'w') as f:
             json.dump(json_dict, f)
     print('Saved game representation to `{}`.'.format(output_file))
