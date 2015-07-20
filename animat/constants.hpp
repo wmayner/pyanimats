@@ -3,6 +3,7 @@
 #ifndef SRC_CONSTANTS_H_
 #define SRC_CONSTANTS_H_
 
+
 // Debug flag (comment-out to disable debugging output)
 /* #define _DEBUG */
 
@@ -27,5 +28,12 @@
 #define MIN_DUP_DEL_LENGTH 15
 // Maximum length of a duplicated/deleted genome section
 #define MAX_DUP_DEL_LENGTH 511
+
+// Enumeration constants
+#define WRONG_AVOID 0
+#define WRONG_CATCH 1
+#define CORRECT_AVOID 2
+#define CORRECT_CATCH 3
+
 
 #endif  // SRC_CONSTANTS_H_

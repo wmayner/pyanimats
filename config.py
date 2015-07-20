@@ -6,8 +6,10 @@
 Configurable parameters.
 """
 
-import animat
-
+# Game parameters from the C++.
+# TODO make these configurable
+from animat import (WORLD_WIDTH, WORLD_HEIGHT, NUM_NODES, NUM_SENSORS,
+                    NUM_MOTORS, DETERMINISTIC)
 
 # TODO don't use this directly, merge with constants during upate?
 # Command-line arguments.
@@ -34,11 +36,3 @@ MIN_GENOME_LENGTH = 1000
 MIN_DUP_DEL_WIDTH = 15
 MAX_DUP_DEL_WIDTH = 511
 INIT_START_CODONS = 0
-# Game parameters.
-# TODO make these configurable
-WORLD_WIDTH = animat.WORLD_WIDTH
-WORLD_HEIGHT = animat.WORLD_HEIGHT
-NUM_NODES = animat.NUM_NODES
-NUM_SENSORS = animat.NUM_SENSORS
-NUM_MOTORS = animat.NUM_MOTORS
-DETERMINISTIC = animat.DETERMINISTIC

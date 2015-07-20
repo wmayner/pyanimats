@@ -117,7 +117,7 @@ def _average_over_visited_states(upto=False):
             # TODO return weighted average? (update docs)
             # TODO don't pass count to func
             game = ind.play_game()
-            unique_states = unique_rows(game, upto=upto)
+            unique_states = unique_rows(game.animat_states, upto=upto)
             values = [func(ind, state, **kwargs) for state in unique_states]
             return sum(values) / len(values)
         return wrapper
@@ -209,12 +209,13 @@ def mi(ind):
     information between their sensors and motor over the course of a game."""
     # Play the game and get the state transitions for each trial.
     game = ind.play_game()
+    states = game.animat_states
     # The contingency matrix has a row for every sensors state and a column for
     # every motor state.
     contingency = np.zeros([_.NUM_SENSOR_STATES, _.NUM_MOTOR_STATES])
     # Get only the sensor and motor states.
-    sensor_motor = np.concatenate([game[:, :, :config.NUM_SENSORS],
-                                   game[:, :, -config.NUM_MOTORS:]], axis=2)
+    sensor_motor = np.concatenate([states[:, :, :config.NUM_SENSORS],
+                                   states[:, :, -config.NUM_MOTORS:]], axis=2)
     # Count!
     for idx, state in _.SENSOR_MOTOR_STATES:
         contingency[idx] = (sensor_motor == state).all(axis=2).sum()
@@ -271,7 +272,7 @@ def sp(ind):
     if ind.cm.sum() == 0:
         return 0
     game = ind.play_game()
-    unique_states = unique_rows(game, upto=_.HIDDEN_INDICES)
+    unique_states = unique_rows(game.animat_states, upto=_.HIDDEN_INDICES)
     values = [_sp_one_state(ind, state) for state in unique_states]
     return sum(values) / len(values)
 
@@ -287,7 +288,8 @@ def bp(ind):
     uniqueness is considered up to the state of the sensors and hidden
     units)."""
     game = ind.play_game()
-    unique_states = unique_rows(game, upto=_.SENSOR_HIDDEN_INDICES)[:5]
+    unique_states = unique_rows(game.animat_states,
+                                upto=_.SENSOR_HIDDEN_INDICES)[:5]
     values = [pyphi.compute.big_phi(ind.brain(state))
               for state in unique_states]
     return sum(values) / len(values)
@@ -315,14 +317,14 @@ def mat(ind):
         return 0
 
     # Play the game and a scrambled version of it.
-    full_world = ind.play_game()
-    full_noise = ind.play_game(scrambled=True)
+    world_game = ind.play_game()
+    noise_game = ind.play_game(scrambled=True)
 
     # Randomly sample a subset of trials for which to compare world and noise.
-    sample = np.random.choice(np.arange(full_world.shape[0]), size=4,
+    sample = np.random.choice(np.arange(world_game.shape[0]), size=4,
                               replace=False)
-    world = full_world[sample]
-    noise = full_noise[sample]
+    world = world_game.animat_states[sample]
+    noise = noise_game.animat_states[sample]
 
     # Existence term
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

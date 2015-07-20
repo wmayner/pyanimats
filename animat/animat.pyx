@@ -29,6 +29,10 @@ cdef extern from 'constants.hpp':
     cdef int _NUM_STATES 'NUM_STATES'
     cdef int _NUM_SENSORS 'NUM_SENSORS'
     cdef int _NUM_MOTORS 'NUM_MOTORS'
+    cdef int _CORRECT_CATCH 'CORRECT_CATCH'
+    cdef int _WRONG_CATCH 'WRONG_CATCH'
+    cdef int _CORRECT_AVOID 'CORRECT_AVOID'
+    cdef int _WRONG_AVOID 'WRONG_AVOID'
 NUM_NODES = _NUM_NODES
 DETERMINISTIC = _DETERMINISTIC
 WORLD_HEIGHT = _WORLD_HEIGHT
@@ -36,6 +40,10 @@ WORLD_WIDTH = _WORLD_WIDTH
 NUM_STATES = _NUM_STATES
 NUM_SENSORS = _NUM_SENSORS
 NUM_MOTORS = _NUM_MOTORS
+CORRECT_CATCH = _CORRECT_CATCH
+WRONG_CATCH = _WRONG_CATCH
+CORRECT_AVOID = _CORRECT_AVOID
+WRONG_AVOID = _WRONG_AVOID
 
 
 cdef extern from 'Agent.hpp':
@@ -60,8 +68,8 @@ cdef extern from 'Agent.hpp':
 cdef extern from 'Game.hpp':
     cdef void executeGame(
         vector[uchar] animatStates, vector[int] worldStates, vector[int]
-        animatPositions, Agent* agent, vector[int] hitMultipliers, vector[int]
-        patterns, bool scrambleWorld);
+        animatPositions, vector[int] trialResults, Agent* agent, vector[int]
+        hitMultipliers, vector[int] patterns, bool scrambleWorld);
 
 
 cdef extern from 'asvoid.hpp':
@@ -218,19 +226,21 @@ cdef class Animat:
         self.thisptr.incorrect = 0
         # Calculate the size of the state transition vector, which has an entry
         # for every node state of every timestep of every trial, and initialize.
-        num_timesteps = len(patterns) * 2 * WORLD_WIDTH * WORLD_HEIGHT
+        num_trials = len(patterns) * 2 * WORLD_WIDTH 
+        num_timesteps = num_trials * WORLD_HEIGHT
         cdef UnsignedCharWrapper animat_states = \
             UnsignedCharWrapper(num_timesteps * NUM_NODES)
         cdef Int32Wrapper world_states = Int32Wrapper(num_timesteps)
         cdef Int32Wrapper animat_positions = Int32Wrapper(num_timesteps)
+        cdef Int32Wrapper trial_results = Int32Wrapper(num_trials)
         # Play the game, updating the animats hit and miss counts and filling
         # the given transition vector with the states the animat went through.
         executeGame(animat_states.buf[0], world_states.buf[0],
-                    animat_positions.buf[0], self.thisptr, hit_multipliers,
-                    patterns, scramble_world)
+                    animat_positions.buf[0], trial_results.buf[0],
+                    self.thisptr, hit_multipliers, patterns, scramble_world)
         # Return the state transitions and world states as NumPy arrays.
         return (animat_states.asarray(), world_states.asarray(),
-                animat_positions.asarray())
+                animat_positions.asarray(), trial_results.asarray())
 
          
 def seed(s):

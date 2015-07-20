@@ -18,8 +18,9 @@ int wrap(int i) {
  * vector of the agent's state transitions over the course of the game
  */
 void executeGame(vector<unsigned char> &allAnimatStates, vector<int>
-        &allWorldStates, vector<int> &allAnimatPositions, Agent* agent,
-        vector<int> hitMultipliers, vector<int> patterns, bool scrambleWorld) {
+        &allWorldStates, vector<int> &allAnimatPositions, vector<int>
+        &trialResults, Agent* agent, vector<int> hitMultipliers, vector<int>
+        patterns, bool scrambleWorld) {
     vector<int> world;
     world.clear();
     world.resize(WORLD_HEIGHT);
@@ -37,6 +38,7 @@ void executeGame(vector<unsigned char> &allAnimatStates, vector<int>
     int allAnimatStatesIndex = 0;
     int allWorldStatesIndex = 0;
     int allAnimatPositionsIndex = 0;
+    int trialResultsIndex = 0;
     // Block patterns
     for (patternIndex = 0; patternIndex < (int)patterns.size(); patternIndex++) {
         // Directions (left/right)
@@ -172,12 +174,14 @@ void executeGame(vector<unsigned char> &allAnimatStates, vector<int>
                         if (hitMultipliers[patternIndex] > 0) {
                             if (hit == 1) {
                                 agent->correct++;
+                                trialResults[trialResultsIndex++] = CORRECT_CATCH;
                                 #ifdef _DEBUG
                                 printf("CAUGHT (CORRECT!)");
                                 #endif
                             }
                             else {
                                 agent->incorrect++;
+                                trialResults[trialResultsIndex++] = WRONG_AVOID;
                                 #ifdef _DEBUG
                                 printf("AVOIDED (WRONG.)");
                                 #endif
@@ -186,12 +190,14 @@ void executeGame(vector<unsigned char> &allAnimatStates, vector<int>
                         if (hitMultipliers[patternIndex] <= 0) {
                             if (hit == 0) {
                                 agent->correct++;
+                                trialResults[trialResultsIndex++] = CORRECT_AVOID;
                                 #ifdef _DEBUG
                                 printf("AVOIDED (CORRECT!)");
                                 #endif
                             }
                             else {
                                 agent->incorrect++;
+                                trialResults[trialResultsIndex++] = WRONG_CATCH;
                                 #ifdef _DEBUG
                                 printf("CAUGHT (WRONG.)");
                                 #endif

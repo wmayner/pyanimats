@@ -11,6 +11,7 @@ animat properties (connectivity, associated PyPhi objects, etc.).
 
 import numpy as np
 from copy import deepcopy
+from collections import namedtuple
 import functools
 import pyphi
 
@@ -58,6 +59,10 @@ class ExponentialFitness:
         self.raw = v
         self.exponential = config.FITNESS_BASE**(
             config.FITNESS_EXPONENT_ADD + config.FITNESS_EXPONENT_SCALE * v)
+
+
+Game = namedtuple('Game', ['animat_states', 'world_states', 'animat_positions',
+                           'trial_results'])
 
 
 class Individual:
@@ -221,28 +226,24 @@ class Individual:
         self._dirty_network = True
 
     def play_game(self, scrambled=None, return_world=False,
-                  return_positions=False):
+                  return_positions=False, return_results=False):
         """Return the list of state transitions the animat goes through when
         playing the game. Optionally also returns the world states and the
         positions of the animat."""
         self._update_phenotype()
         if scrambled is None:
             scrambled = config.SCRAMBLE_WORLD
-        animat_states, world_states, animat_positions = self.animat.play_game(
-            _.HIT_MULTIPLIERS, _.BLOCK_PATTERNS, scramble_world=scrambled)
-        animat_states = animat_states.reshape(_.NUM_TRIALS,
-                                              config.WORLD_HEIGHT,
-                                              config.NUM_NODES)
-        world_states = world_states.reshape(_.NUM_TRIALS, config.WORLD_HEIGHT)
-        animat_positions = animat_positions.reshape(_.NUM_TRIALS,
-                                                    config.WORLD_HEIGHT)
+        game = self.animat.play_game( _.HIT_MULTIPLIERS, _.BLOCK_PATTERNS,
+                                     scramble_world=scrambled)
         assert self.animat.correct + self.animat.incorrect == _.NUM_TRIALS
-        if not return_world and not return_positions:
-            return animat_states
-        elif not return_positions:
-            return (animat_states, world_states)
-        else:
-            return (animat_states, world_states, animat_positions)
+        return Game(animat_states=game[0].reshape(_.NUM_TRIALS,
+                                                  config.WORLD_HEIGHT,
+                                                  config.NUM_NODES) ,
+                    world_states=game[1].reshape(_.NUM_TRIALS,
+                                                 config.WORLD_HEIGHT),
+                    animat_positions=game[2].reshape(_.NUM_TRIALS,
+                                                     config.WORLD_HEIGHT),
+                    trial_results=game[3])
 
     def lineage(self):
         """Return a generator for the lineage of this individual."""
