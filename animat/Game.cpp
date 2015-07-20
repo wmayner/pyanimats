@@ -15,7 +15,7 @@ int wrap(int i) {
 
 /**
  * Executes a game, updates the agent's hit count accordingly, and returns a
- * vector of the agent's state transitions over the course of the game.
+ * vector of the agent's state transitions over the course of the game
  */
 void executeGame(vector<unsigned char> &allAnimatStates, vector<int>
         &allWorldStates, vector<int> &allAnimatPositions, Agent* agent,
@@ -25,7 +25,7 @@ void executeGame(vector<unsigned char> &allAnimatStates, vector<int>
     world.resize(WORLD_HEIGHT);
 
     // Permutation that redirects agent's sensors. Defaults to doing nothing
-    // (identity permutation).
+    // (identity permutation)
     vector<int> worldTransform;
     worldTransform.resize(WORLD_WIDTH);
     for (int i = 0; i < WORLD_WIDTH; i++) worldTransform[i] = i;
@@ -83,7 +83,7 @@ void executeGame(vector<unsigned char> &allAnimatStates, vector<int>
                 }
 
                 #ifdef _DEBUG
-                    printf("\n-------------------------");
+                    printf("\n\n-------------------------");
                     printf("\n   Block pattern: %i", patterns[patternIndex]);
                     printf("\n       Direction: %i", direction);
                     printf("\nInitial position: %i", initAgentPos);
@@ -95,6 +95,7 @@ void executeGame(vector<unsigned char> &allAnimatStates, vector<int>
                     worldState = world[timestep];
                     // Record the world state
                     allWorldStates[allWorldStatesIndex++] = worldState;
+                    // Record agent position
                     allAnimatPositions[allAnimatPositionsIndex++] = agentPos;
 
                     // Activate sensors if block is in line of sight
@@ -156,13 +157,56 @@ void executeGame(vector<unsigned char> &allAnimatStates, vector<int>
                         allAnimatStates[allAnimatStatesIndex++] = agent->states[n];
                     }
 
+                    // Update hitcount if this is the last timestep
+                    if (timestep == WORLD_HEIGHT - 1) {
+                        int hit = 0;
+                        // TODO(wmayner) un-hardcode agent body size
+                        for (int i = 0; i < 3; i++) {
+                            if (((worldState >> (wrap(agentPos + i))) & 1)
+                                    == 1)
+                                hit = 1;
+                        }
+                        #ifdef _DEBUG
+                        printf("-----------------\n");
+                        #endif
+                        if (hitMultipliers[patternIndex] > 0) {
+                            if (hit == 1) {
+                                agent->correct++;
+                                #ifdef _DEBUG
+                                printf("CAUGHT (CORRECT!)");
+                                #endif
+                            }
+                            else {
+                                agent->incorrect++;
+                                #ifdef _DEBUG
+                                printf("AVOIDED (WRONG.)");
+                                #endif
+                            }
+                        }
+                        if (hitMultipliers[patternIndex] <= 0) {
+                            if (hit == 0) {
+                                agent->correct++;
+                                #ifdef _DEBUG
+                                printf("AVOIDED (CORRECT!)");
+                                #endif
+                            }
+                            else {
+                                agent->incorrect++;
+                                #ifdef _DEBUG
+                                printf("CAUGHT (WRONG.)");
+                                #endif
+                            }
+                        }
+                        // Break out of the world loop, since the animat's
+                        // subsequent movement doesn't count
+                        break;
+                    }
+
                     // TODO(wmayner) switch motors and cases to be less
                     // confusing
                     action = agent->states[6] + (agent->states[7] << 1);
 
                     // Move agent
-                    // Larissa: this makes the agent stop moving:
-                    // action = 0;
                     switch (action) {
                         // No motors on
                         case 0:
@@ -184,31 +228,6 @@ void executeGame(vector<unsigned char> &allAnimatStates, vector<int>
                             break;
                     }
                 } // End world loop
-
-                // Update hitcount
-                int hit = 0;
-                // TODO(wmayner) un-hardcode agent body size
-                for (int i = 0; i < 3; i++) {
-                    if (((worldState >> (wrap(agentPos + i))) & 1) == 1) {
-                        hit = 1;
-                    }
-                }
-                if (hitMultipliers[patternIndex] > 0) {
-                    if (hit == 1) {
-                        agent->correct++;
-                    }
-                    else {
-                        agent->incorrect++;
-                    }
-                }
-                if (hitMultipliers[patternIndex] <= 0) {
-                    if (hit == 0) {
-                        agent->correct++;
-                    }
-                    else {
-                        agent->incorrect++;
-                    }
-                }
             }  // Agent starting position
         }  // Directions
     }  // Block patterns
