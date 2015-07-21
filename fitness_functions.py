@@ -321,8 +321,8 @@ def mat(ind):
     noise_game = ind.play_game(scrambled=True)
 
     # Randomly sample a subset of trials for which to compare world and noise.
-    sample = np.random.choice(np.arange(world_game.shape[0]), size=4,
-                              replace=False)
+    sample = np.random.choice(np.arange(world_game.animat_states.shape[0]),
+                              size=4, replace=False)
     world = world_game.animat_states[sample]
     noise = noise_game.animat_states[sample]
 
@@ -374,6 +374,7 @@ def mat(ind):
     # Collect those specified in noise.
     noise_constellations = [constellations[tuple(state)]
                             for state in noise_states]
+
     # Join the constellations for every state visited in the world and uniquify
     # the resulting set of concepts. Concepts should be considered the same
     # when they have the same φ, same mechanism, same mechanism state, and the
@@ -381,7 +382,6 @@ def mat(ind):
     world_concepts = set.union(*(C for C in world_constellations))
     # Do the same for noise.
     noise_concepts = set.union(*(C for C in noise_constellations))
-
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     # Calculate and return the final value for matching: the difference in the
