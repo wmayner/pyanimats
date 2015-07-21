@@ -63,6 +63,7 @@ class ExponentialFitness:
 
 Game = namedtuple('Game', ['animat_states', 'world_states', 'animat_positions',
                            'trial_results'])
+Mechanism = namedtuple('Mechanism', ['inputs', 'tpm'])
 
 
 class Individual:
@@ -196,24 +197,32 @@ class Individual:
         occurrences = np.all((window == start_codon), axis=1)
         return np.where(occurrences)[0]
 
-    def as_subsystem(self, state):
+    def as_subsystem(self, state=None):
         """Return the PyPhi subsystem consisting of all the animat's nodes."""
+        if state is None:
+            state = [0] * config.NUM_NODES
         return pyphi.Subsystem(self.network, state, range(config.NUM_NODES))
 
-    def brain(self, state):
+    def brain(self, state=None):
         """Return the PyPhi subsystem consisting of the animat's hidden
         units."""
+        if state is None:
+            state = [0] * config.NUM_NODES
         return pyphi.Subsystem(self.network, state, _.HIDDEN_INDICES)
 
-    def brain_and_sensors(self, state):
+    def brain_and_sensors(self, state=None):
         """Return the PyPhi subsystem consisting of the animat's hidden
         units and sensors."""
+        if state is None:
+            state = [0] * config.NUM_NODES
         return pyphi.Subsystem(
             self.network, state, _.HIDDEN_INDICES + _.SENSOR_INDICES)
 
-    def brain_and_motors(self, state):
+    def brain_and_motors(self, state=None):
         """Return the PyPhi subsystem consisting of the animat's hidden
         units and motors."""
+        if state is None:
+            state = [0] * config.NUM_NODES
         return pyphi.Subsystem(
             self.network, state, _.HIDDEN_INDICES + _.MOTOR_INDICES)
 
@@ -233,12 +242,12 @@ class Individual:
         self._update_phenotype()
         if scrambled is None:
             scrambled = config.SCRAMBLE_WORLD
-        game = self.animat.play_game( _.HIT_MULTIPLIERS, _.BLOCK_PATTERNS,
+        game = self.animat.play_game(_.HIT_MULTIPLIERS, _.BLOCK_PATTERNS,
                                      scramble_world=scrambled)
         assert self.animat.correct + self.animat.incorrect == _.NUM_TRIALS
         return Game(animat_states=game[0].reshape(_.NUM_TRIALS,
                                                   config.WORLD_HEIGHT,
-                                                  config.NUM_NODES) ,
+                                                  config.NUM_NODES),
                     world_states=game[1].reshape(_.NUM_TRIALS,
                                                  config.WORLD_HEIGHT),
                     animat_positions=game[2].reshape(_.NUM_TRIALS,
@@ -252,3 +261,12 @@ class Individual:
         while ancestor is not None:
             yield ancestor.animat
             ancestor = ancestor.parent
+
+    def mechanism(self, node_index):
+        """Return the TPM of a single animat node."""
+        node = self.as_subsystem().nodes[node_index]
+        tpm = node.tpm[1].squeeze().astype(int)
+        states = [pyphi.convert.holi_index2state(i, len(node.inputs))
+                  for i in range(tpm.size)]
+        return Mechanism(inputs=node.inputs,
+                         tpm=np.array(list(zip(states, tpm.flatten()))))
