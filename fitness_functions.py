@@ -234,16 +234,16 @@ def ex(ind, state):
     """Extrinsic cause information: Animats are evaluated based on the sum of φ
     for concepts that are “about” the sensors. This sum is averaged over every
     unique state the animat visits during a game."""
+    # Short-circuit if the animat has no connections.
+    if ind.cm.sum() == 0:
+        return 0
     # TODO generate powerset once (change PyPhi to use indices in find_mice
     # purview restriction)?
     subsystem = ind.brain_and_sensors(state)
-
     hidden = subsystem.indices2nodes(_.HIDDEN_INDICES)
     sensors = subsystem.indices2nodes(_.SENSOR_INDICES)
-
     mechanisms = tuple(pyphi.utils.powerset(hidden))
     purviews = tuple(pyphi.utils.powerset(sensors))
-
     mice = [subsystem.core_cause(mechanism, purviews=purviews)
             for mechanism in mechanisms]
     return sum(m.phi for m in mice)
@@ -287,10 +287,13 @@ def bp(ind):
     over the 5 most-common unique states the animat visits during a game (where
     uniqueness is considered up to the state of the sensors and hidden
     units)."""
+    # Short-circuit if the animat has no connections.
+    if ind.cm.sum() == 0:
+        return 0
     game = ind.play_game()
     unique_states = unique_rows(game.animat_states,
                                 upto=_.SENSOR_HIDDEN_INDICES)[:5]
-    values = [pyphi.compute.big_phi(ind.brain(state))
+    values = [pyphi.compute.main_complex(ind.network, state).phi
               for state in unique_states]
     return sum(values) / len(values)
 
@@ -315,11 +318,9 @@ def mat(ind):
     # Short-circuit if the animat has no connections.
     if ind.cm.sum() == 0:
         return 0
-
     # Play the game and a scrambled version of it.
     world_game = ind.play_game()
     noise_game = ind.play_game(scrambled=True)
-
     # Randomly sample a subset of trials for which to compare world and noise.
     sample = np.random.choice(np.arange(world_game.animat_states.shape[0]),
                               size=4, replace=False)
@@ -332,11 +333,11 @@ def mat(ind):
     # sensor indices since sensor states can influence ϕ as background
     # conditions.
     world_states = unique_rows(world, upto=_.SENSOR_HIDDEN_INDICES)[:5]
-    big_mips = {
-        tuple(state): pyphi.compute.big_mip(ind.brain(state))
+    complexes = {
+        tuple(state): pyphi.compute.main_complex(ind.network, state)
         for state in world_states
     }
-    big_phis = [bm.phi for bm in big_mips.values()]
+    big_phis = [bm.phi for bm in complexes.values()]
     existence = sum(big_phis) / len(big_phis)
 
     # Matching term
@@ -363,11 +364,11 @@ def mat(ind):
             future_purviews=_.HIDDEN_AND_MOTOR_POWERSET))
         # Skip the states that we've already calculated ϕ, since we already
         # have those constellations.
-        for state in all_states if state not in big_mips
+        for state in all_states if state not in complexes
     }
     # Include the already-computed constellations.
     constellations.update({state: set(bm.unpartitioned_constellation)
-                           for state, bm in big_mips.items()})
+                           for state, bm in complexes.items()})
     # Collect the constellations specified in the world.
     world_constellations = [constellations[tuple(state)]
                             for state in world_states]
