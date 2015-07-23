@@ -13,7 +13,7 @@ from pyphi.convert import loli_index2state as i2s
 from individual import Individual
 
 
-CASE_NAME = '0.0.15/nat/3-4-6-5/sensors-2/jumpstart-0/gen-60000'
+CASE_NAME = '0.0.16/nat/3-4-6-5/sensors-3/jumpstart-4/gen-60000'
 RESULT_DIR = 'raw_results'
 ANALYSIS_DIR = 'compiled_results'
 RESULT_PATH = os.path.join(RESULT_DIR, CASE_NAME)
