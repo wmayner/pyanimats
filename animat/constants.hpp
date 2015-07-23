@@ -11,7 +11,7 @@
 // ----------------
 #define NUM_NODES 8
 #define NUM_STATES (1 << NUM_NODES)
-#define NUM_SENSORS 2
+#define NUM_SENSORS 3
 #define NUM_MOTORS 2
 #define DETERMINISTIC true
 
