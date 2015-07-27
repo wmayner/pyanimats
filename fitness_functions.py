@@ -18,6 +18,7 @@ import pyphi
 
 import config
 import constants as _
+from utils import unique_rows
 
 
 # A registry of available fitness functions
@@ -56,49 +57,6 @@ def print_functions():
 
 # Helper functions
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-def contains_row(array, row):
-    """Return whether the array contains the row."""
-    return (array == row).all(axis=1)
-
-
-# TODO test
-def unique_rows(array, upto=[], counts=False):
-    """Return the unique rows of the last dimension of an array.
-
-    Args:
-        array (np.ndarray): The array to consider.
-
-    Keyword Args:
-        n (int): Return only the ``n`` most common rows.
-        upto (tuple(int)): Consider uniqueness only up to these row elements.
-        counts (bool): Return the unique rows with their counts (sorted).
-        indirect (bool): Return the indices of the rows.
-    """
-    # Get the array in 2D form.
-    array = array.reshape(-1, array.shape[-1])
-    # Lexicographically sort, considering only elements of a subset of columns,
-    # if provided.
-    pruned = array[:, upto] if upto else array
-    sorted_array = array[np.lexsort(pruned.T), :]
-    # Get the indices where a new state appears.
-    sorted_pruned = sorted_array[:, upto] if upto else sorted_array
-    diff_idx = np.where(np.any(np.diff(sorted_pruned, axis=0), 1))[0]
-    # Get the unique rows.
-    unique = sorted_array[np.append(diff_idx, -1), :]
-    # Return immediately if counts aren't needed.
-    if not counts:
-        return unique
-    # Get the number of occurences of each unique state (the -1 is needed at
-    # the beginning, rather than 0, because of fencepost concerns).
-    counts = np.diff(
-        np.append(np.insert(diff_idx, 0, -1), sorted_array.shape[0] - 1))
-    # Get (row, count) pairs sorted by count.
-    sorted_by_count = list(sorted(zip(unique, counts), key=lambda x: x[1],
-                                  reverse=True))
-    # TODO Return (unique, counts) rather than pairs?
-    return sorted_by_count
-
 
 def _average_over_visited_states(upto=False):
     """A decorator that takes an animat and applies a function for every unique
@@ -323,7 +281,7 @@ def mat(ind):
     noise_game = ind.play_game(scrambled=True)
     # Randomly sample a subset of trials for which to compare world and noise.
     sample = np.random.choice(np.arange(world_game.animat_states.shape[0]),
-                              size=4, replace=False)
+                              replace=False)
     world = world_game.animat_states[sample]
     noise = noise_game.animat_states[sample]
 
