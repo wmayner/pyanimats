@@ -78,10 +78,19 @@ void executeGame(vector<unsigned char> &allAnimatStates, vector<int>
                 if (scrambleWorld) {
                     // Scramble time
                     std::random_shuffle(world.begin(), world.end(), randInt);
-                    // Scramble space (what animat sees will be determined by
-                    // the transform)
+                    // Scramble space
                     std::random_shuffle(worldTransform.begin(),
                             worldTransform.end(), randInt);
+                    int scrambledWorldState;
+                    for (timestep = 0; timestep < WORLD_HEIGHT; timestep++) {
+                        worldState = world[timestep];
+                        scrambledWorldState = 0;
+                        for (int i = 0; i < WORLD_WIDTH; i++) {
+                            scrambledWorldState +=
+                                ((worldState >> worldTransform[i]) & 1) << i;
+                        }
+                        world[timestep] = scrambledWorldState;
+                    }
                 }
 
                 #ifdef _DEBUG
@@ -103,15 +112,14 @@ void executeGame(vector<unsigned char> &allAnimatStates, vector<int>
                     // Activate sensors if block is in line of sight
                     // TODO(wmayner) parametrize sensor location on agent body
                     if (NUM_SENSORS == 2) {
-                        agent->states[0] = (worldState >>
-                                worldTransform[agentPos]) & 1;
-                        agent->states[1] = (worldState >>
-                                worldTransform[wrap(agentPos + 2)]) & 1;
+                        agent->states[0] = (worldState >> agentPos) & 1;
+                        agent->states[1] =
+                            (worldState >> wrap(agentPos + 2)) & 1;
                     }
                     if (NUM_SENSORS == 3) {
                         for (int i = 0; i < 3; i++)
-                            agent->states[i] = (worldState >>
-                                    worldTransform[wrap(agentPos + i)]) & 1;
+                            agent->states[i] =
+                                (worldState >> wrap(agentPos + i)) & 1;
                     }
 
                     #ifdef _DEBUG
