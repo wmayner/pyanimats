@@ -7,9 +7,13 @@ import pickle
 import json
 from glob import glob
 import numpy as np
+import config
+import constants
 import configure
+from sklearn.utils.extmath import cartesian
 from pyphi.convert import loli_index2state as i2s
 
+import utils
 from individual import Individual
 
 
@@ -84,6 +88,9 @@ def already_exists_msg(output_filepath):
             'from raw data and overwrite.'.format(output_filepath))
 
 
+CONFIG = load('config')
+
+
 # Correct counts
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -152,6 +159,58 @@ def get_avg_elapsed(case_name=CASE_NAME):
     return np.array([d['elapsed'] for d in metadata.values()]).mean()
 
 
+# Dynamics
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def sequence_to_state(ind, length=3, sensors=False):
+    """Map sequences of sensor stimuli to animat states."""
+    if sensors is False:
+        sensors = list(range(config.NUM_SENSORS))
+    sensor_states = cartesian([[0, 1]] * len(sensors))
+    sequences = np.array([
+        [sensor_states[i] for i in s]
+        for s in cartesian([np.arange(sensor_states.shape[0])] * length)
+    ])
+    terminal_states = np.zeros([sequences.shape[0], config.NUM_NODES])
+    zero_state = np.zeros(config.NUM_NODES)
+    for i, sequence in enumerate(sequences):
+        state = zero_state
+        for sensor_state in sequence:
+            state[sensors] = sensor_state
+            state = np.copy(ind.network.tpm[tuple(state)])
+        terminal_states[i] = state
+    return sequences, terminal_states.astype(int)
+
+
+def state_to_sequences(ind, length=3, sensors=False):
+    """Map animat states to input sequences that could have lead to that
+    state."""
+    sequences, terminal_states = sequence_to_state(ind, length, sensors)
+    # Lexicographically sort.
+    sorted_idx = np.lexsort(terminal_states.T)
+    sorted_states = terminal_states[sorted_idx, :]
+    # Get the indices where a new state appears.
+    diff_idx = np.where(np.any(np.diff(sorted_states, axis=0), 1))[0]
+    unique_idx = np.insert((diff_idx + 1), 0, 0)
+    # Get the unique rows.
+    unique = sorted_states[unique_idx, :]
+    # For each sequence, get the index of the state it leads to in the array of
+    # unique states.
+    which = np.array([
+        np.where(np.append(unique_idx > s, True))[0][0] - 1
+        for s in np.argsort(sorted_idx)
+    ])
+    # Check that the indices recover the original state array.
+    assert np.array_equal(unique[which], terminal_states)
+    # Map the terminal states to the input sequences that could have led to
+    # them.
+    unique = [tuple(u) for u in unique]
+    mapping = {u: [] for u in unique}
+    for i, u in enumerate(which):
+        mapping[unique[u]].append(sequences[i].tolist())
+    return mapping
+
+
 # Visual interface
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -201,9 +260,10 @@ def export_game_to_json(case_name=CASE_NAME, seed=0, lineage=0, age=0,
                         scrambled=False):
     input_filepath = os.path.join(RESULT_DIR, case_name)
     output_file = os.path.join(_ensure_exists(os.path.join(
-        ANALYSIS_DIR, case_name, 'seed-{}'.format(seed))), 'game.json')
+        ANALYSIS_DIR, case_name, 'seed-{}'.format(seed))),
+        'game{}.json'.format('-scrambled' if scrambled else ''))
     # Load config.
-    config = load('config', input_filepath, seed)
+    load('config', input_filepath, seed)
     # Load individual.
     lineages = load('lineages', input_filepath, seed)
     ind = Individual(lineages[lineage][age].genome)
