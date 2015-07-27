@@ -7,19 +7,19 @@ rm -r build && rm animat.cpython-34m.so && $python setup.py build_ext --inplace
 echo "...finished."
 echo ""
 
-fitness="nat"
-ngen=60000
+fitness="mat"
+ngen=2000
 taskname="3-4-6-5"
 sensors=3
-jumpstart=0
+jumpstart=4
 popsize=100
 params="params.yml"
 
 num_ind_samples=200
 ind_record_interval=$(($ngen / $num_ind_samples))
-log_freq=100
+log_freq=1
 
-echo "Recording genomes every $ind_record_interval generations for a total of $num_ind_samples."
+echo "Recording genomes every $ind_record_interval generations for a total of $num_ind_samples samples."
 echo "Printing status every $log_freq generations."
 
 version=`$python ./pyanimats.py --version`
@@ -29,7 +29,7 @@ output_dir="raw_results/$version/$fitness/$taskname/sensors-$sensors/jumpstart-$
 echo "Writing results to '$output_dir'."
 echo ""
 
-for ((seed=0; seed < 30; seed++))
+for ((seed=0; seed < 1; seed++))
 do
-  $python ./pyanimats.py $output_dir/seed-$seed $taskfile $params -f $fitness -n $ngen -s $seed -j $jumpstart -p $popsize -i $ind_record_interval -l $log_freq && echo "[Seed $seed] Wrote results to '$output_dir'." &
+  $python ./pyanimats.py $output_dir/seed-$seed $taskfile $params -f $fitness -n $ngen -s $seed -j $jumpstart -p $popsize -i $ind_record_interval -l $log_freq && echo "[Seed $seed] Wrote results to '$output_dir'."
 done
