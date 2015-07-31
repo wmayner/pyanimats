@@ -259,6 +259,26 @@ def bp(ind):
 # Matching
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+def matching(W, N, constellations):
+    # Collect the constellations specified in the world.
+    world_constellations = [constellations[tuple(state)] for state in W]
+    # Collect those specified in noise.
+    noise_constellations = [constellations[tuple(state)] for state in N]
+    # Join the constellations for every state visited in the world and uniquify
+    # the resulting set of concepts. Concepts should be considered the same
+    # when they have the same φ, same mechanism, same mechanism state, and the
+    # same cause and effect purviews and repertoires.
+    world_concepts = set.union(*(C for C in world_constellations))
+    # Do the same for noise.
+    noise_concepts = set.union(*(C for C in noise_constellations))
+    # Calculate and return the final value for matching: the difference in the
+    # sum of small phi for the unique concepts specified when presented with
+    # the world and that when presented with a scrambled world, weighted by
+    # existence in the world.
+    return (sum(c.phi for c in world_concepts) -
+            sum(c.phi for c in noise_concepts))
+
+
 @_register
 def mat(ind):
     """Matching: Animats are evaluated based on how well they “match” their
@@ -276,75 +296,68 @@ def mat(ind):
     # Short-circuit if the animat has no connections.
     if ind.cm.sum() == 0:
         return 0
-    # Play the game and a scrambled version of it.
-    world_game = ind.play_game()
-    noise_game = ind.play_game(scrambled=True)
-    # Randomly sample a subset of trials for which to compare world and noise.
-    sample = np.random.choice(np.arange(world_game.animat_states.shape[0]),
-                              replace=False)
-    world = world_game.animat_states[sample]
-    noise = noise_game.animat_states[sample]
 
-    # Existence term
+    # Play the game and a scrambled version of it.
+    world = ind.play_game().animat_states
+    noise = ind.play_game(scrambled=True).animat_states
+    # Uniquify world and noise states, not considering differences in motors
+    # (we do however care about the sensors, since sensor states can influence
+    # φ and ϕ as background conditions).
+    unq_world_states, unq_world_idx = unique_rows(
+        world, upto=_.SENSOR_HIDDEN_INDICES, indices=True, sort=True)
+    unq_noise_states, unq_noise_idx = unique_rows(
+        noise, upto=_.SENSOR_HIDDEN_INDICES, indices=True)
+
+    # Existence
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # Get top 5 unique states. We consider uniqueness up to the hidden and
-    # sensor indices since sensor states can influence ϕ as background
-    # conditions.
-    world_states = unique_rows(world, upto=_.SENSOR_HIDDEN_INDICES)[:5]
+    # Get ϕ for the 5 most frequent unique world states.
     complexes = {
         tuple(state): pyphi.compute.main_complex(ind.network, state)
-        for state in world_states
+        for state in unq_world_states[:5]
     }
     big_phis = [bm.phi for bm in complexes.values()]
+    # Existence is the mean of those values.
     existence = sum(big_phis) / len(big_phis)
 
-    # Matching term
+    # Matching
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # Futher uniquify world states for φ by restricting uniqueness to hidden
-    # indices, since sensor states cannot affect φ of the hidden units (though
-    # they can still be in the purviews). We can reuse the already-uniquified
-    # `world_states` since we're restricting the uniqueness criterion.
-    world_states = unique_rows(world_states, upto=_.HIDDEN_INDICES)
-    # Same for noise states.
-    noise_states = unique_rows(noise, upto=_.HIDDEN_INDICES)
-    # Get unique states that appear in either world or noise, casting to
-    # `tuple` to allow for use as keys. We then calculate the constellation for
-    # that state only once, and build the world and noise constellation sets
-    # from that mapping.
-    all_states = tuple(
-        map(tuple, unique_rows(np.concatenate((world_states, noise_states)),
-                               upto=_.HIDDEN_INDICES)))
-    constellations = {
-        state: set(pyphi.compute.constellation(
-            ind.brain_and_sensors(state),
-            mechanisms=_.HIDDEN_POWERSET,
-            purviews=_.HIDDEN_POWERSET))
-        # Skip the states that we've already calculated ϕ, since we already
-        # have those constellations.
-        for state in all_states if state not in complexes
-    }
+    # Get unique states that appear in either world or noise. We then calculate
+    # the constellation for that state only once, and build the world and noise
+    # constellation sets from that mapping.
+    all_states, all_idx = unique_rows(
+        np.concatenate((unq_world_states, unq_noise_states)),
+        upto=_.SENSOR_HIDDEN_INDICES, indices=True)
+    # Calculate the constellations.
+    constellations = {}
+    for state in all_states:
+        state = tuple(state)
+        # Skip the states for which we've already calculated ϕ, since we
+        # already have those constellations.
+        if state not in complexes:
+            constellations[state] = set(pyphi.compute.constellation(
+                ind.brain_and_sensors(state),
+                mechanisms=_.HIDDEN_POWERSET,
+                purviews=_.HIDDEN_POWERSET))
     # Include the already-computed constellations.
     constellations.update({state: set(bm.unpartitioned_constellation)
                            for state, bm in complexes.items()})
-    # Collect the constellations specified in the world.
-    world_constellations = [constellations[tuple(state)]
-                            for state in world_states]
-    # Collect those specified in noise.
-    noise_constellations = [constellations[tuple(state)]
-                            for state in noise_states]
-
-    # Join the constellations for every state visited in the world and uniquify
-    # the resulting set of concepts. Concepts should be considered the same
-    # when they have the same φ, same mechanism, same mechanism state, and the
-    # same cause and effect purviews and repertoires.
-    world_concepts = set.union(*(C for C in world_constellations))
-    # Do the same for noise.
-    noise_concepts = set.union(*(C for C in noise_constellations))
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    # Calculate and return the final value for matching: the difference in the
-    # sum of small phi for the unique concepts specified when presented with
-    # the world and that when presented with a scrambled world, weighted by
-    # existence in the world.
-    return existence * (sum(c.phi for c in world_concepts) -
-                        sum(c.phi for c in noise_concepts))
+    trials = []
+    # Stride is the second dimension, i.e. trial length.
+    stride = world.shape[1]
+    for i in range(world.shape[0]):
+        # Transform the states in this trial into their representatives in the
+        # array of unique world/noise states (this is needed because we only
+        # care about uniqueness up to the hidden units, so just getting the
+        # unique states in this trial might result in getting a state for which
+        # we haven't calculated the constellation).
+        start, end = i * stride, (i + 1) * stride
+        world_trial = all_states[all_idx[unq_world_idx[start:end]]]
+        noise_trial = all_states[all_idx[len(unq_world_states) +
+                                         unq_noise_idx[start:end]]]
+        trials.append((unique_rows(world_trial), unique_rows(noise_trial)))
+    # Return the average of the matching measure over all stimulus sets (in
+    # this case a stimulus set is one trial) and their scrambled counterparts.
+    raw_matching = np.mean([matching(W, N, constellations) for W, N in trials])
+    return existence * raw_matching, existence, raw_matching
