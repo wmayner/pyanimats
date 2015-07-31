@@ -8,12 +8,11 @@ import json
 from glob import glob
 import numpy as np
 import config
-import constants
 import configure
 from sklearn.utils.extmath import cartesian
 from pyphi.convert import loli_index2state as i2s
 
-import utils
+from utils import unique_rows
 from individual import Individual
 
 
@@ -186,27 +185,16 @@ def state_to_sequences(ind, length=3, sensors=False):
     """Map animat states to input sequences that could have lead to that
     state."""
     sequences, terminal_states = sequence_to_state(ind, length, sensors)
-    # Lexicographically sort.
-    sorted_idx = np.lexsort(terminal_states.T)
-    sorted_states = terminal_states[sorted_idx, :]
-    # Get the indices where a new state appears.
-    diff_idx = np.where(np.any(np.diff(sorted_states, axis=0), 1))[0]
-    unique_idx = np.insert((diff_idx + 1), 0, 0)
-    # Get the unique rows.
-    unique = sorted_states[unique_idx, :]
     # For each sequence, get the index of the state it leads to in the array of
     # unique states.
-    which = np.array([
-        np.where(np.append(unique_idx > s, True))[0][0] - 1
-        for s in np.argsort(sorted_idx)
-    ])
+    unique, unq_idx = unique_rows(terminal_states, indices=True)
     # Check that the indices recover the original state array.
-    assert np.array_equal(unique[which], terminal_states)
+    assert np.array_equal(unique[unq_idx], terminal_states)
     # Map the terminal states to the input sequences that could have led to
     # them.
     unique = [tuple(u) for u in unique]
     mapping = {u: [] for u in unique}
-    for i, u in enumerate(which):
+    for i, u in enumerate(unq_idx):
         mapping[unique[u]].append(sequences[i].tolist())
     return mapping
 
