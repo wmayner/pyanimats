@@ -15,20 +15,27 @@ def contains_row(array, row):
 
 
 # TODO test
-def unique_rows(array, upto=[], counts=False):
+def unique_rows(array, upto=[], indices=False, counts=False, sort=False):
     """Return the unique rows of the last dimension of an array.
 
     Args:
         array (np.ndarray): The array to consider.
 
     Keyword Args:
-        n (int): Return only the ``n`` most common rows.
+        n (int): Return only the ``n`` most common rows (in the last
+        dimension).
         upto (tuple(int)): Consider uniqueness only up to these row elements.
-        counts (bool): Return the unique rows with their counts (sorted).
-        indirect (bool): Return the indices of the rows.
+        counts (bool): Also return the row counts (sorted).
+        indices (bool): Also return the indices of each input row in the array
+            of unique rows.
+        sort (bool): Return the unique rows in descending order by frequency.
     """
-    # Get the array in 2D form.
-    array = array.reshape(-1, array.shape[-1])
+    # Return immediately for empty arrays.
+    if array.size == 0:
+        return array
+    # Get the array in 2D form if necessary.
+    if array.ndim != 2:
+        array = array.reshape(-1, array.shape[-1])
     # Lexicographically sort, considering only elements of a subset of columns,
     # if provided.
     pruned = array[:, upto] if upto else array
@@ -39,18 +46,32 @@ def unique_rows(array, upto=[], counts=False):
     diff_idx = np.where(np.any(np.diff(sorted_pruned, axis=0), 1))[0]
     # Get the unique rows.
     unique = sorted_array[np.append(diff_idx, -1), :]
-    # Return immediately if counts aren't needed.
-    if not counts:
+    # Return immediately if only the unsorted unique rows are desired.
+    if not (counts or indices or sort):
         return unique
-    # Get the number of occurences of each unique state (the -1 is needed at
-    # the beginning, rather than 0, because of fencepost concerns).
-    counts = np.diff(
-        np.append(np.insert(diff_idx, 0, -1), sorted_array.shape[0] - 1))
-    # Get (row, count) pairs sorted by count.
-    sorted_by_count = list(sorted(zip(unique, counts), key=lambda x: x[1],
-                                  reverse=True))
-    # TODO Return (unique, counts) rather than pairs?
-    return sorted_by_count
+    if counts or sort:
+        # Get the number of occurences of each unique state (the -1 is needed at
+        # the beginning, rather than 0, because of fencepost concerns).
+        unq_counts = np.diff(
+            np.append(np.insert(diff_idx, 0, -1), sorted_array.shape[0] - 1))
+        # Get sorted order.
+        sorted_order = np.argsort(unq_counts)
+        unique = unique[sorted_order][::-1]
+        unq_counts = unq_counts[sorted_order][::-1]
+    if not (counts or indices):
+        return unique
+    secondary_results = []
+    if indices:
+        unq_idx = np.insert((diff_idx + 1), 0, 0)
+        # For each row, get the index of the unique row it maps to.
+        unq_idx = np.array([
+            np.where(np.append(unq_idx > s, True))[0][0] - 1
+            for s in np.argsort(sorted_idx)
+        ])
+        secondary_results.append(unq_idx)
+    if counts:
+        secondary_results.append(unq_counts)
+    return (unique,) + tuple(secondary_results)
 
 
 def signchange(a):
