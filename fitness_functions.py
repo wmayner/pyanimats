@@ -316,10 +316,9 @@ def mat(ind):
                                upto=_.HIDDEN_INDICES)))
     constellations = {
         state: set(pyphi.compute.constellation(
-            ind.as_subsystem(state),
+            ind.brain_and_sensors(state),
             mechanisms=_.HIDDEN_POWERSET,
-            past_purviews=_.SENSORS_AND_HIDDEN_POWERSET,
-            future_purviews=_.HIDDEN_AND_MOTOR_POWERSET))
+            purviews=_.HIDDEN_POWERSET))
         # Skip the states that we've already calculated ϕ, since we already
         # have those constellations.
         for state in all_states if state not in complexes
