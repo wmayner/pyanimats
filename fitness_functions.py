@@ -318,8 +318,9 @@ def mat(ind):
     }
     # TODO weight by frequency?
     # Existence is the mean of the ϕ values.
-    big_phis = [bm.phi for bm in complexes.values()]
-    existence = sum(big_phis) / len(big_phis)
+    big_phis, counts = zip(*[(complexes[state].phi, count)
+                             for state, count in all_states.items()])
+    existence = np.average(big_phis, weights=counts)
     # Get the unique concepts in each constellation.
     constellations = {
         state: set(bm.unpartitioned_constellation)
