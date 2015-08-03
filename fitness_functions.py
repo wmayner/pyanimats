@@ -296,20 +296,14 @@ def mat(ind):
     # Short-circuit if the animat has no connections.
     if ind.cm.sum() == 0:
         return 0
-
     # Play the game and a scrambled version of it.
     world = ind.play_game().animat_states
     noise = ind.play_game(scrambled=True).animat_states
     # Uniquify world and noise states, not considering differences in motors
     # (we do however care about the sensors, since sensor states can influence
     # φ and ϕ as background conditions).
-    unq_world_states, unq_world_idx = unique_rows(
-        world, upto=_.SENSOR_HIDDEN_INDICES, indices=True)
-    unq_noise_states, unq_noise_idx = unique_rows(
-        noise, upto=_.SENSOR_HIDDEN_INDICES, indices=True)
-    # Get the unique states across world and noise.
     all_states, all_idx = unique_rows(
-        np.concatenate((unq_world_states, unq_noise_states)),
+        np.concatenate((world, noise)),
         upto=_.SENSOR_HIDDEN_INDICES, indices=True)
     # Get the main complexes for each state.
     complexes = {
@@ -333,13 +327,14 @@ def mat(ind):
     for i in range(world.shape[0]):
         # Transform the states in this trial into their representatives in the
         # array of unique world/noise states (this is needed because we only
-        # care about uniqueness up to the hidden units, so just getting the
-        # unique states in this trial might result in getting a state for which
-        # we haven't calculated the constellation).
-        start, end = i * stride, (i + 1) * stride
-        world_trial = all_states[all_idx[unq_world_idx[start:end]]]
-        noise_trial = all_states[all_idx[len(unq_world_states) +
-                                         unq_noise_idx[start:end]]]
+        # care about uniqueness up to the sensors and hidden units, so just
+        # getting the unique states in this trial might result in getting a
+        # state for which we haven't calculated the constellation).
+        world_start, world_end = i * stride, (i + 1) * stride
+        noise_start = len(world) + world_start
+        noise_end = len(world) + world_end
+        world_trial = all_states[all_idx[world_start:world_end]]
+        noise_trial = all_states[all_idx[noise_start:noise_end]]
         trials.append((unique_rows(world_trial), unique_rows(noise_trial)))
     # TODO weight each concept by average big phi of its states?
     # Return the average of the matching measure over all stimulus sets (in
