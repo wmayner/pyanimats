@@ -9,7 +9,7 @@ Fitness functions for driving animat evolution.
 import textwrap
 wrapper = textwrap.TextWrapper(width=80)
 
-from collections import OrderedDict
+from collections import OrderedDict, Counter
 from functools import wraps
 import math
 import numpy as np
@@ -299,17 +299,24 @@ def mat(ind):
     # Play the game and a scrambled version of it.
     world = ind.play_game().animat_states
     noise = ind.play_game(scrambled=True).animat_states
-    # Uniquify world and noise states, not considering differences in motors
-    # (we do however care about the sensors, since sensor states can influence
-    # φ and ϕ as background conditions).
-    all_states, all_idx = unique_rows(
-        np.concatenate((world, noise)),
-        upto=_.SENSOR_HIDDEN_INDICES, indices=True)
-    # Get the main complexes for each state.
+    # Since the motor states can't influence φ or ϕ, we set them to zero to
+    # make uniqifying the states simpler.
+    world[_.MOTOR_INDICES] = 0
+    noise[_.MOTOR_INDICES] = 0
+    # Get a flat list of all the the states.
+    combined = np.concatenate([world, noise])
+    combined = combined.reshape(-1, combined.shape[-1])
+    # Get unique world and noise states and their counts, up to sensor and
+    # hidden states (we care about the sensors since sensor states can
+    # influence φ and ϕ as background conditions). The motor states are ignored
+    # since now they're all zero.
+    all_states = Counter(tuple(state) for state in combined)
+    # Get the main complexes for each unique state.
     complexes = {
-        tuple(state): pyphi.compute.main_complex(ind.network, state)
+        state: pyphi.compute.main_complex(ind.network, state)
         for state in all_states
     }
+    # TODO weight by frequency?
     # Existence is the mean of the ϕ values.
     big_phis = [bm.phi for bm in complexes.values()]
     existence = sum(big_phis) / len(big_phis)
@@ -318,26 +325,14 @@ def mat(ind):
         state: set(bm.unpartitioned_constellation)
         for state, bm in complexes.items()
     }
+    # Get the set of unique states in each trial for world and noise.
+    world = [set(tuple(state) for state in trial) for trial in world]
+    noise = [set(tuple(state) for state in trial) for trial in noise]
     # Now we calculate the matching terms for many stimulus sets (each trial)
     # which are later averaged to obtain the matching value for a “typical”
     # stimulus set.
-    trials = []
-    # Stride is the second dimension, i.e. trial length.
-    stride = world.shape[1]
-    for i in range(world.shape[0]):
-        # Transform the states in this trial into their representatives in the
-        # array of unique world/noise states (this is needed because we only
-        # care about uniqueness up to the sensors and hidden units, so just
-        # getting the unique states in this trial might result in getting a
-        # state for which we haven't calculated the constellation).
-        world_start, world_end = i * stride, (i + 1) * stride
-        noise_start = len(world) + world_start
-        noise_end = len(world) + world_end
-        world_trial = all_states[all_idx[world_start:world_end]]
-        noise_trial = all_states[all_idx[noise_start:noise_end]]
-        trials.append((unique_rows(world_trial), unique_rows(noise_trial)))
+    raw_matching = np.mean([
+        matching(W, N, constellations) for W, N in zip(world, noise)
+    ])
     # TODO weight each concept by average big phi of its states?
-    # Return the average of the matching measure over all stimulus sets (in
-    # this case a stimulus set is one trial) and their scrambled counterparts.
-    raw_matching = np.mean([matching(W, N, constellations) for W, N in trials])
     return existence * raw_matching, existence, raw_matching
