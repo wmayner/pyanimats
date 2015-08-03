@@ -304,45 +304,29 @@ def mat(ind):
     # (we do however care about the sensors, since sensor states can influence
     # φ and ϕ as background conditions).
     unq_world_states, unq_world_idx = unique_rows(
-        world, upto=_.SENSOR_HIDDEN_INDICES, indices=True, sort=True)
+        world, upto=_.SENSOR_HIDDEN_INDICES, indices=True)
     unq_noise_states, unq_noise_idx = unique_rows(
         noise, upto=_.SENSOR_HIDDEN_INDICES, indices=True)
-
-    # Existence
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # Get ϕ for the 5 most frequent unique world states.
-    complexes = {
-        tuple(state): pyphi.compute.main_complex(ind.network, state)
-        for state in unq_world_states[:5]
-    }
-    big_phis = [bm.phi for bm in complexes.values()]
-    # Existence is the mean of those values.
-    existence = sum(big_phis) / len(big_phis)
-
-    # Matching
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # Get unique states that appear in either world or noise. We then calculate
-    # the constellation for that state only once, and build the world and noise
-    # constellation sets from that mapping.
+    # Get the unique states across world and noise.
     all_states, all_idx = unique_rows(
         np.concatenate((unq_world_states, unq_noise_states)),
         upto=_.SENSOR_HIDDEN_INDICES, indices=True)
-    # Calculate the constellations.
-    constellations = {}
-    for state in all_states:
-        state = tuple(state)
-        # Skip the states for which we've already calculated ϕ, since we
-        # already have those constellations.
-        if state not in complexes:
-            constellations[state] = set(pyphi.compute.constellation(
-                ind.brain_and_sensors(state),
-                mechanisms=_.HIDDEN_POWERSET,
-                purviews=_.HIDDEN_POWERSET))
-    # Include the already-computed constellations.
-    constellations.update({state: set(bm.unpartitioned_constellation)
-                           for state, bm in complexes.items()})
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+    # Get the main complexes for each state.
+    complexes = {
+        tuple(state): pyphi.compute.main_complex(ind.network, state)
+        for state in all_states
+    }
+    # Existence is the mean of the ϕ values.
+    big_phis = [bm.phi for bm in complexes.values()]
+    existence = sum(big_phis) / len(big_phis)
+    # Get the unique concepts in each constellation.
+    constellations = {
+        state: set(bm.unpartitioned_constellation)
+        for state, bm in complexes.items()
+    }
+    # Now we calculate the matching terms for many stimulus sets (each trial)
+    # which are later averaged to obtain the matching value for a “typical”
+    # stimulus set.
     trials = []
     # Stride is the second dimension, i.e. trial length.
     stride = world.shape[1]
@@ -357,6 +341,7 @@ def mat(ind):
         noise_trial = all_states[all_idx[len(unq_world_states) +
                                          unq_noise_idx[start:end]]]
         trials.append((unique_rows(world_trial), unique_rows(noise_trial)))
+    # TODO weight each concept by average big phi of its states?
     # Return the average of the matching measure over all stimulus sets (in
     # this case a stimulus set is one trial) and their scrambled counterparts.
     raw_matching = np.mean([matching(W, N, constellations) for W, N in trials])
