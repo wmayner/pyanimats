@@ -98,7 +98,7 @@ def _update_constants():
         'ex': {'scale': 64 / 4, 'add': 64},
         'sp': {'scale': 64 / 4, 'add': 64},
         'bp': {'scale': 64 / 4, 'add': 64},
-        'mat': {'scale': 64 / 32, 'add': 64},
+        'mat': {'scale': 64 / 1, 'add': 64},
     }
     ff = config.FITNESS_FUNCTION
     if config.FITNESS_EXPONENT_SCALE is None:
