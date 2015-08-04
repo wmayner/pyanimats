@@ -8,10 +8,9 @@ echo "...finished."
 echo ""
 
 fitness="mat"
-ngen=2000
+ngen=3000
 taskname="3-4-6-5"
-sensors=3
-jumpstart=4
+jumpstart=0
 popsize=100
 params="params.yml"
 
@@ -22,6 +21,7 @@ log_freq=1
 echo "Recording genomes every $ind_record_interval generations for a total of $num_ind_samples samples."
 echo "Printing status every $log_freq generations."
 
+sensors=`$python ./pyanimats.py --num-sensors`
 version=`$python ./pyanimats.py --version`
 taskfile="tasks/"$taskname".yml"
 
