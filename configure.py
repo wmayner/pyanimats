@@ -6,6 +6,8 @@
 Handles the configuration of parameters from files or command-line arguments.
 """
 
+import os
+import pickle
 from copy import copy
 import yaml
 import pyphi
@@ -50,6 +52,7 @@ arg_name_and_type = {
     '--mut-prob': ('MUTATION_PROB', float),
     '--jumpstart': ('INIT_START_CODONS', int),
     '--scramble': ('SCRAMBLE_WORLD', bool),
+    '--init-genome': ('INIT_GENOME', str),
     '--dup-prob': ('DUPLICATION_PROB', float),
     '--del-prob': ('DELETION_PROB', float),
     '--max-length': ('MAX_GENOME_LENGTH', int),
@@ -81,8 +84,15 @@ def _update_constants():
     int_tasks = [(task[0], int(task[1][::-1], 2)) for task in config.TASKS]
     _.HIT_MULTIPLIERS, _.BLOCK_PATTERNS = zip(*int_tasks)
 
+    if hasattr(config, 'INIT_GENOME'):
+        path = os.path.join(config.INIT_GENOME, 'lineages.pkl')
+        with open(path, 'rb') as f:
+            lineages = pickle.load(f)
+            # Use the genome of the best individual of the most recent
+            # generation.
+            _.INIT_GENOME = lineages[0][0].genome
     # Insert start codons into the initial genome.
-    if config.INIT_START_CODONS > 0:
+    elif config.INIT_START_CODONS > 0:
         _.INIT_GENOME = copy(_.DEFAULT_INIT_GENOME)
         gap = len(_.INIT_GENOME) // config.INIT_START_CODONS
         for i in range(config.INIT_START_CODONS):
@@ -155,12 +165,13 @@ def get_dict(full=False):
     c = {}
     ignore = ['animat', 'ARGUMENTS', 'POSSIBLE_STATES', 'HIDDEN_POWERSET',
               'SENSORS_AND_HIDDEN_POWERSET', 'HIDDEN_AND_MOTOR_POWERSET',
-              'SENSOR_MOTOR_STATES', 'DEFAULT_INIT_GENOME', 'INIT_GENOME']
+              'SENSOR_MOTOR_STATES', 'DEFAULT_INIT_GENOME']
+    ignore_full = ['INIT_GENOME']
     for key in dir(config):
         if not key.startswith('__') and key not in ignore:
             c[key] = getattr(config, key)
     if full:
         for key in dir(_):
-            if not key.startswith('__') and key not in ignore:
+            if not key.startswith('__') and key not in ignore + ignore_full:
                 c[key] = getattr(_, key)
     return c

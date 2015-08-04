@@ -29,6 +29,7 @@ Options:
     -i, --ind-record=FREQ      Full individual recording interval [default: 1]
     -l, --log-stdout=FREQ      Status printing interval [default: 1]
     -j, --jumpstart=NUM        Begin with this many start codons [default: 0]
+    -g, --init-genome=PATH     Path to a lineage file for an intial genome.
     -a, --all-lineages         Save lineages of entire final population
         --scramble             Randomly rearrange the world in each trial
         --dup-prob=PROB        Duplication probability [default: 0.05]
