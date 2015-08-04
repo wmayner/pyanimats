@@ -116,8 +116,8 @@ void executeGame(vector<unsigned char> &allAnimatStates, vector<int>
                         agent->states[1] =
                             (worldState >> wrap(agentPos + 2)) & 1;
                     }
-                    if (NUM_SENSORS == 3) {
-                        for (int i = 0; i < 3; i++)
+                    else {
+                        for (int i = 0; i < BODY_LENGTH; i++)
                             agent->states[i] =
                                 (worldState >> wrap(agentPos + i)) & 1;
                     }
@@ -132,9 +132,9 @@ void executeGame(vector<unsigned char> &allAnimatStates, vector<int>
                         bool space;
                         for (int i = 0; i < WORLD_WIDTH; i++) {
                             space = true;
-                            for (int k = 0; k < 3; k++)
+                            for (int k = 0; k < BODY_LENGTH; k++)
                                 if (wrap(agentPos + k) == i) {
-                                    if (NUM_SENSORS == 3) {
+                                    if (NUM_SENSORS > 2) {
                                         printf("%i", agent->states[k]);
                                     } else {
                                         if (k == 0)
@@ -170,8 +170,7 @@ void executeGame(vector<unsigned char> &allAnimatStates, vector<int>
                     // Update hitcount if this is the last timestep
                     if (timestep == WORLD_HEIGHT - 1) {
                         int hit = 0;
-                        // TODO(wmayner) un-hardcode agent body size
-                        for (int i = 0; i < 3; i++) {
+                        for (int i = 0; i < BODY_LENGTH; i++) {
                             if (((worldState >> (wrap(agentPos + i))) & 1)
                                     == 1)
                                 hit = 1;

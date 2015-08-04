@@ -134,8 +134,8 @@ def _update_constants():
     # Get sensor locations (mapping them to the sensor index).
     if config.NUM_SENSORS == 2:
         _.SENSOR_LOCATIONS = [0, 2]
-    if config.NUM_SENSORS == 3:
-        _.SENSOR_LOCATIONS = [0, 1, 2]
+    else:
+        _.SENSOR_LOCATIONS = list(range(config.NUM_SENSORS))
 
     def _bitlist(i, padlength):
         """Return a list of the bits of an integer, padded up to

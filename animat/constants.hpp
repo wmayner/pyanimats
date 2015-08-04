@@ -3,17 +3,19 @@
 #ifndef SRC_CONSTANTS_H_
 #define SRC_CONSTANTS_H_
 
-
 // Debug flag (comment-out to disable debugging output)
 /* #define _DEBUG */
+
+#include <algorithm>
 
 // Agent parameters
 // ----------------
 #define NUM_NODES 8
 #define NUM_STATES (1 << NUM_NODES)
-#define NUM_SENSORS 3
+#define NUM_SENSORS 4
 #define NUM_MOTORS 2
 #define DETERMINISTIC true
+const int BODY_LENGTH = std::max(3, NUM_SENSORS);
 
 // World parameters
 // ----------------

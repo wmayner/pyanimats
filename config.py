@@ -9,7 +9,7 @@ Configurable parameters.
 # Game parameters from the C++.
 # TODO make these configurable
 from animat import (WORLD_WIDTH, WORLD_HEIGHT, NUM_NODES, NUM_SENSORS,
-                    NUM_MOTORS, DETERMINISTIC)
+                    NUM_MOTORS, BODY_LENGTH, DETERMINISTIC)
 
 # TODO don't use this directly, merge with constants during upate?
 # Command-line arguments.
