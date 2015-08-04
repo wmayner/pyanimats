@@ -10,14 +10,16 @@ Evolve animats.
 Usage:
     evolve.py <output_dir> <tasks.yml> <params.yml> [options]
     evolve.py <output_dir> <tasks.yml> [options]
-    evolve.py --list-fitness-funcs
     evolve.py -h | --help
     evolve.py -v | --version
+    evolve.py --list-fitness-funcs
+    evolve.py --num-sensors
 
 Options:
     -h, --help                 Show this
     -v, --version              Show version
         --list-fitness-funcs   List available fitness functions
+        --num-sensors          Print the number of sensors.
     -n, --num-gen=NGEN         Number of generations to simulate [default: 10]
     -s, --seed=SEED            Random number generator seed [default: 0]
     -f, --fitness=FUNC         Fitness function [default: nat]
@@ -100,6 +102,10 @@ def main(arguments):
 
     if arguments['--list-fitness-funcs']:
         fitness_functions.print_functions()
+        return
+
+    if arguments['--num-sensors']:
+        print(config.NUM_SENSORS)
         return
 
     # Ensure output directory exists.
