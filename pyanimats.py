@@ -153,9 +153,6 @@ def main(arguments):
 
     # Create statistics trackers.
     fitness_stats = tools.Statistics(key=lambda ind: ind.fitness.raw)
-    fitness_stats.register('avg', np.mean)
-    fitness_stats.register('std', np.std)
-    fitness_stats.register('min', np.min)
     fitness_stats.register('max', np.max)
 
     real_fitness_stats = tools.Statistics(key=lambda ind: ind.fitness.value)
@@ -166,11 +163,16 @@ def main(arguments):
     correct_stats.register('correct', lambda x: np.max(x, 0)[0])
     correct_stats.register('incorrect', lambda x: np.max(x, 0)[1])
 
+    alt_fitness_stats = tools.Statistics(key=lambda ind: ind.alt_fitness)
+    alt_fitness_stats.register('weighted', lambda x: np.max(x, 0)[0])
+    alt_fitness_stats.register('unweighted', lambda x: np.max(x, 0)[1])
+
     # Initialize a MultiStatistics object for convenience that allows for only
-    # one call to compile.
+    # one call to `compile`.
     mstats = tools.MultiStatistics(correct=correct_stats,
                                    fitness=fitness_stats,
-                                   real_fitness=real_fitness_stats)
+                                   real_fitness=real_fitness_stats,
+                                   alt_fitness=alt_fitness_stats)
 
     # Initialize logbooks and hall of fame.
     logbook = tools.Logbook()
@@ -196,7 +198,8 @@ def main(arguments):
     # Evaluate the initial population.
     fitnesses = toolbox.map(toolbox.evaluate, population)
     for ind, fitness in zip(population, fitnesses):
-        ind.fitness.value = fitness
+        ind.fitness.value = fitness[0]
+        ind.alt_fitness = fitness[1:]
     # Record stats for initial population.
     hof.update(population)
     record = mstats.compile(population)
@@ -219,7 +222,8 @@ def main(arguments):
         # Evaluation.
         fitnesses = toolbox.map(toolbox.evaluate, offspring)
         for ind, fitness in zip(offspring, fitnesses):
-            ind.fitness.value = fitness
+            ind.fitness.value = fitness[0]
+            ind.alt_fitness = fitness[1:]
         # Recording.
         hof.update(offspring)
         if gen % DATA_RECORDING_INTERVAL == 0:

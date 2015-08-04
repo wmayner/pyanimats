@@ -261,9 +261,9 @@ def bp(ind):
 
 def matching(W, N, constellations):
     # Collect the constellations specified in the world.
-    world_constellations = [constellations[tuple(state)] for state in W]
+    world_constellations = [constellations[state] for state in W]
     # Collect those specified in noise.
-    noise_constellations = [constellations[tuple(state)] for state in N]
+    noise_constellations = [constellations[state] for state in N]
     # Join the constellations for every state visited in the world and uniquify
     # the resulting set of concepts. Concepts should be considered the same
     # when they have the same φ, same mechanism, same mechanism state, and the
@@ -277,6 +277,52 @@ def matching(W, N, constellations):
     # existence in the world.
     return (sum(c.phi for c in world_concepts) -
             sum(c.phi for c in noise_concepts))
+
+
+def matching_weighted(W, N, constellations, complexes):
+    world = np.array([
+        sum(complexes[state].phi * c.phi for c in constellations[state])
+        for state in W
+    ])
+    noise = np.array([
+        sum(complexes[state].phi * c.phi for c in constellations[state])
+        for state in N
+    ])
+    return world.sum() - noise.sum()
+
+
+def matching_average_weighted(W, N, constellations, complexes):
+    # Collect the constellations specified in the world.
+    world_constellations = [constellations[state] for state in W]
+    # Collect those specified in noise.
+    noise_constellations = [constellations[state] for state in N]
+    # Join the constellations for every state visited in the world and uniquify
+    # the resulting set of concepts. Concepts should be considered the same
+    # when they have the same φ, same mechanism, same mechanism state, and the
+    # same cause and effect purviews and repertoires.
+    world_concepts = set.union(*(C for C in world_constellations))
+    # Do the same for noise.
+    noise_concepts = set.union(*(C for C in noise_constellations))
+    # Map concepts to the ϕ values.
+    big_phis_w = {}
+    for state in W:
+        for c in constellations[state]:
+            if c not in big_phis_w:
+                big_phis_w[c] = []
+            big_phis_w[c].append(complexes[state].phi)
+    big_phis_n = {}
+    for state in N:
+        for c in constellations[state]:
+            if c not in big_phis_n:
+                big_phis_n[c] = []
+            big_phis_n[c].append(complexes[state].phi)
+    # Average the ϕ values.
+    big_phis_w = {concept: np.mean(values)
+                  for concept, values in big_phis_w.items()}
+    big_phis_n = {concept: np.mean(values)
+                  for concept, values in big_phis_n.items()}
+    return (sum(c.phi * big_phis_w[c] for c in world_concepts) -
+            sum(c.phi * big_phis_n[c] for c in noise_concepts))
 
 
 @_register
@@ -295,7 +341,7 @@ def mat(ind):
     that has been scrambled first in space and then in time."""
     # Short-circuit if the animat has no connections.
     if ind.cm.sum() == 0:
-        return 0
+        return (0, 0, 0)
     # Play the game and a scrambled version of it.
     world = ind.play_game().animat_states
     noise = ind.play_game(scrambled=True).animat_states
@@ -332,8 +378,18 @@ def mat(ind):
     # Now we calculate the matching terms for many stimulus sets (each trial)
     # which are later averaged to obtain the matching value for a “typical”
     # stimulus set.
+    # TODO weight each concept by average big phi of its states?
     raw_matching = np.mean([
         matching(W, N, constellations) for W, N in zip(world, noise)
     ])
-    # TODO weight each concept by average big phi of its states?
-    return existence * raw_matching, existence, raw_matching
+    raw_matching_weighted = np.mean([
+        matching_weighted(W, N, constellations, complexes)
+        for W, N in zip(world, noise)
+    ])
+    raw_matching_average_weighted = np.mean([
+        matching_average_weighted(W, N, constellations, complexes)
+        for W, N in zip(world, noise)
+    ])
+    return (existence * raw_matching_average_weighted,
+            existence * raw_matching_weighted,
+            existence * raw_matching)
