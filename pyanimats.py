@@ -26,7 +26,8 @@ Options:
     -m, --mut-prob=PROB        Nucleotide mutation probability [default: 0.005]
     -p, --pop-size=SIZE        Population size [default: 100]
     -d, --data-record=FREQ     Logbook recording interval [default: 1]
-    -i, --ind-record=FREQ      Full individual recording interval [default: 1]
+    -i, --ind-record=FREQ      Individual recording interval [default: 1]
+    -t, --snapshot=NUM         Number of snapshots to take [default: 0]
     -l, --log-stdout=FREQ      Status printing interval [default: 1]
     -j, --jumpstart=NUM        Begin with this many start codons [default: 0]
     -g, --init-genome=PATH     Path to a lineage file for an intial genome.
@@ -54,7 +55,7 @@ __version__ = '0.0.18'
 import os
 import pickle
 import random
-from utils import compress
+import utils
 from time import time
 from pprint import pprint
 import numpy as np
@@ -101,27 +102,28 @@ mutate.__doc__ = Individual.mutate.__doc__
 
 def main(arguments):
 
+    # Handle arguments
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    # Print available fitness functions and their descriptions.
     if arguments['--list-fitness-funcs']:
         fitness_functions.print_functions()
         return
 
+    # Print the number of sensors currently set in the C++.
     if arguments['--num-sensors']:
         print(config.NUM_SENSORS)
         return
 
-    # Ensure output directory exists.
-    output_dir = arguments['<output_dir>']
+    # Final output and snapshots will be written here.
+    OUTPUT_DIR = arguments['<output_dir>']
     del arguments['<output_dir>']
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
 
     # Ensure profile directory exists and set profile flag.
     profile_filepath = arguments['--profile']
     if profile_filepath:
         PROFILING = True
-        profile_dir = os.path.dirname(profile_filepath)
-        if not os.path.exists(profile_dir):
-            os.makedirs(profile_dir)
+        utils.ensure_exists(os.path.dirname(profile_filepath))
     del arguments['--profile']
 
     # Logbooks will be updated at this interval.
@@ -136,14 +138,56 @@ def main(arguments):
     STATUS_PRINTING_INTERVAL = int(arguments['--log-stdout'])
     del arguments['--log-stdout']
 
+    # Get the number of snapshots to be taken.
+    NUM_SNAPSHOTS = int(arguments['--snapshot'])
+    del arguments['--snapshot']
+
+    # Whether or not to save every individual in the population, or just the
+    # best one.
     SAVE_ALL_LINEAGES = arguments['--all-lineages']
     del arguments['--all-lineages']
 
-    # Load configuration.
+    # Load and print configuration.
     configure.from_args(arguments)
-
     print('Configuration:')
     pprint(configure.get_dict())
+
+    # Snapshots will be written to disk at this interval.
+    if NUM_SNAPSHOTS <= 0:
+        SNAPSHOT_INTERVAL = float('inf')
+    else:
+        SNAPSHOT_INTERVAL = config.NGEN // NUM_SNAPSHOTS
+
+    # Helper functions
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    def save_data(output_dir, config, population, logbook, hof, elapsed):
+        # Get lineage(s).
+        if SAVE_ALL_LINEAGES:
+            to_save = population
+        else:
+            to_save = [max(population, key=lambda ind: ind.fitness.value)]
+        if INDIVIDUAL_RECORDING_INTERVAL > 0:
+            lineages = tuple(
+                tuple(ind.lineage())[::INDIVIDUAL_RECORDING_INTERVAL]
+                for ind in to_save
+            )
+        else:
+            lineages = tuple((ind.animat,) for ind in to_save)
+        data = {
+            'config': configure.get_dict(),
+            'lineages': lineages,
+            'logbook': logbook,
+            'hof': [ind.animat for ind in hof],
+            'metadata': {
+                'elapsed': end - start,
+                'version': __version__
+            }
+        }
+        utils.ensure_exists(output_dir)
+        for key in data:
+            with open(os.path.join(output_dir, str(key) + '.pkl'), 'wb') as f:
+                pickle.dump(data[key], f)
 
     # Setup
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -186,7 +230,7 @@ def main(arguments):
     hof = tools.HallOfFame(maxsize=config.POPSIZE)
 
     def print_status(line, time):
-        print(line, compress(time))
+        print(line, utils.compress(time))
 
     print('\n[Seed {}] Simulating {} generations...\n'.format(config.SEED,
                                                               config.NGEN))
@@ -199,20 +243,17 @@ def main(arguments):
     # Simulation
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    population = toolbox.population(n=config.POPSIZE)
+    def evaluate(population, gen):
+        fitnesses = toolbox.map(toolbox.evaluate, population)
+        for ind, fitness in zip(population, fitnesses):
+            ind.fitness.value = fitness[0]
+            ind.alt_fitness = fitness[1:]
 
-    start = time()
-    # Evaluate the initial population.
-    fitnesses = toolbox.map(toolbox.evaluate, population)
-    for ind, fitness in zip(population, fitnesses):
-        ind.fitness.value = fitness[0]
-        ind.alt_fitness = fitness[1:]
-    # Record stats for initial population.
-    hof.update(population)
-    record = mstats.compile(population)
-    logbook.record(gen=0, **record)
-    end = time()
-    print_status(logbook, end - start)
+    def record(population, gen):
+        hof.update(population)
+        if gen % DATA_RECORDING_INTERVAL == 0:
+            record = mstats.compile(population)
+            logbook.record(gen=gen, **record)
 
     def process_gen(population, gen):
         # Selection.
@@ -227,25 +268,42 @@ def main(arguments):
             toolbox.mutate(offspring[i])
             offspring[i].parent = population[i]
         # Evaluation.
-        fitnesses = toolbox.map(toolbox.evaluate, offspring)
-        for ind, fitness in zip(offspring, fitnesses):
-            ind.fitness.value = fitness[0]
-            ind.alt_fitness = fitness[1:]
+        evaluate(population, gen)
         # Recording.
-        hof.update(offspring)
-        if gen % DATA_RECORDING_INTERVAL == 0:
-            record = mstats.compile(offspring)
-            logbook.record(gen=gen, **record)
+        record(offspring, gen)
         return offspring
 
-    # Evolution.
+    # Create initial population.
+    population = toolbox.population(n=config.POPSIZE)
+
     start = time()
+    # Evaluate the initial population.
+    evaluate(population, 0)
+    # Record stats for initial population.
+    record(population, 0)
+    end = time()
+    print_status(logbook, end - start)
+
+    start = time()
+    snapshot = 0
     for gen in range(1, config.NGEN + 1):
+        # Evolution.
         population = process_gen(population, gen)
+        # Reporting.
         if gen % STATUS_PRINTING_INTERVAL == 0:
+            # Get time since last report was printed.
             end = time()
             print_status(logbook.__str__(startindex=gen), end - start)
             start = time()
+        # Snapshotting.
+        if gen % SNAPSHOT_INTERVAL == 0:
+            sim_end = time()
+            dirname = os.path.join(OUTPUT_DIR,
+                                   'snapshot-{}-gen-{}'.format(snapshot, gen))
+            save_data(dirname, config=configure.get_dict(),
+                      population=population, logbook=logbook, hof=hof,
+                      elapsed=(sim_end - sim_start))
+            snapshot += 1
 
     # Finish
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -256,33 +314,11 @@ def main(arguments):
         pr.dump_stats(profile_filepath)
 
     print('\n[Seed {}] Simulated {} generations in {}.'.format(
-        config.SEED, config.NGEN, compress(sim_end - sim_start)))
+        config.SEED, config.NGEN, utils.compress(sim_end - sim_start)))
 
-    # Get lineage(s).
-    if SAVE_ALL_LINEAGES:
-        to_save = population
-    else:
-        to_save = [max(population, key=lambda ind: ind.fitness.value)]
-    if INDIVIDUAL_RECORDING_INTERVAL > 0:
-        lineages = tuple(tuple(ind.lineage())[::INDIVIDUAL_RECORDING_INTERVAL]
-                         for ind in to_save)
-    else:
-        lineages = tuple((ind.animat,) for ind in to_save)
-
-    # Save data.
-    data = {
-        'config': configure.get_dict(),
-        'lineages': lineages,
-        'logbook': logbook,
-        'hof': [ind.animat for ind in hof],
-        'metadata': {
-            'elapsed': end - start,
-            'version': __version__
-        }
-    }
-    for key in data:
-        with open(os.path.join(output_dir, '{}.pkl'.format(key)), 'wb') as f:
-            pickle.dump(data[key], f)
+    # Write final results to disk.
+    save_data(OUTPUT_DIR, config=configure.get_dict(), population=population,
+              logbook=logbook, hof=hof, elapsed=(end - start))
 
 
 from docopt import docopt
