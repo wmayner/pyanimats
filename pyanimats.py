@@ -262,7 +262,7 @@ def main(arguments):
     if SAVE_ALL_LINEAGES:
         to_save = population
     else:
-        to_save = [max(population, key=lambda ind: ind.correct)]
+        to_save = [max(population, key=lambda ind: ind.fitness.value)]
     if INDIVIDUAL_RECORDING_INTERVAL > 0:
         lineages = tuple(tuple(ind.lineage())[::INDIVIDUAL_RECORDING_INTERVAL]
                          for ind in to_save)
