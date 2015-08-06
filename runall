@@ -1,35 +1,53 @@
 #!/bin/bash
 
-python="$HOME/.virtualenvs/pyanimats/bin/python"
+MINUTE=60
+HOUR=3600
 
-echo "Rebuilding animat C++ extension..."
-rm -r build && rm animat.cpython-34m.so && $python setup.py build_ext --inplace
-echo "...finished."
-echo ""
+python="$HOME/.virtualenvs/pyanimats/bin/python"
 
 fitness="mat"
 ngen=3000
 taskname="3-4-6-5"
 jumpstart=0
 popsize=100
-params="params.yml"
-
+paramfile="params.yml"
+init_genome_path="raw_results/0.0.16/nat/3-4-6-5/sensors-3/jumpstart-4/gen-60000/seed-8"
 num_ind_samples=200
 ind_record_interval=$(($ngen / $num_ind_samples))
 log_freq=1
 
-echo "Recording genomes every $ind_record_interval generations for a total of $num_ind_samples samples."
-echo "Printing status every $log_freq generations."
+snapshot_hr=1
+snapshot_min=00
+snapshot_sec=00
+snapshot_freq=$(($snapshot_hr*$HOUR + $snapshot_min*$MINUTE + $snapshot_sec))
+min_snapshots=0
 
+# Derived parameters.
 sensors=`$python ./pyanimats.py --num-sensors`
 version=`$python ./pyanimats.py --version`
 taskfile="tasks/"$taskname".yml"
 
-output_dir="raw_results/$version/$fitness/$taskname/sensors-$sensors/jumpstart-$jumpstart/gen-$ngen/"
+echo "Rebuilding animat C++ extension..."
+rm -r build && rm animat.cpython-34m.so && $python setup.py build_ext --inplace &> /dev/null && echo "...finished."
+echo ""
+echo "Recording genomes every $ind_record_interval generations for a total of $num_ind_samples samples."
+echo "Printing status every $log_freq generations."
+echo "Recording snapshots every "$snapshot_hr":"$snapshot_min":"$snapshot_sec", taking at least "$min_snapshots"."
+
+output_dir="raw_results/$version/$fitness/$taskname/sensors-$sensors/jumpstart-$jumpstart/ngen-$ngen/"
 echo "Writing results to '$output_dir'."
 echo ""
 
 for ((seed=0; seed < 1; seed++))
 do
-  $python ./pyanimats.py $output_dir/seed-$seed $taskfile $params -f $fitness -n $ngen -s $seed -j $jumpstart -p $popsize -i $ind_record_interval -l $log_freq && echo "[Seed $seed] Wrote results to '$output_dir'."
+  # Build the command.
+  cmd="$python ./pyanimats.py $output_dir/seed-$seed $taskfile $paramfile -f $fitness -n $ngen -s $seed -j $jumpstart -p $popsize -i $ind_record_interval -l $log_freq -t $snapshot_freq" 
+  # Append the intial genome option if it is set.
+  [[ ! -z $init_genome_path ]] && cmd="$cmd -g $init_genome_path"
+  # Display command
+  echo "Executing command:"
+  echo $cmd
+  echo ""
+  # Run it!
+  $cmd && echo "[Seed $seed] Wrote results to '$output_dir'."
 done
