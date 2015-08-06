@@ -312,6 +312,7 @@ def main(arguments):
         current_time = time()
         if (current_time - snap_duration_start >= SNAPSHOT_TIME_INTERVAL
                 or gen % SNAPSHOT_GENERATION_INTERVAL == 0):
+            print('Recording snapshot {}...'.format(snapshot))
             dirname = os.path.join(OUTPUT_DIR,
                                    'snapshot-{}-gen-{}'.format(snapshot, gen))
             save_data(dirname, config=configure.get_dict(),
