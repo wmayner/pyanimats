@@ -6,7 +6,14 @@
 Utility functions.
 """
 
+import os
 import numpy as np
+
+
+def ensure_exists(path):
+    """Makes a path if it doesn't exist and returns it."""
+    os.makedirs(path, exist_ok=True)
+    return path
 
 
 def contains_row(array, row):

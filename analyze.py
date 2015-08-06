@@ -12,10 +12,11 @@ import configure
 from sklearn.utils.extmath import cartesian
 from pyphi.convert import loli_index2state as i2s
 
-from utils import unique_rows
+from utils import ensure_exists, unique_rows
 from individual import Individual
 
 
+CASE_NAME = 'test'
 CASE_NAME = '0.0.16/nat/3-4-6-5/sensors-3/jumpstart-4/gen-60000'
 RESULT_DIR = 'raw_results'
 ANALYSIS_DIR = 'compiled_results'
@@ -32,11 +33,6 @@ FILENAMES = {
 
 # Utilities
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-def _ensure_exists(path):
-    os.makedirs(path, exist_ok=True)
-    return path
-
 
 def _get_task_name(tasks):
     return '[' + ',\ '.join(str(task[1].count('1')) for task in tasks) + ']'
@@ -96,7 +92,7 @@ CONFIG = load('config')
 def get_final_correct(case_name=CASE_NAME, force=False):
     input_filepath = os.path.join(RESULT_PATH, case_name)
     output_filepath = os.path.join(
-        _ensure_exists(os.path.join(ANALYSIS_DIR, case_name)),
+        ensure_exists(os.path.join(ANALYSIS_DIR, case_name)),
         'final-correct-counts.pkl')
     if os.path.exists(output_filepath) and not force:
         print(already_exists_msg(output_filepath))
@@ -126,7 +122,7 @@ def get_lods(case_name=CASE_NAME, force=False, gen_interval=500, seed=0,
     else:
         output_filename = 'lods-seed-{}'.format(seed)
     output_filepath = os.path.join(
-        _ensure_exists(os.path.join(ANALYSIS_DIR, case_name)),
+        ensure_exists(os.path.join(ANALYSIS_DIR, case_name)),
         output_filename + '-every-{}-gen.pkl'.format(gen_interval))
     if os.path.exists(output_filepath) and not force:
         print(already_exists_msg(output_filepath))
@@ -247,7 +243,7 @@ def game_to_json(ind, scrambled=False, age=0):
 def export_game_to_json(case_name=CASE_NAME, seed=0, lineage=0, age=0,
                         scrambled=False):
     input_filepath = os.path.join(RESULT_DIR, case_name)
-    output_file = os.path.join(_ensure_exists(os.path.join(
+    output_file = os.path.join(ensure_exists(os.path.join(
         ANALYSIS_DIR, case_name, 'seed-{}'.format(seed))),
         'game{}.json'.format('-scrambled' if scrambled else ''))
     # Load config.
