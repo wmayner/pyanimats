@@ -16,36 +16,42 @@ Usage:
     evolve.py --num-sensors
 
 Options:
-    -h, --help                 Show this
-    -v, --version              Show version
-        --list-fitness-funcs   List available fitness functions
-        --num-sensors          Print the number of sensors.
-    -n, --num-gen=NGEN         Number of generations to simulate [default: 10]
-    -s, --seed=SEED            Random number generator seed [default: 0]
-    -f, --fitness=FUNC         Fitness function [default: nat]
-    -m, --mut-prob=PROB        Nucleotide mutation probability [default: 0.005]
-    -p, --pop-size=SIZE        Population size [default: 100]
-    -d, --data-record=FREQ     Logbook recording interval [default: 1]
-    -i, --ind-record=FREQ      Individual recording interval [default: 1]
-    -t, --snapshot=NUM         Number of snapshots to take [default: 0]
-    -l, --log-stdout=FREQ      Status printing interval [default: 1]
-    -j, --jumpstart=NUM        Begin with this many start codons [default: 0]
-    -g, --init-genome=PATH     Path to a lineage file for an intial genome.
-    -a, --all-lineages         Save lineages of entire final population
-        --scramble             Randomly rearrange the world in each trial
-        --dup-prob=PROB        Duplication probability [default: 0.05]
-        --del-prob=PROB        Deletion probability [default: 0.02]
-        --max-length=LENGTH    Maximum genome length [default: 10000]
-        --min-length=LENGTH    Minimum genome length [default: 1000]
-        --min-dup-del=LENGTH   Minimum length of duplicated/deleted genome part
-                                 [default: 15]
-        --fit-base=FLOAT       Base used in the fitness function (see
-                                 --list-fitness-funcs) [default: 1.02]
-        --fit-exp-add=FLOAT    Add this term to the fitness exponent.
-        --fit-exp-scale=FLOAT  Scale raw fitness values before they're used as
-                                an exponent.
-        --profile=PATH         Profile performance and store results at PATH
-                                [default: profiling/profile.pstats]
+    -h, --help                  Show this
+    -v, --version               Show version
+        --list-fitness-funcs    List available fitness functions
+        --num-sensors           Print the number of sensors
+    -n, --num-gen=NGEN          Number of generations to simulate [default: 10]
+    -s, --seed=SEED             Random number generator seed [default: 0]
+    -f, --fitness=FUNC          Fitness function [default: nat]
+    -m, --mut-prob=PROB         Nucleotide mutation probability
+                                  [default: 0.005]
+    -p, --pop-size=SIZE         Population size [default: 100]
+    -d, --log-interval=FREQ     Logbook recording interval (generations)
+                                  [default: 1]
+    -i, --ind-interval=FREQ     Individual recording interval (generations)
+                                  [default: 1]
+    -t, --snapshot=FREQ         Snapshot interval (seconds) [default: 0]
+    -o, --min-snapshots=NUM     Minimum number of snapshots to take
+                                  [default: 0]
+    -l, --stdout-interval=FREQ  Status-printing interval (generations)
+                                  [default: 1]
+    -j, --jumpstart=NUM         Begin with this many start codons [default: 0]
+    -g, --init-genome=PATH      Path to a lineage file for an intial genome
+    -a, --all-lineages          Save lineages of entire final population
+        --scramble              Randomly rearrange the world in each trial
+        --dup-prob=PROB         Duplication probability [default: 0.05]
+        --del-prob=PROB         Deletion probability [default: 0.02]
+        --max-length=LENGTH     Maximum genome length [default: 10000]
+        --min-length=LENGTH     Minimum genome length [default: 1000]
+        --min-dup-del=LENGTH    Minimum length of duplicated/deleted genome
+                                  part [default: 15]
+        --fit-base=FLOAT        Base used in the fitness function (see
+                                  --list-fitness-funcs) [default: 1.02]
+        --fit-exp-add=FLOAT     Add this term to the fitness exponent
+        --fit-exp-scale=FLOAT   Scale raw fitness values before they're used as
+                                  an exponent
+        --profile=PATH          Profile performance and store results at PATH
+                                  [default: profiling/profile.pstats]
 
 Note: command-line arguments override parameters in the <params.yml> file.
 """
@@ -127,19 +133,25 @@ def main(arguments):
     del arguments['--profile']
 
     # Logbooks will be updated at this interval.
-    DATA_RECORDING_INTERVAL = int(arguments['--data-record'])
-    del arguments['--data-record']
+    LOGBOOK_RECORDING_INTERVAL = int(arguments['--log-interval'])
+    del arguments['--log-interval']
 
     # Individuals will be recorded in the lineage at this interval.
-    INDIVIDUAL_RECORDING_INTERVAL = int(arguments['--ind-record'])
-    del arguments['--ind-record']
+    INDIVIDUAL_RECORDING_INTERVAL = int(arguments['--ind-interval'])
+    del arguments['--ind-interval']
 
     # Status will be printed at this interval.
-    STATUS_PRINTING_INTERVAL = int(arguments['--log-stdout'])
-    del arguments['--log-stdout']
+    STATUS_PRINTING_INTERVAL = int(arguments['--stdout-interval'])
+    del arguments['--stdout-interval']
 
-    # Get the number of snapshots to be taken.
-    NUM_SNAPSHOTS = int(arguments['--snapshot'])
+    # Get the minimum number of snapshots to be taken.
+    MIN_SNAPSHOTS = int(arguments['--min-snapshots'])
+    del arguments['--min-snapshots']
+
+    # Get the interval at which to take snapshots.
+    SNAPSHOT_TIME_INTERVAL = float(arguments['--snapshot'])
+    if SNAPSHOT_TIME_INTERVAL <= 0:
+        SNAPSHOT_TIME_INTERVAL = float('inf')
     del arguments['--snapshot']
 
     # Whether or not to save every individual in the population, or just the
@@ -153,10 +165,10 @@ def main(arguments):
     pprint(configure.get_dict())
 
     # Snapshots will be written to disk at this interval.
-    if NUM_SNAPSHOTS <= 0:
-        SNAPSHOT_INTERVAL = float('inf')
+    if MIN_SNAPSHOTS <= 0:
+        SNAPSHOT_GENERATION_INTERVAL = float('inf')
     else:
-        SNAPSHOT_INTERVAL = config.NGEN // NUM_SNAPSHOTS
+        SNAPSHOT_GENERATION_INTERVAL = config.NGEN // MIN_SNAPSHOTS
 
     # Helper functions
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -180,7 +192,7 @@ def main(arguments):
             'logbook': logbook,
             'hof': [ind.animat for ind in hof],
             'metadata': {
-                'elapsed': end - start,
+                'elapsed': elapsed,
                 'version': __version__
             }
         }
@@ -251,7 +263,7 @@ def main(arguments):
 
     def record(population, gen):
         hof.update(population)
-        if gen % DATA_RECORDING_INTERVAL == 0:
+        if gen % LOGBOOK_RECORDING_INTERVAL == 0:
             record = mstats.compile(population)
             logbook.record(gen=gen, **record)
 
@@ -276,34 +288,37 @@ def main(arguments):
     # Create initial population.
     population = toolbox.population(n=config.POPSIZE)
 
-    start = time()
+    log_duration_start = time()
     # Evaluate the initial population.
     evaluate(population, 0)
     # Record stats for initial population.
     record(population, 0)
-    end = time()
-    print_status(logbook, end - start)
+    print_status(logbook, time() - log_duration_start)
 
-    start = time()
-    snapshot = 0
+    log_duration_start = time()
+    snap_duration_start = time()
+    snapshot = 1
     for gen in range(1, config.NGEN + 1):
         # Evolution.
         population = process_gen(population, gen)
         # Reporting.
         if gen % STATUS_PRINTING_INTERVAL == 0:
             # Get time since last report was printed.
-            end = time()
-            print_status(logbook.__str__(startindex=gen), end - start)
-            start = time()
+            log_duration_end = time()
+            print_status(logbook.__str__(startindex=gen),
+                         log_duration_end - log_duration_start)
+            log_duration_start = time()
         # Snapshotting.
-        if gen % SNAPSHOT_INTERVAL == 0:
-            sim_end = time()
+        current_time = time()
+        if (current_time - snap_duration_start >= SNAPSHOT_TIME_INTERVAL
+                or gen % SNAPSHOT_GENERATION_INTERVAL == 0):
             dirname = os.path.join(OUTPUT_DIR,
                                    'snapshot-{}-gen-{}'.format(snapshot, gen))
             save_data(dirname, config=configure.get_dict(),
                       population=population, logbook=logbook, hof=hof,
-                      elapsed=(sim_end - sim_start))
+                      elapsed=(current_time - sim_start))
             snapshot += 1
+            snap_duration_start = time()
 
     # Finish
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -318,7 +333,7 @@ def main(arguments):
 
     # Write final results to disk.
     save_data(OUTPUT_DIR, config=configure.get_dict(), population=population,
-              logbook=logbook, hof=hof, elapsed=(end - start))
+              logbook=logbook, hof=hof, elapsed=(sim_end - sim_start))
 
 
 from docopt import docopt
