@@ -38,7 +38,7 @@ echo "Sampling $num_samples genomes per save."
 echo "Printing status every $log_freq generations."
 echo "Recording snapshots every "$snapshot_hr":"$snapshot_min":"$snapshot_sec", taking at least "$min_snapshots"."
 
-output_dir="raw_results/$version/$fitness/$taskname/sensors-$sensors/jumpstart-$jumpstart/ngen-$ngen/"
+output_dir="raw_results/$version/$fitness/$taskname/sensors-$sensors/jumpstart-$jumpstart/ngen-$ngen"
 echo "Writing results to '$output_dir'."
 echo ""
 
