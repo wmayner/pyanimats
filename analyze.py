@@ -11,6 +11,7 @@ import config
 import configure
 from sklearn.utils.extmath import cartesian
 from pyphi.convert import loli_index2state as i2s
+from semantic_version import Version
 
 from utils import ensure_exists, unique_rows
 from individual import Individual
@@ -18,17 +19,22 @@ from individual import Individual
 
 CASE_NAME = 'test'
 CASE_NAME = '0.0.16/nat/3-4-6-5/sensors-3/jumpstart-4/gen-60000'
+VERSION = Version(CASE_NAME.split(os.path.sep)[0])
 RESULT_DIR = 'raw_results'
 ANALYSIS_DIR = 'compiled_results'
 RESULT_PATH = os.path.join(RESULT_DIR, CASE_NAME)
 ANALYSIS_PATH = os.path.join(ANALYSIS_DIR, CASE_NAME)
+
 FILENAMES = {
-    'config': 'config.pkl',
+    'config': 'config.json',
     'hof': 'hof.pkl',
     'logbook': 'logbook.pkl',
     'lineages': 'lineages.pkl',
-    'metadata': 'metadata.pkl',
+    'metadata': 'metadata.json',
 }
+if VERSION < Version('0.0.19'):
+    FILENAMES['config'] = 'config.pkl'
+    FILENAMES['metadata'] = 'metadata.pkl'
 
 
 # Utilities
@@ -60,8 +66,14 @@ def _get_correct_trials_axis_label(config):
 def load(filetype, input_filepath=RESULT_PATH, seed=0):
     result_path = os.path.join(input_filepath, 'seed-{}'.format(seed))
     print('Loading {} from `{}`...'.format(filetype, result_path))
-    with open(os.path.join(result_path, FILENAMES[filetype]), 'rb') as f:
-        data = pickle.load(f)
+    filename = FILENAMES[filetype]
+    ext = os.path.splitext(filename)[-1]
+    if ext == '.json':
+        with open(os.path.join(result_path, filename), 'r') as f:
+            data = json.load(f)
+    elif ext == '.pkl':
+        with open(os.path.join(result_path, filename), 'rb') as f:
+            data = pickle.load(f)
     if filetype == 'config':
         configure.from_dict(data)
         print('Updated PyAnimat configuration with the loaded parameters.')

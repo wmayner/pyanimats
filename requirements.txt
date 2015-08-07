@@ -6,3 +6,4 @@ deap
 docopt
 pyphi
 scikit-learn
+semantic-version
