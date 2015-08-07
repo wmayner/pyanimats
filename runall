@@ -6,10 +6,10 @@ HOUR=3600
 python="$HOME/.virtualenvs/pyanimats/bin/python"
 
 seed_start=0
-num_cores=16
+num_cores=14
 
 fitness="mat"
-ngen=10000
+ngen=60000
 taskname="3-4-6-5"
 jumpstart=0
 popsize=100
@@ -42,14 +42,18 @@ echo ""
 
 for ((seed=$seed_start; seed < $(($seed_start + $num_cores)); seed++))
 do
+  # Get the output with the seed directory included.
+  cur_output_dir="$output_dir/seed-$seed"
   # Build the command.
-  cmd="$python ./pyanimats.py $output_dir/seed-$seed $taskfile $paramfile -f $fitness -n $ngen -s $seed -j $jumpstart -p $popsize -i $num_samples -l $log_freq -t $snapshot_freq" 
+  cmd="$python ./pyanimats.py $cur_output_dir $taskfile $paramfile -f $fitness -n $ngen -s $seed -j $jumpstart -p $popsize -i $num_samples -l $log_freq -t $snapshot_freq" 
   # Append the intial genome option if it is set.
   [[ ! -z $init_genome_path ]] && cmd="$cmd -g $init_genome_path"
-  # Display command
+  # Display command.
   echo "Executing command:"
   echo $cmd
   echo ""
+  # Ensure the output directory exists.
+  mkdir -p $cur_output_dir
   # Run it!
-  $cmd && echo "[Seed $seed] Wrote results to '$output_dir'." &
+  unbuffer $cmd 2>&1 | tee "$cur_output_dir/output.log" && echo "[Seed $seed] Wrote results to '$cur_output_dir'." & 
 done
