@@ -29,6 +29,8 @@ sensors=`$python ./pyanimats.py --num-sensors`
 version=`$python ./pyanimats.py --version`
 taskfile="tasks/"$taskname".yml"
 
+echo "PyAnimats multi-seed simulation ($(date))"
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo "Rebuilding animat C++ extension..."
 rm -r build && rm animat.cpython-34m.so && $python setup.py build_ext --inplace &> /dev/null && echo "...finished."
 echo ""
