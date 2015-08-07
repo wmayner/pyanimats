@@ -5,18 +5,20 @@ HOUR=3600
 
 python="$HOME/.virtualenvs/pyanimats/bin/python"
 
+seed_start=0
+num_cores=16
+
 fitness="mat"
-ngen=3000
+ngen=10000
 taskname="3-4-6-5"
 jumpstart=0
 popsize=100
 paramfile="params.yml"
 init_genome_path="raw_results/0.0.16/nat/3-4-6-5/sensors-3/jumpstart-4/gen-60000/seed-8"
-num_ind_samples=200
-ind_record_interval=$(($ngen / $num_ind_samples))
+num_samples=200
 log_freq=1
 
-snapshot_hr=1
+snapshot_hr=2
 snapshot_min=00
 snapshot_sec=00
 snapshot_freq=$(($snapshot_hr*$HOUR + $snapshot_min*$MINUTE + $snapshot_sec))
@@ -30,7 +32,7 @@ taskfile="tasks/"$taskname".yml"
 echo "Rebuilding animat C++ extension..."
 rm -r build && rm animat.cpython-34m.so && $python setup.py build_ext --inplace &> /dev/null && echo "...finished."
 echo ""
-echo "Recording genomes every $ind_record_interval generations for a total of $num_ind_samples samples."
+echo "Sampling $num_samples genomes per save."
 echo "Printing status every $log_freq generations."
 echo "Recording snapshots every "$snapshot_hr":"$snapshot_min":"$snapshot_sec", taking at least "$min_snapshots"."
 
@@ -38,10 +40,10 @@ output_dir="raw_results/$version/$fitness/$taskname/sensors-$sensors/jumpstart-$
 echo "Writing results to '$output_dir'."
 echo ""
 
-for ((seed=0; seed < 1; seed++))
+for ((seed=$seed_start; seed < $(($seed_start + $num_cores)); seed++))
 do
   # Build the command.
-  cmd="$python ./pyanimats.py $output_dir/seed-$seed $taskfile $paramfile -f $fitness -n $ngen -s $seed -j $jumpstart -p $popsize -i $ind_record_interval -l $log_freq -t $snapshot_freq" 
+  cmd="$python ./pyanimats.py $output_dir/seed-$seed $taskfile $paramfile -f $fitness -n $ngen -s $seed -j $jumpstart -p $popsize -i $num_samples -l $log_freq -t $snapshot_freq" 
   # Append the intial genome option if it is set.
   [[ ! -z $init_genome_path ]] && cmd="$cmd -g $init_genome_path"
   # Display command
@@ -49,5 +51,5 @@ do
   echo $cmd
   echo ""
   # Run it!
-  $cmd && echo "[Seed $seed] Wrote results to '$output_dir'."
+  $cmd && echo "[Seed $seed] Wrote results to '$output_dir'." &
 done
