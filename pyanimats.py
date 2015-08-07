@@ -28,8 +28,8 @@ Options:
     -p, --pop-size=SIZE         Population size [default: 100]
     -d, --log-interval=FREQ     Logbook recording interval (generations)
                                   [default: 1]
-    -i, --ind-interval=FREQ     Individual recording interval (generations)
-                                  [default: 1]
+    -i, --num-samples=NUM       Number of individuals to sample from evolution
+                                  (0 saves entire lineage) [default: 0]
     -t, --snapshot=FREQ         Snapshot interval (seconds) [default: 0]
     -o, --min-snapshots=NUM     Minimum number of snapshots to take
                                   [default: 0]
@@ -137,8 +137,8 @@ def main(arguments):
     del arguments['--log-interval']
 
     # Individuals will be recorded in the lineage at this interval.
-    INDIVIDUAL_RECORDING_INTERVAL = int(arguments['--ind-interval'])
-    del arguments['--ind-interval']
+    NUM_INDIVIDUAL_SAMPLES = int(arguments['--num-samples'])
+    del arguments['--num-samples']
 
     # Status will be printed at this interval.
     STATUS_PRINTING_INTERVAL = int(arguments['--stdout-interval'])
@@ -173,19 +173,14 @@ def main(arguments):
     # Helper functions
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def save_data(output_dir, config, population, logbook, hof, elapsed):
-        # Get lineage(s).
+    def save_data(output_dir, gen, config, population, logbook, hof, elapsed):
         if SAVE_ALL_LINEAGES:
             to_save = population
         else:
             to_save = [max(population, key=lambda ind: ind.fitness.value)]
-        if INDIVIDUAL_RECORDING_INTERVAL > 0:
-            lineages = tuple(
-                tuple(ind.lineage())[::INDIVIDUAL_RECORDING_INTERVAL]
-                for ind in to_save
-            )
-        else:
-            lineages = tuple((ind.animat,) for ind in to_save)
+        step = (1 if NUM_INDIVIDUAL_SAMPLES <= 0
+                else max(gen // NUM_INDIVIDUAL_SAMPLES, 1))
+        lineages = tuple(tuple(ind.lineage())[::step] for ind in to_save)
         data = {
             'config': configure.get_dict(),
             'lineages': lineages,
@@ -315,7 +310,7 @@ def main(arguments):
             print('Recording snapshot {}...'.format(snapshot))
             dirname = os.path.join(OUTPUT_DIR,
                                    'snapshot-{}-gen-{}'.format(snapshot, gen))
-            save_data(dirname, config=configure.get_dict(),
+            save_data(dirname, gen, config=configure.get_dict(),
                       population=population, logbook=logbook, hof=hof,
                       elapsed=(current_time - sim_start))
             snapshot += 1
@@ -333,7 +328,7 @@ def main(arguments):
         config.SEED, config.NGEN, utils.compress(sim_end - sim_start)))
 
     # Write final results to disk.
-    save_data(OUTPUT_DIR, config=configure.get_dict(), population=population,
+    save_data(OUTPUT_DIR, gen, config=configure.get_dict(), population=population,
               logbook=logbook, hof=hof, elapsed=(sim_end - sim_start))
 
 
