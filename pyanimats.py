@@ -60,6 +60,7 @@ __version__ = '0.0.19'
 
 import os
 import pickle
+import json
 import random
 import utils
 from time import time
@@ -122,7 +123,7 @@ def main(arguments):
         return
 
     # Final output and snapshots will be written here.
-    OUTPUT_DIR = arguments['<output_dir>']
+    OUTPUT_DIR = utils.ensure_exists(arguments['<output_dir>'])
     del arguments['<output_dir>']
 
     # Ensure profile directory exists and set profile flag.
@@ -181,20 +182,26 @@ def main(arguments):
         step = (1 if NUM_INDIVIDUAL_SAMPLES <= 0
                 else max(gen // NUM_INDIVIDUAL_SAMPLES, 1))
         lineages = tuple(tuple(ind.lineage())[::step] for ind in to_save)
-        data = {
+        # Save config and metadata as JSON.
+        data_json = {
             'config': configure.get_dict(),
-            'lineages': lineages,
-            'logbook': logbook,
-            'hof': [ind.animat for ind in hof],
             'metadata': {
-                'elapsed': elapsed,
+                'elapsed': round(elapsed, 2),
                 'version': __version__
             }
         }
-        utils.ensure_exists(output_dir)
-        for key in data:
+        for key in data_json:
+            with open(os.path.join(output_dir, str(key) + '.json'), 'w') as f:
+                json.dump(data_json[key], f, indent=2, separators=(',', ': '))
+        # Pickle everything else.
+        data_pickle = {
+            'lineages': lineages,
+            'logbook': logbook,
+            'hof': [ind.animat for ind in hof],
+        }
+        for key in data_pickle:
             with open(os.path.join(output_dir, str(key) + '.pkl'), 'wb') as f:
-                pickle.dump(data[key], f)
+                pickle.dump(data_pickle[key], f)
 
     # Setup
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -328,8 +335,9 @@ def main(arguments):
         config.SEED, config.NGEN, utils.compress(sim_end - sim_start)))
 
     # Write final results to disk.
-    save_data(OUTPUT_DIR, gen, config=configure.get_dict(), population=population,
-              logbook=logbook, hof=hof, elapsed=(sim_end - sim_start))
+    save_data(OUTPUT_DIR, gen, config=configure.get_dict(),
+              population=population, logbook=logbook, hof=hof,
+              elapsed=(sim_end - sim_start))
 
 
 from docopt import docopt
