@@ -17,8 +17,16 @@ from utils import ensure_exists, unique_rows
 from individual import Individual
 
 
-CASE_NAME = 'test'
-CASE_NAME = '0.0.16/nat/3-4-6-5/sensors-3/jumpstart-4/gen-60000'
+CASE_NAME = os.path.join(
+    '0.0.19',
+    'mat',
+    '3-4-6-5',
+    'sensors-4',
+    'jumpstart-0',
+    'ngen-10000',
+)
+SNAPSHOT = 8
+
 VERSION = Version(CASE_NAME.split(os.path.sep)[0])
 RESULT_DIR = 'raw_results'
 ANALYSIS_DIR = 'compiled_results'
@@ -32,7 +40,7 @@ FILENAMES = {
     'lineages': 'lineages.pkl',
     'metadata': 'metadata.json',
 }
-if VERSION < Version('0.0.19'):
+if VERSION < Version('0.0.20'):
     FILENAMES['config'] = 'config.pkl'
     FILENAMES['metadata'] = 'metadata.pkl'
 
@@ -63,16 +71,25 @@ def _get_correct_trials_axis_label(config):
 # Result loading
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def load(filetype, input_filepath=RESULT_PATH, seed=0):
+def load(filetype, input_filepath=RESULT_PATH, seed=0, snapshot=SNAPSHOT):
     result_path = os.path.join(input_filepath, 'seed-{}'.format(seed))
+    if snapshot:
+        result_path = os.path.join(result_path,
+                                   'snapshot-{}*'.format(snapshot))
     print('Loading {} from `{}`...'.format(filetype, result_path))
     filename = FILENAMES[filetype]
     ext = os.path.splitext(filename)[-1]
+    path = os.path.join(result_path, filename)
+    match = glob(path)
+    if not match:
+        raise Exception("Can't load file, path not found: {}".format(path))
+    else:
+        path = match[0]
     if ext == '.json':
-        with open(os.path.join(result_path, filename), 'r') as f:
+        with open(path, 'r') as f:
             data = json.load(f)
     elif ext == '.pkl':
-        with open(os.path.join(result_path, filename), 'rb') as f:
+        with open(path, 'rb') as f:
             data = pickle.load(f)
     if filetype == 'config':
         configure.from_dict(data)
@@ -80,13 +97,12 @@ def load(filetype, input_filepath=RESULT_PATH, seed=0):
     return data
 
 
-def load_all_seeds(filetype, input_filepath=RESULT_PATH):
+def load_all_seeds(filetype, input_filepath=RESULT_PATH, snapshot=SNAPSHOT):
+
     data = {}
     for filename in glob(os.path.join(input_filepath, '**',
                                       FILENAMES[filetype])):
         print('Loading {} from `{}`...'.format(filetype, filename))
-        with open(filename, 'rb') as f:
-            data[filename] = pickle.load(f)
     return data
 
 
@@ -95,7 +111,7 @@ def already_exists_msg(output_filepath):
             'from raw data and overwrite.'.format(output_filepath))
 
 
-CONFIG = load('config')
+CONFIG = load('config', snapshot=SNAPSHOT)
 
 
 # Correct counts
