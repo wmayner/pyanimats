@@ -250,9 +250,11 @@ def bp(ind):
         return 0
     game = ind.play_game()
     unique_states = unique_rows(game.animat_states,
-                                upto=_.SENSOR_HIDDEN_INDICES)[:5]
+                                upto=_.SENSOR_HIDDEN_INDICES,
+                                sort=True)
+    most_frequent = unique_states[:5]
     values = [pyphi.compute.main_complex(ind.network, state).phi
-              for state in unique_states]
+              for state in most_frequent]
     return sum(values) / len(values)
 
 
