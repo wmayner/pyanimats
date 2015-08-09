@@ -123,7 +123,7 @@ def main(arguments):
         return
 
     # Final output and snapshots will be written here.
-    OUTPUT_DIR = utils.ensure_exists(arguments['<output_dir>'])
+    OUTPUT_DIR = arguments['<output_dir>']
     del arguments['<output_dir>']
 
     # Ensure profile directory exists and set profile flag.
@@ -175,6 +175,9 @@ def main(arguments):
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def save_data(output_dir, gen, config, pop, logbook, hof, elapsed):
+        # Ensure output directory exists.
+        utils.ensure_exists(output_dir)
+        # Collect lineages.
         if SAVE_ALL_LINEAGES:
             to_save = pop
         else:
