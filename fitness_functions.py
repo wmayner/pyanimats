@@ -152,7 +152,7 @@ def nat(ind):
     there is one trial per direction (left or right) of block descent, per
     initial animat position (given by ``config.WORLD_WIDTH``)."""
     ind.play_game()
-    return ind.animat.correct
+    return ind.correct
 
 
 # Mutual information

@@ -228,16 +228,22 @@ def main(arguments):
     correct_stats.register('correct', lambda x: np.max(x, 0)[0])
     correct_stats.register('incorrect', lambda x: np.max(x, 0)[1])
 
+    # Stats objects for alternate matching measures.
     alt_fitness_stats = tools.Statistics(key=lambda ind: ind.alt_fitness)
     alt_fitness_stats.register('weighted', lambda x: np.max(x, 0)[0])
     alt_fitness_stats.register('unweighted', lambda x: np.max(x, 0)[1])
 
     # Initialize a MultiStatistics object for convenience that allows for only
     # one call to `compile`.
-    mstats = tools.MultiStatistics(correct=correct_stats,
-                                   fitness=fitness_stats,
-                                   real_fitness=real_fitness_stats,
-                                   alt_fitness=alt_fitness_stats)
+    if config.FITNESS_FUNCTION == 'mat':
+        mstats = tools.MultiStatistics(correct=correct_stats,
+                                       fitness=fitness_stats,
+                                       real_fitness=real_fitness_stats,
+                                       alt_fitness=alt_fitness_stats)
+    else:
+        mstats = tools.MultiStatistics(correct=correct_stats,
+                                       fitness=fitness_stats,
+                                       real_fitness=real_fitness_stats)
 
     # Initialize logbooks and hall of fame.
     logbook = tools.Logbook()
@@ -257,11 +263,19 @@ def main(arguments):
     # Simulation
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def evaluate(pop, gen):
+    def multi_fit_evaluate(pop, gen):
         fitnesses = toolbox.map(toolbox.evaluate, pop)
         for ind, fitness in zip(pop, fitnesses):
             ind.fitness.value = fitness[0]
             ind.alt_fitness = fitness[1:]
+
+    def single_fit_evaluate(pop, gen):
+        fitnesses = toolbox.map(toolbox.evaluate, pop)
+        for ind, fitness in zip(pop, fitnesses):
+            ind.fitness.value = fitness
+
+    evaluate = (multi_fit_evaluate if config.FITNESS_FUNCTION == 'mat'
+                else single_fit_evaluate)
 
     def record(pop, gen):
         hof.update(pop)
