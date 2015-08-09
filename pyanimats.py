@@ -282,7 +282,7 @@ def main(arguments):
             toolbox.mutate(offspring[i])
             offspring[i].parent = pop[i]
         # Evaluation.
-        evaluate(pop, gen)
+        evaluate(offspring, gen)
         # Recording.
         record(offspring, gen)
         return offspring
