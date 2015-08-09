@@ -174,11 +174,11 @@ def main(arguments):
     # Helper functions
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def save_data(output_dir, gen, config, population, logbook, hof, elapsed):
+    def save_data(output_dir, gen, config, pop, logbook, hof, elapsed):
         if SAVE_ALL_LINEAGES:
-            to_save = population
+            to_save = pop
         else:
-            to_save = [max(population, key=lambda ind: ind.fitness.value)]
+            to_save = [max(pop, key=lambda ind: ind.fitness.value)]
         step = (1 if NUM_INDIVIDUAL_SAMPLES <= 0
                 else max(gen // NUM_INDIVIDUAL_SAMPLES, 1))
         lineages = tuple(tuple(ind.lineage())[::step] for ind in to_save)
@@ -257,32 +257,32 @@ def main(arguments):
     # Simulation
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def evaluate(population, gen):
-        fitnesses = toolbox.map(toolbox.evaluate, population)
-        for ind, fitness in zip(population, fitnesses):
+    def evaluate(pop, gen):
+        fitnesses = toolbox.map(toolbox.evaluate, pop)
+        for ind, fitness in zip(pop, fitnesses):
             ind.fitness.value = fitness[0]
             ind.alt_fitness = fitness[1:]
 
-    def record(population, gen):
-        hof.update(population)
+    def record(pop, gen):
+        hof.update(pop)
         if gen % LOGBOOK_RECORDING_INTERVAL == 0:
-            record = mstats.compile(population)
+            record = mstats.compile(pop)
             logbook.record(gen=gen, **record)
 
-    def process_gen(population, gen):
+    def process_gen(pop, gen):
         # Selection.
-        population = toolbox.select(population, len(population))
+        pop = toolbox.select(pop, len(pop))
         # Cloning.
-        offspring = [toolbox.clone(ind) for ind in population]
+        offspring = [toolbox.clone(ind) for ind in pop]
         for ind in offspring:
             # Tag offspring with new generation number.
             ind.gen = gen
         # Variation.
         for i in range(len(offspring)):
             toolbox.mutate(offspring[i])
-            offspring[i].parent = population[i]
+            offspring[i].parent = pop[i]
         # Evaluation.
-        evaluate(population, gen)
+        evaluate(pop, gen)
         # Recording.
         record(offspring, gen)
         return offspring
@@ -318,7 +318,7 @@ def main(arguments):
             dirname = os.path.join(OUTPUT_DIR,
                                    'snapshot-{}-gen-{}'.format(snapshot, gen))
             save_data(dirname, gen, config=configure.get_dict(),
-                      population=population, logbook=logbook, hof=hof,
+                      pop=population, logbook=logbook, hof=hof,
                       elapsed=(current_time - sim_start))
             snapshot += 1
             snap_duration_start = time()
@@ -335,9 +335,8 @@ def main(arguments):
         config.SEED, config.NGEN, utils.compress(sim_end - sim_start)))
 
     # Write final results to disk.
-    save_data(OUTPUT_DIR, gen, config=configure.get_dict(),
-              population=population, logbook=logbook, hof=hof,
-              elapsed=(sim_end - sim_start))
+    save_data(OUTPUT_DIR, gen, config=configure.get_dict(), pop=population,
+              logbook=logbook, hof=hof, elapsed=(sim_end - sim_start))
 
 
 from docopt import docopt
