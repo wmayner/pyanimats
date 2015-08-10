@@ -337,6 +337,7 @@ def main(arguments):
             save_data(dirname, gen, config=configure.get_dict(),
                       pop=population, logbook=logbook, hof=hof,
                       elapsed=(current_time - sim_start))
+            print('Snapshot recorded.')
             snapshot += 1
             snap_duration_start = time()
 
