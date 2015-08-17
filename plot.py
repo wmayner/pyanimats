@@ -6,6 +6,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
+import config
 import analyze
 from fitness_functions import LaTeX_NAMES as fit_funcnames
 
@@ -75,6 +76,19 @@ def plot_final_correct(case_name=CASE_NAME, force=False,
 
 # LOD Evolution
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def fitness(logbook, fig=None, fontsize=16, cap=None):
+    if fig is None:
+        fig = plt.figure()
+    x = logbook.select('gen')
+    y = logbook.chapters['fitness'].select('max')
+    plt.plot(x[:cap], y[:cap])
+    plt.xlabel('$\mathrm{Generation}$', labelpad=20, fontsize=fontsize)
+    ylabel = ('$\mathrm{' + fit_funcnames[config.FITNESS_FUNCTION] + '}$')
+    plt.ylabel(ylabel, labelpad=20, fontsize=fontsize)
+    plt.grid(True)
+    return fig
+
 
 def plot_lods(case_name=CASE_NAME, force=False, gen_interval=500, seed=0,
               all_seeds=False, avg=False, fontsize=20, title='',
