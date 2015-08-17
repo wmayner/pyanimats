@@ -186,15 +186,10 @@ def mi(ind):
 # Extrinsic cause information
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-@_register
-@_average_over_visited_states()
-def ex(ind, state):
+def _ex_one_state(ind, state):
     """Extrinsic cause information: Animats are evaluated based on the sum of φ
     for concepts that are “about” the sensors. This sum is averaged over every
     unique state the animat visits during a game."""
-    # Short-circuit if the animat has no connections.
-    if ind.cm.sum() == 0:
-        return 0
     # TODO generate powerset once (change PyPhi to use indices in find_mice
     # purview restriction)?
     subsystem = ind.as_subsystem(state)
@@ -205,6 +200,32 @@ def ex(ind, state):
     mice = [subsystem.core_cause(mechanism, purviews=purviews)
             for mechanism in mechanisms]
     return sum(m.phi for m in mice)
+
+
+ex = _average_over_visited_states(shortcircuit=True)(_ex_one_state)
+ex.__name__ = 'ex'
+_register(ex)
+
+
+@_register
+def ex_wvn(ind):
+    """Same as `ex` but counting the difference between world and noise."""
+    # Play the game and a scrambled version of it.
+    world = ind.play_game().animat_states
+    noise = ind.play_game(scrambled=True).animat_states
+    # Uniqify and flatten the world and noise state arrays.
+    world = unique_rows(world)
+    noise = unique_rows(noise)
+    # Get a flat list of all the the states.
+    combined = np.concatenate([world, noise])
+    combined = combined.reshape(-1, combined.shape[-1])
+    # Get unique world and noise states.
+    all_states = map(tuple, unique_rows(combined))
+    # Get the extrinsic cause information for each unique state.
+    values = {state: _ex_one_state(ind, state) for state in all_states}
+    # Subtract world from noise.
+    return (sum(values[tuple(state)] for state in world) -
+            sum(values[tuple(state)] for state in noise))
 
 
 # Sum of small-phi
