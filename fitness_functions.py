@@ -197,7 +197,7 @@ def ex(ind, state):
         return 0
     # TODO generate powerset once (change PyPhi to use indices in find_mice
     # purview restriction)?
-    subsystem = ind.subsystem(state)
+    subsystem = ind.as_subsystem(state)
     hidden_and_motors = subsystem.indices2nodes(_.HIDDEN_MOTOR_INDICES)
     sensors = subsystem.indices2nodes(_.SENSOR_INDICES)
     mechanisms = tuple(pyphi.utils.powerset(hidden_and_motors))
