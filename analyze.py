@@ -5,6 +5,7 @@
 import os
 import pickle
 import json
+import re
 from glob import glob
 import numpy as np
 import config
@@ -17,17 +18,18 @@ from utils import ensure_exists, unique_rows
 from individual import Individual
 
 
+VERSION = Version('0.0.20')
 CASE_NAME = os.path.join(
-    '0.0.19',
-    'mat',
+    str(VERSION),
+    'nat',
     '3-4-6-5',
-    'sensors-4',
+    'sensors-3',
     'jumpstart-0',
-    'ngen-10000',
+    'ngen-60000',
 )
-SNAPSHOT = 8
+SEED = 0
+SNAPSHOT = False
 
-VERSION = Version(CASE_NAME.split(os.path.sep)[0])
 RESULT_DIR = 'raw_results'
 ANALYSIS_DIR = 'compiled_results'
 RESULT_PATH = os.path.join(RESULT_DIR, CASE_NAME)
@@ -48,7 +50,19 @@ if VERSION < Version('0.0.20'):
 # Utilities
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def _get_task_name(tasks):
+def _extract_num(path, prefix):
+    return int(re.split('-|/', path.split(prefix)[-1])[0])
+
+
+def get_seed(path):
+    return _extract_num(path, 'seed-')
+
+
+def get_snapshot(path):
+    return _extract_num(path, 'snapshot-')
+
+
+def get_task_name(tasks):
     return '[' + ',\ '.join(str(task[1].count('1')) for task in tasks) + ']'
 
 
@@ -71,38 +85,56 @@ def _get_correct_trials_axis_label(config):
 # Result loading
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def load(filetype, input_filepath=RESULT_PATH, seed=0, snapshot=SNAPSHOT):
+def load(filetype, input_filepath=RESULT_PATH, seed=SEED, snapshot=SNAPSHOT,
+         verbose=False):
     result_path = os.path.join(input_filepath, 'seed-{}'.format(seed))
     if snapshot:
         result_path = os.path.join(result_path,
-                                   'snapshot-{}*'.format(snapshot))
-    print('Loading {} from `{}`...'.format(filetype, result_path))
+                                   'snapshot-*'.format(snapshot))
+
     filename = FILENAMES[filetype]
     ext = os.path.splitext(filename)[-1]
     path = os.path.join(result_path, filename)
-    match = glob(path)
-    if not match:
+    matches = glob(path)
+    if not matches:
         raise Exception("Can't load file, path not found: {}".format(path))
+
+    if snapshot < 0:
+        matches = sorted(matches, key=get_snapshot)
+        path = matches[snapshot]
+    elif snapshot > 0:
+        matches = {get_snapshot(path): path for path in matches}
+        path = matches[str(snapshot)]
     else:
-        path = match[0]
+        path = matches[0]
+
+    if verbose:
+        print('Loading {} from `{}`...'.format(filetype, path))
+
     if ext == '.json':
         with open(path, 'r') as f:
             data = json.load(f)
     elif ext == '.pkl':
         with open(path, 'rb') as f:
             data = pickle.load(f)
+
     if filetype == 'config':
         configure.from_dict(data)
-        print('Updated PyAnimat configuration with the loaded parameters.')
+        if verbose:
+            print('Updated PyAnimat configuration with the loaded parameters.')
+
     return data
 
 
-def load_all_seeds(filetype, input_filepath=RESULT_PATH, snapshot=SNAPSHOT):
-
+def load_all_seeds(filetype, input_filepath=RESULT_PATH, snapshot=SNAPSHOT,
+                   verbose=False):
     data = {}
-    for filename in glob(os.path.join(input_filepath, '**',
-                                      FILENAMES[filetype])):
-        print('Loading {} from `{}`...'.format(filetype, filename))
+    for path in glob(os.path.join(input_filepath, '*')):
+        try:
+            data[path] = load(filetype, os.path.dirname(path), get_seed(path),
+                              snapshot, verbose)
+        except:
+            continue
     return data
 
 
@@ -142,7 +174,7 @@ def get_final_correct(case_name=CASE_NAME, force=False):
 # LOD Evolution
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def get_lods(case_name=CASE_NAME, force=False, gen_interval=500, seed=0,
+def get_lods(case_name=CASE_NAME, force=False, gen_interval=500, seed=SEED,
              all_seeds=False, chapter='fitness', stat='max'):
     input_filepath = os.path.join(RESULT_DIR, case_name)
     if all_seeds:
@@ -226,7 +258,7 @@ def state_to_sequences(ind, length=3, sensors=False):
 # Visual interface
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def game_to_json(ind, scrambled=False, age=0):
+def game_to_json(ind, gen, scrambled=False):
     # Get the full configuration dictionary, including derived constants.
     config = configure.get_dict(full=True)
     # Play the game.
@@ -239,7 +271,7 @@ def game_to_json(ind, scrambled=False, age=0):
     # Generate the JSON-encodable dictionary.
     json_dict = {
         'config': config,
-        'generation': config['NGEN'] - age,
+        'generation': gen,
         'genome': ind.genome,
         'cm': ind.cm.tolist(),
         'correct': ind.correct,
@@ -268,19 +300,32 @@ def game_to_json(ind, scrambled=False, age=0):
     return json_dict
 
 
-def export_game_to_json(case_name=CASE_NAME, seed=0, lineage=0, age=0,
-                        scrambled=False):
+def export_game_to_json(case_name=CASE_NAME, seed=SEED, lineage=0,
+                        snapshot=SNAPSHOT, scrambled=False, notes=''):
     input_filepath = os.path.join(RESULT_DIR, case_name)
-    output_file = os.path.join(ensure_exists(os.path.join(
-        ANALYSIS_DIR, case_name, 'seed-{}'.format(seed))),
-        'game{}.json'.format('-scrambled' if scrambled else ''))
+    output_filepath = os.path.join(
+        ANALYSIS_DIR, case_name, 'seed-{}'.format(seed))
+    if snapshot:
+        output_filepath = os.path.join(output_filepath,
+                                       'snapshot-{}'.format(snapshot))
+    ensure_exists(output_filepath)
+    output_file = os.path.join(
+        output_filepath, 'game{}.json'.format('-scrambled' if scrambled
+                                              else ''))
     # Load config.
-    load('config', input_filepath, seed)
+    load('config', input_filepath, seed, snapshot)
+    # Load logbook.
+    logbook = load('logbook', input_filepath, seed, snapshot)
+    gen = logbook[-1]['gen']
     # Load individual.
-    lineages = load('lineages', input_filepath, seed)
-    ind = Individual(lineages[lineage][age].genome)
+    lineages = load('lineages', input_filepath, seed, snapshot)
+    ind = Individual(lineages[lineage][0].genome)
     # Get the JSON.
-    json_dict = game_to_json(ind, scrambled=scrambled, age=0)
+    json_dict = game_to_json(ind, gen, scrambled=scrambled)
+    # Append notes.
+    json_dict['notes'] = notes
+    # Record fitness.
+    json_dict['fitness'] = float(logbook.chapters['fitness'][-1]['max'])
     with open(output_file, 'w') as f:
             json.dump(json_dict, f)
     print('Saved game representation to `{}`.'.format(output_file))
