@@ -58,7 +58,7 @@ def print_functions():
 # Helper functions
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def _average_over_visited_states(upto=False):
+def _average_over_visited_states(shortcircuit=True, upto=False):
     """A decorator that takes an animat and applies a function for every unique
     (up to sensors and hidden units only) state the animat visits during a game
     and returns the average.
@@ -71,9 +71,9 @@ def _average_over_visited_states(upto=False):
     def decorator(func):
         @wraps(func)
         def wrapper(ind, **kwargs):
-            # TODO don't reshape in Individual.play_game (use default parameter)
-            # TODO return weighted average? (update docs)
-            # TODO don't pass count to func
+            # Short-circuit if the animat has no connections.
+            if shortcircuit and ind.cm.sum() == 0:
+                return 0.0
             game = ind.play_game()
             unique_states = unique_rows(game.animat_states, upto=upto)
             values = [func(ind, state, **kwargs) for state in unique_states]
