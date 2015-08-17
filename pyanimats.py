@@ -250,13 +250,13 @@ def main(arguments):
 
     # Initialize logbooks and hall of fame.
     logbook = tools.Logbook()
-    hof = tools.HallOfFame(maxsize=config.POPSIZE)
+    hall_of_fame = tools.HallOfFame(maxsize=config.POPSIZE)
 
     def print_status(line, time):
+        print('[Seed {}] '.format(config.SEED), end='')
         print(line, utils.compress(time))
 
-    print('\n[Seed {}] Simulating {} generations...\n'.format(config.SEED,
-                                                              config.NGEN))
+    print('\nSimulating {} generations...\n'.format(config.NGEN))
 
     if PROFILING:
         pr = cProfile.Profile()
@@ -281,7 +281,7 @@ def main(arguments):
                 else single_fit_evaluate)
 
     def record(pop, gen):
-        hof.update(pop)
+        hall_of_fame.update(pop)
         if gen % LOGBOOK_RECORDING_INTERVAL == 0:
             record = mstats.compile(pop)
             logbook.record(gen=gen, **record)
@@ -312,7 +312,12 @@ def main(arguments):
     evaluate(population, 0)
     # Record stats for initial population.
     record(population, 0)
-    print_status(logbook, time() - log_duration_start)
+    # Print first lines of logbook.
+    first_lines = str(logbook).split('\n')
+    header_lines = ['[Seed {}] '.format(config.SEED) + l
+                    for l in first_lines[:-1]]
+    print('\n'.join(header_lines))
+    print_status(first_lines[-1], time() - log_duration_start)
 
     log_duration_start = time()
     snap_duration_start = time()
@@ -331,13 +336,14 @@ def main(arguments):
         current_time = time()
         if (current_time - snap_duration_start >= SNAPSHOT_TIME_INTERVAL
                 or gen % SNAPSHOT_GENERATION_INTERVAL == 0):
-            print('Recording snapshot {}...'.format(snapshot))
+            print('[Seed {}] –\tRecording snapshot {}... '.format(config.SEED,
+                                                               snapshot), end='')
             dirname = os.path.join(OUTPUT_DIR,
                                    'snapshot-{}-gen-{}'.format(snapshot, gen))
             save_data(dirname, gen, config=configure.get_dict(),
-                      pop=population, logbook=logbook, hof=hof,
+                      pop=population, logbook=logbook, hof=hall_of_fame,
                       elapsed=(current_time - sim_start))
-            print('Snapshot recorded.')
+            print('done.')
             snapshot += 1
             snap_duration_start = time()
 
@@ -349,12 +355,12 @@ def main(arguments):
         pr.disable()
         pr.dump_stats(profile_filepath)
 
-    print('\n[Seed {}] Simulated {} generations in {}.'.format(
-        config.SEED, config.NGEN, utils.compress(sim_end - sim_start)))
+    print('\nSimulated {} generations in {}.'.format(
+        config.NGEN, utils.compress(sim_end - sim_start)))
 
     # Write final results to disk.
     save_data(OUTPUT_DIR, gen, config=configure.get_dict(), pop=population,
-              logbook=logbook, hof=hof, elapsed=(sim_end - sim_start))
+              logbook=logbook, hof=hall_of_fame, elapsed=(sim_end - sim_start))
 
 
 from docopt import docopt
