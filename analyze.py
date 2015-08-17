@@ -217,11 +217,17 @@ def get_avg_elapsed(case_name=CASE_NAME):
 # Dynamics
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+def next_state(ind, state):
+    return np.copy(ind.network.tpm[tuple(state)]).astype(int)
+
+def possible_states(num_nodes):
+    return cartesian([[0, 1]] * num_nodes)
+
 def sequence_to_state(ind, length=3, sensors=False):
     """Map sequences of sensor stimuli to animat states."""
     if sensors is False:
         sensors = list(range(config.NUM_SENSORS))
-    sensor_states = cartesian([[0, 1]] * len(sensors))
+    sensor_states = possible_inputs(len(sensors))
     sequences = np.array([
         [sensor_states[i] for i in s]
         for s in cartesian([np.arange(sensor_states.shape[0])] * length)
@@ -232,7 +238,7 @@ def sequence_to_state(ind, length=3, sensors=False):
         state = zero_state
         for sensor_state in sequence:
             state[sensors] = sensor_state
-            state = np.copy(ind.network.tpm[tuple(state)])
+            state = next_state(ind, state)
         terminal_states[i] = state
     return sequences, terminal_states.astype(int)
 
@@ -253,6 +259,33 @@ def state_to_sequences(ind, length=3, sensors=False):
     for i, u in enumerate(unq_idx):
         mapping[unique[u]].append(sequences[i].tolist())
     return mapping
+
+
+def limit_cycle(ind, start=None):
+    if start is None:
+        start = (0, ) * config.NUM_NODES
+    prev = tuple(start)
+    cur = tuple(next_state(ind, prev))
+    seen = []
+    while cur not in seen:
+        seen.append(cur)
+        prev = cur
+        cur = tuple(next_state(ind, prev))
+    cycle = seen[seen.index(cur):]
+    return cycle
+
+
+def limit_cycles(ind, states=None):
+    if states is None:
+        states = possible_states(config.NUM_NODES - config.NUM_MOTORS)
+        initial_conditions = [
+            tuple(state) + (0, ) * config.NUM_MOTORS
+            for state in states
+        ]
+    else:
+        initial_conditions = map(tuple, states)
+    return {state: limit_cycle(ind, start=state)
+            for state in initial_conditions}
 
 
 # Visual interface
