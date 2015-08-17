@@ -234,8 +234,7 @@ class Individual:
         self._dirty_phenotype = True
         self._dirty_network = True
 
-    def play_game(self, scrambled=None, return_world=False,
-                  return_positions=False, return_results=False):
+    def play_game(self, scrambled=None):
         """Return the list of state transitions the animat goes through when
         playing the game. Optionally also returns the world states and the
         positions of the animat."""
