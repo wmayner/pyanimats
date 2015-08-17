@@ -142,6 +142,34 @@ def _average_over_subset_of_possible_states(semifixed_states):
     return decorator
 
 
+def _world_vs_noise(func):
+    """A decorator that returns the difference between the sum of the given
+    function applied to unique states visited in the world, and the same for
+    noise.
+
+    The wrapped function must take an animat and a state, and return a
+    number."""
+    @wraps(func)
+    def wrapper(ind, **kwargs):
+        # Play the game and a scrambled version of it.
+        world = ind.play_game().animat_states
+        noise = ind.play_game(scrambled=True).animat_states
+        # Uniqify and flatten the world and noise state arrays.
+        world = unique_rows(world)
+        noise = unique_rows(noise)
+        # Get a flat list of all the the states.
+        combined = np.concatenate([world, noise])
+        combined = combined.reshape(-1, combined.shape[-1])
+        # Get unique world and noise states.
+        all_states = map(tuple, unique_rows(combined))
+        # Get the extrinsic cause information for each unique state.
+        values = {state: func(ind, state, **kwargs) for state in all_states}
+        # Subtract noise from world.
+        return (sum(values[tuple(state)] for state in world) -
+                sum(values[tuple(state)] for state in noise))
+    return wrapper
+
+
 # Natural fitness
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -207,25 +235,11 @@ ex.__name__ = 'ex'
 _register(ex)
 
 
-@_register
-def ex_wvn(ind):
+ex_wvn = _world_vs_noise(_ex_one_state)
+ex_wvn.__name__ = 'ex_wvn'
+ex_wvn.__doc__ = \
     """Same as `ex` but counting the difference between world and noise."""
-    # Play the game and a scrambled version of it.
-    world = ind.play_game().animat_states
-    noise = ind.play_game(scrambled=True).animat_states
-    # Uniqify and flatten the world and noise state arrays.
-    world = unique_rows(world)
-    noise = unique_rows(noise)
-    # Get a flat list of all the the states.
-    combined = np.concatenate([world, noise])
-    combined = combined.reshape(-1, combined.shape[-1])
-    # Get unique world and noise states.
-    all_states = map(tuple, unique_rows(combined))
-    # Get the extrinsic cause information for each unique state.
-    values = {state: _ex_one_state(ind, state) for state in all_states}
-    # Subtract world from noise.
-    return (sum(values[tuple(state)] for state in world) -
-            sum(values[tuple(state)] for state in noise))
+_register(ex_wvn)
 
 
 # Sum of small-phi
