@@ -105,6 +105,8 @@ def _update_constants():
         'nat': {'scale': 1, 'add': 0},
         'mi': {'scale': 64 / min(config.NUM_SENSORS, config.NUM_MOTORS),
                'add': 64},
+        'mi_wvn': {'scale': 64 / min(config.NUM_SENSORS, config.NUM_MOTORS),
+                   'add': 64},
         'ex': {'scale': 64 / 4, 'add': 64},
         'ex_wvn': {'scale': 64 / 1, 'add': 64},
         'sp': {'scale': 64 / 4, 'add': 64},

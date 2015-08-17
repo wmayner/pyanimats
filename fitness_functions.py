@@ -189,13 +189,8 @@ def nat(ind):
 NAT_TO_BIT_CONVERSION_FACTOR = 1 / math.log(2)
 
 
-@_register
-def mi(ind):
-    """Mutual information: Animats are evaluated based on the mutual
-    information between their sensors and motor over the course of a game."""
-    # Play the game and get the state transitions for each trial.
-    game = ind.play_game()
-    states = game.animat_states
+def _mutual_information(states):
+    """Get the sensor-motor mutual information for a group of trials."""
     # The contingency matrix has a row for every sensors state and a column for
     # every motor state.
     contingency = np.zeros([_.NUM_SENSOR_STATES, _.NUM_MOTOR_STATES])
@@ -209,6 +204,23 @@ def mi(ind):
     mi_nats = mutual_info_score(None, None, contingency=contingency)
     # Convert from nats to bits and return.
     return mi_nats * NAT_TO_BIT_CONVERSION_FACTOR
+
+
+@_register
+def mi(ind):
+    """Mutual information: Animats are evaluated based on the mutual
+    information between their sensors and motor over the course of a game."""
+    game = ind.play_game()
+    return _mutual_information(game.animat_states)
+
+
+@_register
+def mi_wvn(ind):
+    """Same as `mi` but counting the difference between world and noise."""
+    # Play the game and a scrambled version of it.
+    world = ind.play_game().animat_states
+    noise = ind.play_game(scrambled=True).animat_states
+    return _mutual_information(world) - _mutual_information(noise)
 
 
 # Extrinsic cause information
