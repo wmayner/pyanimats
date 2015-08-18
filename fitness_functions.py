@@ -196,9 +196,6 @@ def nat(ind):
 # Mutual information
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-NAT_TO_BIT_CONVERSION_FACTOR = 1 / math.log(2)
-
-
 def _mutual_information(states):
     """Get the sensor-motor mutual information for a group of trials."""
     # The contingency matrix has a row for every sensors state and a column for
@@ -213,7 +210,7 @@ def _mutual_information(states):
     # Calculate mutual information in nats.
     mi_nats = mutual_info_score(None, None, contingency=contingency)
     # Convert from nats to bits and return.
-    return mi_nats * NAT_TO_BIT_CONVERSION_FACTOR
+    return mi_nats * _.NAT_TO_BIT_CONVERSION_FACTOR
 
 
 @_register
