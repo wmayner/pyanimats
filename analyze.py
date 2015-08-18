@@ -7,11 +7,15 @@ import pickle
 import json
 import re
 from glob import glob
+from collections import Counter
 import numpy as np
 import config
+import constants
 import configure
+import scipy.stats
 from sklearn.utils.extmath import cartesian
 from pyphi.convert import loli_index2state as i2s
+from pyphi.convert import state2loli_index as s2i
 from semantic_version import Version
 
 from utils import ensure_exists, unique_rows
@@ -21,14 +25,14 @@ from individual import Individual
 VERSION = Version('0.0.20')
 CASE_NAME = os.path.join(
     str(VERSION),
-    'nat',
+    'mat',
     '3-4-6-5',
     'sensors-3',
     'jumpstart-0',
     'ngen-60000',
 )
 SEED = 0
-SNAPSHOT = False
+SNAPSHOT = -1
 
 RESULT_DIR = 'raw_results'
 ANALYSIS_DIR = 'compiled_results'
@@ -216,6 +220,27 @@ def get_avg_elapsed(case_name=CASE_NAME):
 
 # Dynamics
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def entropy(ind, node_indices, scrambled=False):
+    states = ind.play_game(scrambled=scrambled).animat_states
+    sensor_states = states[:, :, node_indices]
+    sensor_states = sensor_states.reshape(-1, sensor_states.shape[-1])
+    counts = Counter(map(tuple, sensor_states.tolist()))
+    p = np.zeros(2**len(node_indices))
+    for state in counts.keys():
+        p[s2i(state)] = counts[state]
+    H_nats = scipy.stats.entropy(p)
+    return H_nats * constants.NAT_TO_BIT_CONVERSION_FACTOR
+
+def sensor_entropy(scrambled=False):
+    ind = Individual([])
+    return entropy(ind, constants.SENSOR_INDICES, scrambled=scrambled)
+
+def hidden_entropy(ind, scrambled=False):
+    return entropy(ind, constants.HIDDEN_INDICES, scrambled=scrambled)
+
+def motor_entropy(ind, scrambled=False):
+    return entropy(ind, constants.MOTOR_INDICES, scrambled=scrambled)
 
 def next_state(ind, state):
     return np.copy(ind.network.tpm[tuple(state)]).astype(int)
