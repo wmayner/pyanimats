@@ -62,7 +62,7 @@ def print_functions():
 # Helper functions
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def _average_over_visited_states(shortcircuit=True, upto=False):
+def _average_over_visited_states(shortcircuit=True, upto_attr=False):
     """A decorator that takes an animat and applies a function for every unique
     state the animat visits during a game (up to the given units only) and
     returns the average.
@@ -74,8 +74,7 @@ def _average_over_visited_states(shortcircuit=True, upto=False):
             # Short-circuit if the animat has no connections.
             if shortcircuit and ind.cm.sum() == 0:
                 return 0.0
-            if upto:
-                upto = getattr(_, upto)
+            upto = getattr(_, upto_attr) if upto_attr else False
             game = ind.play_game()
             unique_states = unique_rows(game.animat_states, upto=upto)
             values = [func(ind, state, **kwargs) for state in unique_states]
@@ -144,7 +143,7 @@ def _average_over_subset_of_possible_states(semifixed_states):
     return decorator
 
 
-def _world_vs_noise(shortcircuit=True, upto=False):
+def _world_vs_noise(shortcircuit=True, upto_attr=False):
     """A decorator that returns the difference between the sum of the given
     function applied to unique states visited in the world, and the same for
     noise.
@@ -157,8 +156,7 @@ def _world_vs_noise(shortcircuit=True, upto=False):
             # Short-circuit if the animat has no connections.
             if shortcircuit and ind.cm.sum() == 0:
                 return 0.0
-            if upto:
-                upto = getattr(_, upto)
+            upto = getattr(_, upto_attr) if upto_attr else False
             # Play the game and a scrambled version of it.
             world = ind.play_game().animat_states
             noise = ind.play_game(scrambled=True).animat_states
@@ -277,7 +275,7 @@ def _sp_one_state(ind, state):
     return sum(concept.phi for concept in constellation)
 
 
-sp = _average_over_visited_states(upto='HIDDEN_INDICES')(_sp_one_state)
+sp = _average_over_visited_states(upto_attr='HIDDEN_INDICES')(_sp_one_state)
 sp.__name__ = 'sp'
 sp.__doc__ = \
     """Sum of φ: Animats are evaluated based on the sum of φ for all the
@@ -291,7 +289,7 @@ sp.__doc__ = \
 _register(sp)
 
 
-sp_wvn = _world_vs_noise(upto='HIDDEN_INDICES')(_sp_one_state)
+sp_wvn = _world_vs_noise(upto_attr='HIDDEN_INDICES')(_sp_one_state)
 sp_wvn.__name__ = 'sp_wvn'
 sp_wvn.__doc__ = \
     """Same as `sp` but counting the difference between world and noise."""
