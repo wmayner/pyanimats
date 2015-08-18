@@ -167,12 +167,15 @@ def _world_vs_noise(shortcircuit=True, upto_attr=False):
             combined = np.concatenate([world, noise])
             combined = combined.reshape(-1, combined.shape[-1])
             # Get unique world and noise states.
-            all_states = map(tuple, unique_rows(combined, upto=upto))
+            all_states, unq_idx = unique_rows(combined, upto=upto, indices=True)
+            all_states = list(map(tuple, all_states))
             # Get the extrinsic cause information for each unique state.
             values = {state: func(ind, state, **kwargs) for state in all_states}
             # Subtract noise from world.
-            return (sum(values[tuple(state)] for state in world) -
-                    sum(values[tuple(state)] for state in noise))
+            return (sum(values[all_states[unq_idx[i]]]
+                        for i in range(len(world))) -
+                    sum(values[all_states[unq_idx[i]]]
+                        for i in range(len(world), len(world) + len(noise))))
         return wrapper
     return decorator
 
