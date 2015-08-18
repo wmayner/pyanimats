@@ -25,11 +25,15 @@ from utils import unique_rows
 functions = OrderedDict()
 # Mapping from parameter values to descriptive names
 LaTeX_NAMES = {
-    'mi': 'Mutual\ Information',
     'nat': 'Correct\ Trials',
+    'mi': 'Mutual\ Information',
+    'mi_wvn': 'Mutual\ Information\ (world\ vs.\ noise)',
     'ex': 'Extrinsic\ cause\ information',
+    'ex_wvn': 'Extrinsic\ cause\ information\ (world\ vs.\ noise)',
     'sp': '\sum\\varphi',
+    'sp_wvn': '\sum\\varphi\ (world\ vs.\ noise)',
     'bp': '\Phi',
+    'bp_wvn': '\Phi\ (world\ vs.\ noise)',
     'mat': 'Matching'
 }
 
@@ -60,20 +64,18 @@ def print_functions():
 
 def _average_over_visited_states(shortcircuit=True, upto=False):
     """A decorator that takes an animat and applies a function for every unique
-    (up to sensors and hidden units only) state the animat visits during a game
-    and returns the average.
+    state the animat visits during a game (up to the given units only) and
+    returns the average.
 
-    The wrapped function must take an animat, state, and optionally count, and
-    return a number.
-
-    The optional parameter ``n`` can be set to consider only the ``n`` most
-    common states. Nonpositive ``n`` means all states."""
+    The wrapped function must take an animat and state, and return a number."""
     def decorator(func):
         @wraps(func)
         def wrapper(ind, **kwargs):
             # Short-circuit if the animat has no connections.
             if shortcircuit and ind.cm.sum() == 0:
                 return 0.0
+            if upto:
+                upto = getattr(_, upto)
             game = ind.play_game()
             unique_states = unique_rows(game.animat_states, upto=upto)
             values = [func(ind, state, **kwargs) for state in unique_states]
@@ -142,32 +144,39 @@ def _average_over_subset_of_possible_states(semifixed_states):
     return decorator
 
 
-def _world_vs_noise(func):
+def _world_vs_noise(shortcircuit=True, upto=False):
     """A decorator that returns the difference between the sum of the given
     function applied to unique states visited in the world, and the same for
     noise.
 
     The wrapped function must take an animat and a state, and return a
     number."""
-    @wraps(func)
-    def wrapper(ind, **kwargs):
-        # Play the game and a scrambled version of it.
-        world = ind.play_game().animat_states
-        noise = ind.play_game(scrambled=True).animat_states
-        # Uniqify and flatten the world and noise state arrays.
-        world = unique_rows(world)
-        noise = unique_rows(noise)
-        # Get a flat list of all the the states.
-        combined = np.concatenate([world, noise])
-        combined = combined.reshape(-1, combined.shape[-1])
-        # Get unique world and noise states.
-        all_states = map(tuple, unique_rows(combined))
-        # Get the extrinsic cause information for each unique state.
-        values = {state: func(ind, state, **kwargs) for state in all_states}
-        # Subtract noise from world.
-        return (sum(values[tuple(state)] for state in world) -
-                sum(values[tuple(state)] for state in noise))
-    return wrapper
+    def decorator(func):
+        @wraps(func)
+        def wrapper(ind, **kwargs):
+            # Short-circuit if the animat has no connections.
+            if shortcircuit and ind.cm.sum() == 0:
+                return 0.0
+            if upto:
+                upto = getattr(_, upto)
+            # Play the game and a scrambled version of it.
+            world = ind.play_game().animat_states
+            noise = ind.play_game(scrambled=True).animat_states
+            # Uniqify and flatten the world and noise state arrays.
+            world = unique_rows(world, upto=upto)
+            noise = unique_rows(noise, upto=upto)
+            # Get a flat list of all the the states.
+            combined = np.concatenate([world, noise])
+            combined = combined.reshape(-1, combined.shape[-1])
+            # Get unique world and noise states.
+            all_states = map(tuple, unique_rows(combined, upto=upto))
+            # Get the extrinsic cause information for each unique state.
+            values = {state: func(ind, state, **kwargs) for state in all_states}
+            # Subtract noise from world.
+            return (sum(values[tuple(state)] for state in world) -
+                    sum(values[tuple(state)] for state in noise))
+        return wrapper
+    return decorator
 
 
 # Natural fitness
@@ -227,9 +236,6 @@ def mi_wvn(ind):
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def _ex_one_state(ind, state):
-    """Extrinsic cause information: Animats are evaluated based on the sum of φ
-    for concepts that are “about” the sensors. This sum is averaged over every
-    unique state the animat visits during a game."""
     # TODO generate powerset once (change PyPhi to use indices in find_mice
     # purview restriction)?
     subsystem = ind.as_subsystem(state)
@@ -242,12 +248,16 @@ def _ex_one_state(ind, state):
     return sum(m.phi for m in mice)
 
 
-ex = _average_over_visited_states(shortcircuit=True)(_ex_one_state)
+ex = _average_over_visited_states()(_ex_one_state)
 ex.__name__ = 'ex'
+ex.__doc__ = \
+    """Extrinsic cause information: Animats are evaluated based on the sum of φ
+    for concepts that are “about” the sensors. This sum is averaged over every
+    unique state the animat visits during a game."""
 _register(ex)
 
 
-ex_wvn = _world_vs_noise(_ex_one_state)
+ex_wvn = _world_vs_noise()(_ex_one_state)
 ex_wvn.__name__ = 'ex_wvn'
 ex_wvn.__doc__ = \
     """Same as `ex` but counting the difference between world and noise."""
@@ -267,19 +277,25 @@ def _sp_one_state(ind, state):
     return sum(concept.phi for concept in constellation)
 
 
-@_register
-def sp(ind):
+sp = _average_over_visited_states(upto='HIDDEN_INDICES')(_sp_one_state)
+sp.__name__ = 'sp'
+sp.__doc__ = \
     """Sum of φ: Animats are evaluated based on the sum of φ for all the
-    concepts of the animat's hidden units, or “brain”, averaged
-    over the unique states the animat visits during a game (where uniqueness is
-    considered up to the state of the hidden units)."""
-    # Short-circuit if the animat has no connections.
-    if ind.cm.sum() == 0:
-        return 0
-    game = ind.play_game()
-    unique_states = unique_rows(game.animat_states, upto=_.HIDDEN_INDICES)
-    values = [_sp_one_state(ind, state) for state in unique_states]
-    return sum(values) / len(values)
+    concepts of the animat's hidden units, or “brain”, averaged over the unique
+    states the animat visits during a game, where uniqueness is considered up
+    to the state of the hidden units (since the entire animat is the system, no
+    background conditions need to be considered, and since the sensors lack
+    incoming connections and the motors lack outgoing, the only possible
+    concepts are therefore those whose mechanisms are a subset of the hidden
+    units)."""
+_register(sp)
+
+
+sp_wvn = _world_vs_noise(upto='HIDDEN_INDICES')(_sp_one_state)
+sp_wvn.__name__ = 'sp_wvn'
+sp_wvn.__doc__ = \
+    """Same as `sp` but counting the difference between world and noise."""
+_register(ex_wvn)
 
 
 # Big-Phi
