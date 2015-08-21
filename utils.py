@@ -29,12 +29,10 @@ def unique_rows(array, upto=[], indices=False, counts=False, sort=False):
         array (np.ndarray): The array to consider.
 
     Keyword Args:
-        n (int): Return only the ``n`` most common rows (in the last
-        dimension).
         upto (tuple(int)): Consider uniqueness only up to these row elements.
-        counts (bool): Also return the row counts (sorted).
         indices (bool): Also return the indices of each input row in the array
             of unique rows.
+        counts (bool): Also return the row counts (sorted).
         sort (bool): Return the unique rows in descending order by frequency.
     """
     # Return immediately for empty arrays.
