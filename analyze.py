@@ -21,18 +21,20 @@ from semantic_version import Version
 
 from utils import ensure_exists, unique_rows
 from individual import Individual
+import fitness_functions
 
 
 VERSION = Version('0.0.20')
 CASE_NAME = os.path.join(
     str(VERSION),
-    'mat',
+    'ex',
     '3-4-6-5',
     'sensors-3',
     'jumpstart-0',
     'ngen-60000',
 )
-SEED = 0
+SEED = 1
+SNAPSHOT = False
 SNAPSHOT = -1
 
 RESULT_DIR = 'raw_results'
@@ -348,6 +350,34 @@ def game_to_json(ind, gen, scrambled=False):
         list(map(lambda i: i2s(i, config['WORLD_WIDTH']),
                  game.world_states.flatten().tolist()))).reshape(
                      game.world_states.shape + (config['WORLD_WIDTH'],))
+
+    phi_data = None
+    # Get the Phi data.
+    if (config['FITNESS_FUNCTION'] == 'ex' or
+            config['FITNESS_FUNCTION'] == 'ex_wvn'):
+        ff = lambda ind, state: fitness_functions.ex_one_state(
+            ind, state, return_data=True)
+    elif (config['FITNESS_FUNCTION'] == 'sp' or
+            config['FITNESS_FUNCTION'] == 'sp_wvn'):
+        ff = lambda ind, state: fitness_functions.sp_one_state(
+            ind, state, return_data=True)
+    elif (config['FITNESS_FUNCTION'] == 'bp' or
+            config['FITNESS_FUNCTION'] == 'bp_wvn'):
+        complexes = fitness_functions.bp(ind)
+        phi_data = {
+            'complexes': pyphi.json.make_encodable(complexes),
+            'num_unique_concepts': pyphi.json.make_encodable(
+                set.union(*(constellation for constellation in
+                            [C.unpartitioned_constellation
+                             for C in complexes.values()])))
+        }
+    else:
+        phi_data = False
+
+    if phi_data is None:
+        phi_data = {state: pyphi.json.make_encodable(ff(ind, state))
+                    for state in map(tuple, unique_rows(game.animat_states))}
+
     # Generate the JSON-encodable dictionary.
     json_dict = {
         'config': config,
@@ -369,12 +399,18 @@ def game_to_json(ind, gen, scrambled=False):
                         'world': world_states[trialnum, t].tolist(),
                         'animat': game.animat_states[trialnum, t].tolist(),
                         'pos': game.animat_positions[trialnum, t].tolist(),
+                        'phi_data:': ((
+                            phi_data[tuple(game.animat_states[trialnum, t])] if
+                            tuple(game.animat_states[trialnum, t]) in phi_data
+                            else False
+                        ) if phi_data else False)
                     }
                     for t, world_state in enumerate(world_states[trialnum])
                 ],
             } for trialnum in range(game.animat_states.shape[0])
         ],
     }
+    import pdb; pdb.set_trace()  # XXX BREAKPOINT
     assert(ind.correct == sum(trial['correct'] for trial in
                               json_dict['trials']))
     return json_dict
@@ -402,12 +438,14 @@ def export_game_to_json(case_name=CASE_NAME, seed=SEED, lineage=0,
     ind = Individual(lineages[lineage][0].genome)
     # Get the JSON.
     json_dict = game_to_json(ind, gen, scrambled=scrambled)
+    import pdb; pdb.set_trace()  # XXX BREAKPOINT
     # Append notes.
     json_dict['notes'] = notes
     # Record fitness.
     json_dict['fitness'] = float(logbook.chapters['fitness'][-1]['max'])
+    # Record phi data.
     with open(output_file, 'w') as f:
-            json.dump(json_dict, f)
+        json.dump(json_dict, f)
     print('Saved game representation to `{}`.'.format(output_file))
     return json_dict
 
