@@ -14,6 +14,7 @@ import constants
 import configure
 import scipy.stats
 from sklearn.utils.extmath import cartesian
+import pyphi
 from pyphi.convert import loli_index2state as i2s
 from pyphi.convert import state2loli_index as s2i
 from semantic_version import Version
@@ -232,21 +233,42 @@ def entropy(ind, node_indices, scrambled=False):
     H_nats = scipy.stats.entropy(p)
     return H_nats * constants.NAT_TO_BIT_CONVERSION_FACTOR
 
+
 def sensor_entropy(scrambled=False):
     ind = Individual([])
     return entropy(ind, constants.SENSOR_INDICES, scrambled=scrambled)
 
+
 def hidden_entropy(ind, scrambled=False):
     return entropy(ind, constants.HIDDEN_INDICES, scrambled=scrambled)
+
 
 def motor_entropy(ind, scrambled=False):
     return entropy(ind, constants.MOTOR_INDICES, scrambled=scrambled)
 
+
 def next_state(ind, state):
     return np.copy(ind.network.tpm[tuple(state)]).astype(int)
 
+
 def possible_states(num_nodes):
     return cartesian([[0, 1]] * num_nodes)
+
+
+def state_mapping(ind, from_indices, to_indices, state=False):
+    """Return how the animat maps the state of one subset of nodes to the state
+    of another subset (given the current state of the animat, which defaults to
+    all off)."""
+    if state is False:
+        state = [0] * config.NUM_NODES
+    idx = list(state)
+    for i in from_indices:
+        idx[i] = slice(None)
+    idx.append(list(to_indices))
+    N = len(from_indices)
+    subtpm = ind.network.tpm[idx].astype(int)
+    return {i2s(k, N): tuple(subtpm[i2s(k, N)]) for k in range(2**N)}
+
 
 def sequence_to_state(ind, length=3, sensors=False):
     """Map sequences of sensor stimuli to animat states."""
@@ -387,6 +409,35 @@ def export_game_to_json(case_name=CASE_NAME, seed=SEED, lineage=0,
     with open(output_file, 'w') as f:
             json.dump(json_dict, f)
     print('Saved game representation to `{}`.'.format(output_file))
+    return json_dict
+
+
+def export_network_to_json(case_name=CASE_NAME, seed=SEED, lineage=0,
+                           snapshot=SNAPSHOT):
+    input_filepath = os.path.join(RESULT_DIR, case_name)
+    output_filepath = os.path.join(
+        ANALYSIS_DIR, case_name, 'seed-{}'.format(seed))
+    if snapshot:
+        output_filepath = os.path.join(output_filepath,
+                                       'snapshot-{}'.format(snapshot))
+    ensure_exists(output_filepath)
+    output_file = os.path.join(output_filepath, 'network.json')
+    # Load config.
+    load('config', input_filepath, seed, snapshot)
+    # Load individual.
+    lineages = load('lineages', input_filepath, seed, snapshot)
+    ind = Individual(lineages[lineage][0].genome)
+    # Make json dictionary.
+    json_network = pyphi.json.make_encodable(ind.network)
+    json_dict = {
+        'version': '1.0.2',
+        'tpm': json_network['tpm'],
+        'cm': json_network['connectivity_matrix'],
+        'state': [0] * config.NUM_NODES
+    }
+    with open(output_file, 'w') as f:
+            json.dump(json_dict, f)
+    print('Saved network representation to `{}`.'.format(output_file))
     return json_dict
 
 
