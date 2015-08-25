@@ -7,11 +7,10 @@ Fitness functions for driving animat evolution.
 """
 
 import textwrap
-wrapper = textwrap.TextWrapper(width=80)
+WRAPPER = textwrap.TextWrapper(width=80)
 
 from collections import OrderedDict, Counter
 from functools import wraps
-import math
 import numpy as np
 from sklearn.metrics import mutual_info_score
 import pyphi
@@ -49,7 +48,7 @@ def print_functions():
     descriptions."""
     for name, doc in functions.items():
         print('\n' + name + '\n    ' + doc)
-    print('\n' + wrapper.fill(
+    print('\n' + WRAPPER.fill(
         'NB: In order to make selection pressure more even, the fitness '
         'function used in the selection algorithm is transformed so that it '
         'is exponential, according to the formula F(R) = B^(S*R + A), where '
@@ -178,6 +177,12 @@ def _world_vs_noise(shortcircuit=True, upto_attr=False):
                         for i in range(len(world), len(world) + len(noise))))
         return wrapper
     return decorator
+
+
+def uniquify_concepts(constellations):
+    """Takes a list of constellations and returns the set of unique concepts in
+    them."""
+    return set.union(*(set(C) for C in constellations))
 
 
 # Natural fitness
@@ -331,9 +336,9 @@ def matching(W, N, constellations):
     # the resulting set of concepts. Concepts should be considered the same
     # when they have the same φ, same mechanism, same mechanism state, and the
     # same cause and effect purviews and repertoires.
-    world_concepts = set.union(*(C for C in world_constellations))
+    world_concepts = uniquify_concepts(world_constellations)
     # Do the same for noise.
-    noise_concepts = set.union(*(C for C in noise_constellations))
+    noise_concepts = uniquify_concepts(noise_constellations)
     # Calculate and return the final value for matching: the difference in the
     # sum of small phi for the unique concepts specified when presented with
     # the world and that when presented with a scrambled world, weighted by
@@ -363,9 +368,9 @@ def matching_average_weighted(W, N, constellations, complexes):
     # the resulting set of concepts. Concepts should be considered the same
     # when they have the same φ, same mechanism, same mechanism state, and the
     # same cause and effect purviews and repertoires.
-    world_concepts = set.union(*(C for C in world_constellations))
+    world_concepts = uniquify_concepts(world_constellations)
     # Do the same for noise.
-    noise_concepts = set.union(*(C for C in noise_constellations))
+    noise_concepts = uniquify_concepts(noise_constellations)
     # Map concepts to the ϕ values.
     big_phis_w = {}
     for state in W:
