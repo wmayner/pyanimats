@@ -61,7 +61,9 @@ def print_functions():
 # Helper functions
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def _average_over_visited_states(shortcircuit=True, upto_attr=False):
+# TODO document kwargs
+def _avg_over_visited_states(shortcircuit=True, upto_attr=False,
+                             transform=False, n=None):
     """A decorator that takes an animat and applies a function for every unique
     state the animat visits during a game (up to the given units only) and
     returns the average.
@@ -75,14 +77,18 @@ def _average_over_visited_states(shortcircuit=True, upto_attr=False):
                 return 0.0
             upto = getattr(_, upto_attr) if upto_attr else False
             game = ind.play_game()
-            unique_states = unique_rows(game.animat_states, upto=upto)
+            sort = n is not None
+            unique_states = unique_rows(game.animat_states, upto=upto,
+                                        sort=sort)[:n]
             values = [func(ind, state, **kwargs) for state in unique_states]
+            if transform:
+                values = list(map(transform, values))
             return sum(values) / len(values)
         return wrapper
     return decorator
 
 
-def _average_over_fixed_states(states):
+def _avg_over_fixed_states(states):
     """A decorator that takes an animat and applies a function for a fixed set
     of states and returns the average.
 
@@ -124,7 +130,7 @@ def _get_similar_possible(ind, states):
     return unique_rows(valid_states)
 
 
-def _average_over_subset_of_possible_states(semifixed_states):
+def _avg_over_subset_of_possible_states(semifixed_states):
     """A decorator that takes an animat and applies a function for a given set
     of states and returns the average. If any of the given states is not
     possible given the animat's TPM, the most similar possible state is used
@@ -142,7 +148,8 @@ def _average_over_subset_of_possible_states(semifixed_states):
     return decorator
 
 
-def _world_vs_noise(shortcircuit=True, upto_attr=False):
+def _world_vs_noise(shortcircuit=True, upto_attr=False, transform=False,
+                    reduce=sum, n=None):
     """A decorator that returns the difference between the sum of the given
     function applied to unique states visited in the world, and the same for
     noise.
@@ -159,30 +166,46 @@ def _world_vs_noise(shortcircuit=True, upto_attr=False):
             # Play the game and a scrambled version of it.
             world = ind.play_game().animat_states
             noise = ind.play_game(scrambled=True).animat_states
+            sort = n is not None
             # Uniqify and flatten the world and noise state arrays.
-            world = unique_rows(world, upto=upto)
-            noise = unique_rows(noise, upto=upto)
+            world = unique_rows(world, upto=upto, sort=sort)[:n]
+            noise = unique_rows(noise, upto=upto, sort=sort)[:n]
             # Get a flat list of all the the states.
             combined = np.concatenate([world, noise])
             combined = combined.reshape(-1, combined.shape[-1])
             # Get unique world and noise states.
-            all_states, unq_idx = unique_rows(combined, upto=upto, indices=True)
+            all_states, unq_idx = unique_rows(combined, upto=upto,
+                                              indices=True)
             all_states = list(map(tuple, all_states))
-            # Get the extrinsic cause information for each unique state.
-            values = {state: func(ind, state, **kwargs) for state in all_states}
-            # Subtract noise from world.
-            return (sum(values[all_states[unq_idx[i]]]
-                        for i in range(len(world))) -
-                    sum(values[all_states[unq_idx[i]]]
-                        for i in range(len(world), len(world) + len(noise))))
+            # Compute the value for each unique state.
+            values = {state: func(ind, state, **kwargs)
+                      for state in all_states}
+            # Collect the world and noise values.
+            world_values = [values[all_states[unq_idx[i]]]
+                            for i in range(len(world))]
+            noise_values = [values[all_states[unq_idx[i]]]
+                            for i in range(len(world),
+                                           len(world) + len(noise))]
+            # Transform.
+            if transform:
+                world_values = transform(world_values)
+                noise_values = transform(noise_values)
+            # Reduce and take the difference.
+            return reduce(world_values) - reduce(noise_values)
         return wrapper
     return decorator
 
 
-def uniquify_concepts(constellations):
+def unq_concepts(constellations):
     """Takes a list of constellations and returns the set of unique concepts in
     them."""
     return set.union(*(set(C) for C in constellations))
+
+
+def phi_sum(phi_objects):
+    """Takes a list of objects that have a ``phi`` attribute and returns the
+    sum of those attributes."""
+    return sum(o.phi for o in phi_objects)
 
 
 # Natural fitness
@@ -201,7 +224,7 @@ def nat(ind):
 # Mutual information
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def _mutual_information(states):
+def mutual_information(states):
     """Get the sensor-motor mutual information for a group of trials."""
     # The contingency matrix has a row for every sensors state and a column for
     # every motor state.
@@ -223,7 +246,7 @@ def mi(ind):
     """Mutual information: Animats are evaluated based on the mutual
     information between their sensors and motor over the course of a game."""
     game = ind.play_game()
-    return _mutual_information(game.animat_states)
+    return mutual_information(game.animat_states)
 
 
 @_register
@@ -232,13 +255,15 @@ def mi_wvn(ind):
     # Play the game and a scrambled version of it.
     world = ind.play_game().animat_states
     noise = ind.play_game(scrambled=True).animat_states
-    return _mutual_information(world) - _mutual_information(noise)
+    return mutual_information(world) - mutual_information(noise)
 
 
 # Extrinsic cause information
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def _ex_one_state(ind, state):
+def extrinsic_causes(ind, state):
+    """Return the core causes of motors and hidden units whose purviews
+    are subsets of the sensors."""
     # TODO generate powerset once (change PyPhi to use indices in find_mice
     # purview restriction)?
     subsystem = ind.as_subsystem(state)
@@ -248,39 +273,46 @@ def _ex_one_state(ind, state):
     purviews = tuple(pyphi.utils.powerset(sensors))
     mice = [subsystem.core_cause(mechanism, purviews=purviews)
             for mechanism in mechanisms]
-    return sum(m.phi for m in mice)
+    return list(filter(lambda m: m.phi > 0, mice))
 
 
-ex = _average_over_visited_states()(_ex_one_state)
+ex = _avg_over_visited_states(transform=phi_sum)(extrinsic_causes)
 ex.__name__ = 'ex'
 ex.__doc__ = \
     """Extrinsic cause information: Animats are evaluated based on the sum of φ
-    for concepts that are “about” the sensors. This sum is averaged over every
-    unique state the animat visits during a game."""
+    for core causes that are “about” the sensors (the purview is a subset of
+    the sensors). This sum is averaged over every unique state the animat
+    visits during a game."""
 _register(ex)
 
 
-ex_wvn = _world_vs_noise()(_ex_one_state)
+ex_wvn = _world_vs_noise(transform=unq_concepts,
+                         reduce=phi_sum)(extrinsic_causes)
 ex_wvn.__name__ = 'ex_wvn'
 ex_wvn.__doc__ = \
-    """Same as `ex` but counting the difference between world and noise."""
+    """Same as `ex` but counting the difference between the sum of φ of unique
+    concepts that appear in the world and a scrambled version of it."""
 _register(ex_wvn)
 
 
 # Sum of small-phi
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def _sp_one_state(ind, state):
+def all_concepts(ind, state):
+    """Return the constellation of all concepts."""
     subsystem = ind.as_subsystem(state)
-    constellation = pyphi.compute.constellation(
+    return pyphi.compute.constellation(
         subsystem,
         mechanisms=_.HIDDEN_POWERSET,
         past_purviews=_.SENSORS_AND_HIDDEN_POWERSET,
         future_purviews=_.HIDDEN_AND_MOTOR_POWERSET)
-    return sum(concept.phi for concept in constellation)
 
 
-sp = _average_over_visited_states(upto_attr='HIDDEN_INDICES')(_sp_one_state)
+# The states only need to be considered unique up to the hidden units because
+# the subsystem is always the entire network (not the main complex), so there
+# are no background conditions.
+sp = _avg_over_visited_states(transform=phi_sum,
+                              upto_attr='HIDDEN_INDICES')(all_concepts)
 sp.__name__ = 'sp'
 sp.__doc__ = \
     """Sum of φ: Animats are evaluated based on the sum of φ for all the
@@ -294,34 +326,48 @@ sp.__doc__ = \
 _register(sp)
 
 
-sp_wvn = _world_vs_noise(upto_attr='HIDDEN_INDICES')(_sp_one_state)
+sp_wvn = _world_vs_noise(transform=unq_concepts,
+                         reduce=phi_sum,
+                         upto_attr='HIDDEN_INDICES')(all_concepts)
 sp_wvn.__name__ = 'sp_wvn'
 sp_wvn.__doc__ = \
-    """Same as `sp` but counting the difference between world and noise."""
-_register(ex_wvn)
+    """Same as `sp` but counting the difference between the sum of φ of unique
+    concepts that appear in the world and a scrambled version of it."""
+_register(sp_wvn)
 
 
 # Big-Phi
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# TODO cache by TPM?
-@_register
-def bp(ind):
+def main_complex(ind, state):
+    """Return the main complex of the individual."""
+    return pyphi.compute.main_complex(ind.network, state)
+
+
+# We compute only the N most-frequent states of those visited for performance
+# reasons. Ideally we would consider every unique state.
+NUM_BIG_PHI_STATES_TO_COMPUTE = None
+
+
+bp = _avg_over_visited_states(transform=lambda x: x.phi,
+                              upto_attr='SENSOR_HIDDEN_INDICES',
+                              n=NUM_BIG_PHI_STATES_TO_COMPUTE)(main_complex)
+bp.__name__ = 'bp'
+bp.__doc__ = \
     """ϕ: Animats are evaluated based on the ϕ-value of their brains, averaged
-    over the 5 most-common unique states the animat visits during a game (where
+    over the {} most-common unique states the animat visits during a game (where
     uniqueness is considered up to the state of the sensors and hidden
-    units)."""
-    # Short-circuit if the animat has no connections.
-    if ind.cm.sum() == 0:
-        return 0
-    game = ind.play_game()
-    unique_states = unique_rows(game.animat_states,
-                                upto=_.SENSOR_HIDDEN_INDICES,
-                                sort=True)
-    most_frequent = unique_states[:5]
-    values = [pyphi.compute.main_complex(ind.network, state).phi
-              for state in most_frequent]
-    return sum(values) / len(values)
+    units).""".format(NUM_BIG_PHI_STATES_TO_COMPUTE)
+_register(bp)
+
+
+bp_wvn = _world_vs_noise(reduce=phi_sum,
+                         upto_attr='SENSOR_HIDDEN_INDICES',
+                         n=NUM_BIG_PHI_STATES_TO_COMPUTE)(main_complex)
+bp_wvn.__name__ = 'bp_wvn'
+bp_wvn.__doc__ = \
+    """Same as `bp` but counting the difference between world and noise."""
+_register(bp_wvn)
 
 
 # Matching
@@ -336,9 +382,9 @@ def matching(W, N, constellations):
     # the resulting set of concepts. Concepts should be considered the same
     # when they have the same φ, same mechanism, same mechanism state, and the
     # same cause and effect purviews and repertoires.
-    world_concepts = uniquify_concepts(world_constellations)
+    world_concepts = unq_concepts(world_constellations)
     # Do the same for noise.
-    noise_concepts = uniquify_concepts(noise_constellations)
+    noise_concepts = unq_concepts(noise_constellations)
     # Calculate and return the final value for matching: the difference in the
     # sum of small phi for the unique concepts specified when presented with
     # the world and that when presented with a scrambled world, weighted by
@@ -368,9 +414,9 @@ def matching_average_weighted(W, N, constellations, complexes):
     # the resulting set of concepts. Concepts should be considered the same
     # when they have the same φ, same mechanism, same mechanism state, and the
     # same cause and effect purviews and repertoires.
-    world_concepts = uniquify_concepts(world_constellations)
+    world_concepts = unq_concepts(world_constellations)
     # Do the same for noise.
-    noise_concepts = uniquify_concepts(noise_constellations)
+    noise_concepts = unq_concepts(noise_constellations)
     # Map concepts to the ϕ values.
     big_phis_w = {}
     for state in W:
