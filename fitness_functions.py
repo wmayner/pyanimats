@@ -88,66 +88,6 @@ def _avg_over_visited_states(shortcircuit=True, upto_attr=False,
     return decorator
 
 
-def _avg_over_fixed_states(states):
-    """A decorator that takes an animat and applies a function for a fixed set
-    of states and returns the average.
-
-    The wrapped function must take an animat and a state, and return a
-    number."""
-    def decorator(func):
-        @wraps(func)
-        def wrapper(ind, **kwargs):
-            values = [func(ind, state, **kwargs) for state in states]
-            return sum(values) / len(values)
-        return wrapper
-    return decorator
-
-
-# TODO test
-def _most_similar_row(row, array):
-    """Return the row in the 2D array most similar to the given row (Hamming
-    distance). Interprets everything as binary arrays."""
-    return array[np.argmin(np.logical_xor(array, row).sum(axis=1))]
-
-
-# TODO test
-def _get_similar_possible(ind, states):
-    """Returns a set of possible states as similar as possible to the given
-    set (Hamming distance)."""
-    valid_states = []
-    invalid_states = []
-    for state in states:
-        try:
-            pyphi.validate.state_reachable(state, ind.network,
-                                           constrained_nodes=_.HIDDEN_)
-            valid_states.append(state)
-        except pyphi.validate.StateUnreachableError:
-            invalid_states.append(state)
-    if invalid_states:
-        possible = unique_rows(ind.tpm)
-        for state in invalid_states:
-            valid_states.append(_most_similar_row(state, possible))
-    return unique_rows(valid_states)
-
-
-def _avg_over_subset_of_possible_states(semifixed_states):
-    """A decorator that takes an animat and applies a function for a given set
-    of states and returns the average. If any of the given states is not
-    possible given the animat's TPM, the most similar possible state is used
-    instead (Hamming distance).
-
-    The wrapped function must take an animat and a state, and return a
-    number."""
-    def decorator(func):
-        @wraps(func)
-        def wrapper(ind, **kwargs):
-            states = _get_similar_possible(ind, semifixed_states)
-            values = [func(ind, state, **kwargs) for state in states]
-            return sum(values) / len(values)
-        return wrapper
-    return decorator
-
-
 def _world_vs_noise(shortcircuit=True, upto_attr=False, transform=False,
                     reduce=sum, n=None):
     """A decorator that returns the difference between the sum of the given
