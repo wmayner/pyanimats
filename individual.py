@@ -261,11 +261,25 @@ class Individual:
             yield ancestor.animat
             ancestor = ancestor.parent
 
-    def mechanism(self, node_index):
+    def mechanism(self, node_index, separate_on_off=False, encodable=False):
         """Return the TPM of a single animat node."""
         node = self.as_subsystem().nodes[node_index]
         tpm = node.tpm[1].squeeze().astype(int)
-        states = [pyphi.convert.holi_index2state(i, len(node.inputs))
+        states = [pyphi.convert.loli_index2state(i, len(node.inputs))
                   for i in range(tpm.size)]
-        return Mechanism(inputs=node.inputs,
-                         tpm=np.array(list(zip(states, tpm.flatten()))))
+        logical_function = list(zip(states, tpm.flatten()))
+        if separate_on_off:
+            # Return the states that lead to OFF separately from those that
+            # lead to ON.
+            off_mapping = [mapping for mapping in logical_function
+                           if not mapping[1]]
+            on_mapping = [mapping for mapping in logical_function
+                          if mapping[1]]
+            logical_function = [off_mapping, on_mapping]
+        mechanism = Mechanism(inputs=node.inputs,
+                              tpm=logical_function)
+        if encodable:
+            # Return a JSON-encodable object.
+            return {'inputs': pyphi.json.make_encodable(mechanism.inputs),
+                    'tpm': pyphi.json.make_encodable(mechanism.tpm)}
+        return mechanism
