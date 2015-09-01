@@ -168,10 +168,11 @@ def get_dict(full=False):
     """Return the current configuration as a dictionary. Optionally, include
     constants as well."""
     c = {}
-    ignore = ['animat', 'ARGUMENTS', 'POSSIBLE_STATES', 'HIDDEN_POWERSET',
-              'SENSORS_AND_HIDDEN_POWERSET', 'HIDDEN_AND_MOTOR_POWERSET',
-              'SENSOR_MOTOR_STATES', 'DEFAULT_INIT_GENOME']
-    ignore_full = ['INIT_GENOME']
+    ignore = ['animat', 'ARGUMENTS', 'POSSIBLE_STATES',
+              'HIDDEN_POWERSET', 'SENSORS_AND_HIDDEN_POWERSET',
+              'HIDDEN_AND_MOTOR_POWERSET', 'SENSOR_MOTOR_STATES',
+              'DEFAULT_INIT_GENOME']
+    ignore_full = ['INIT_GENOME', 'math']
     for key in dir(config):
         if not key.startswith('__') and key not in ignore:
             c[key] = getattr(config, key)
