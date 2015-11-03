@@ -22,13 +22,6 @@ def from_args(args):
     # Prune optional args that weren't used.
     args = {key: value for key, value in args.items()
             if not (value is False or value is None)}
-    # Load configuration from file if a filename was given.
-    if args['<params.yml>']:
-        filename = args['<params.yml>']
-        print('Loading parameters from `{}`.\n'.format(filename))
-        with open(filename, 'r') as f:
-            c.update(yaml.load(f))
-        del args['<params.yml>']
     # Load tasks from file if a filename was given.
     if '<tasks.yml>' in args:
         with open(args['<tasks.yml>'], 'r') as f:
@@ -38,6 +31,13 @@ def from_args(args):
     for key, value in args.items():
         name, cast = arg_name_and_type[key]
         c[name] = cast(value)
+    # Load configuration from file if a filename was given.
+    if '--config' in args:
+        filename = args['--config']
+        print('Loading configuration from `{}`.\n'.format(filename))
+        with open(filename, 'r') as f:
+            c.update(yaml.load(f))
+        del args['--config']
     # Update the configuration.
     from_dict(c)
     return args
@@ -53,6 +53,7 @@ arg_name_and_type = {
     '--jumpstart': ('INIT_START_CODONS', int),
     '--scramble': ('SCRAMBLE_WORLD', bool),
     '--init-genome': ('INIT_GENOME', str),
+    '--config': ('CONFIGURATION_FILE', str),
     '--dup-prob': ('DUPLICATION_PROB', float),
     '--del-prob': ('DELETION_PROB', float),
     '--max-length': ('MAX_GENOME_LENGTH', int),

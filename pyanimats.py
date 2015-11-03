@@ -8,12 +8,11 @@ PyAnimats
 Evolve animats.
 
 Usage:
-    evolve.py <output_dir> <tasks.yml> <params.yml> [options]
-    evolve.py <output_dir> <tasks.yml> [options]
-    evolve.py -h | --help
-    evolve.py -v | --version
-    evolve.py --list-fitness-funcs
-    evolve.py --num-sensors
+    pyanimats.py <output_dir> <tasks.yml> [options]
+    pyanimats.py -h | --help
+    pyanimats.py -v | --version
+    pyanimats.py --list-fitness-funcs
+    pyanimats.py --num-sensors
 
 Options:
     -h, --help                  Show this
@@ -38,6 +37,7 @@ Options:
     -j, --jumpstart=NUM         Begin with this many start codons [default: 0]
     -g, --init-genome=PATH      Path to a lineage file for an intial genome
     -a, --all-lineages          Save lineages of entire final population
+    -c, --config=PATH           Path to a configuration file to load
         --scramble              Randomly rearrange the world in each trial
         --dup-prob=PROB         Duplication probability [default: 0.05]
         --del-prob=PROB         Deletion probability [default: 0.02]
@@ -52,8 +52,6 @@ Options:
                                   an exponent
         --profile=PATH          Profile performance and store results at PATH
                                   [default: profiling/profile.pstats]
-
-Note: command-line arguments override parameters in the <params.yml> file.
 """
 
 __version__ = '0.0.22'
