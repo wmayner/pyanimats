@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 # analyze.py
 
+"""Animat analysis functions and data management."""
+
 import os
 import pickle
 import json
@@ -14,9 +16,9 @@ import constants
 import configure
 import scipy.stats
 from sklearn.utils.extmath import cartesian
-import pyphi
 from pyphi.convert import loli_index2state as i2s
 from pyphi.convert import state2loli_index as s2i
+from pyphi.jsonify import jsonify
 from semantic_version import Version
 
 from utils import ensure_exists, unique_rows
@@ -27,13 +29,13 @@ import fitness_functions
 VERSION = Version('0.0.20')
 CASE_NAME = os.path.join(
     str(VERSION),
-    'ex',
+    'mat-from-scratch',
     '3-4-6-5',
     'sensors-3',
     'jumpstart-0',
     'ngen-60000',
 )
-SEED = 1
+SEED = 0
 SNAPSHOT = False
 SNAPSHOT = -1
 
@@ -80,7 +82,7 @@ def _get_desc(config, seed=False, num_seeds=False):
     return (str(config['NGEN']) + '\ generations,\ ' +
             ('{}\ seeds'.format(num_seeds) if num_seeds
              else 'seed\ {}'.format(seed)) + ',\ task\ ' +
-            _get_task_name(config['TASKS']) + ',\ population\ size\ '
+            get_task_name(config['TASKS']) + ',\ population\ size\ '
             + str(config['POPSIZE']))
 
 
@@ -276,7 +278,7 @@ def sequence_to_state(ind, length=3, sensors=False):
     """Map sequences of sensor stimuli to animat states."""
     if sensors is False:
         sensors = list(range(config.NUM_SENSORS))
-    sensor_states = possible_inputs(len(sensors))
+    sensor_states = possible_states(len(sensors))
     sequences = np.array([
         [sensor_states[i] for i in s]
         for s in cartesian([np.arange(sensor_states.shape[0])] * length)
@@ -340,6 +342,22 @@ def limit_cycles(ind, states=None):
 # Visual interface
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+def get_phi_data(ind, game, config=CONFIG):
+    """Calculate the IIT properties of the given animat for every state.
+
+    The data function must take and individual and a state.
+    """
+    ff = config['FITNESS_FUNCTION']
+    # Get the function that returns the data (before condensing it into a
+    # simple fitness value).
+    data_func = fitness_functions.metadata[ff]['data_function']
+    if data_func is None:
+        return None
+    # Get the data for every state.
+    return {state: data_func(ind, state)
+            for state in map(tuple, unique_rows(game.animat_states))}
+
+
 def game_to_json(ind, gen, scrambled=False):
     # Get the full configuration dictionary, including derived constants.
     config = configure.get_dict(full=True)
@@ -350,34 +368,7 @@ def game_to_json(ind, gen, scrambled=False):
         list(map(lambda i: i2s(i, config['WORLD_WIDTH']),
                  game.world_states.flatten().tolist()))).reshape(
                      game.world_states.shape + (config['WORLD_WIDTH'],))
-
-    phi_data = None
-    # Get the Phi data.
-    if (config['FITNESS_FUNCTION'] == 'ex' or
-            config['FITNESS_FUNCTION'] == 'ex_wvn'):
-        ff = lambda ind, state: fitness_functions.ex_one_state(
-            ind, state, return_data=True)
-    elif (config['FITNESS_FUNCTION'] == 'sp' or
-            config['FITNESS_FUNCTION'] == 'sp_wvn'):
-        ff = lambda ind, state: fitness_functions.sp_one_state(
-            ind, state, return_data=True)
-    elif (config['FITNESS_FUNCTION'] == 'bp' or
-            config['FITNESS_FUNCTION'] == 'bp_wvn'):
-        complexes = fitness_functions.bp(ind)
-        phi_data = {
-            'complexes': pyphi.json.make_encodable(complexes),
-            'num_unique_concepts': pyphi.json.make_encodable(
-                set.union(*(constellation for constellation in
-                            [C.unpartitioned_constellation
-                             for C in complexes.values()])))
-        }
-    else:
-        phi_data = False
-
-    if phi_data is None:
-        phi_data = {state: pyphi.json.make_encodable(ff(ind, state))
-                    for state in map(tuple, unique_rows(game.animat_states))}
-
+    phi_data = get_phi_data(ind, game, config)
     # Generate the JSON-encodable dictionary.
     json_dict = {
         'config': config,
@@ -386,6 +377,8 @@ def game_to_json(ind, gen, scrambled=False):
         'cm': ind.cm.tolist(),
         'correct': ind.correct,
         'incorrect': ind.incorrect,
+        'mechanisms': {i: ind.mechanism(i, separate_on_off=True)
+                       for i in range(config['NUM_NODES'])},
         'trials': [
             {
                 'num': trialnum,
@@ -399,7 +392,7 @@ def game_to_json(ind, gen, scrambled=False):
                         'world': world_states[trialnum, t].tolist(),
                         'animat': game.animat_states[trialnum, t].tolist(),
                         'pos': game.animat_positions[trialnum, t].tolist(),
-                        'phi_data:': ((
+                        'phidata': ((
                             phi_data[tuple(game.animat_states[trialnum, t])] if
                             tuple(game.animat_states[trialnum, t]) in phi_data
                             else False
@@ -410,7 +403,6 @@ def game_to_json(ind, gen, scrambled=False):
             } for trialnum in range(game.animat_states.shape[0])
         ],
     }
-    import pdb; pdb.set_trace()  # XXX BREAKPOINT
     assert(ind.correct == sum(trial['correct'] for trial in
                               json_dict['trials']))
     return json_dict
@@ -438,14 +430,12 @@ def export_game_to_json(case_name=CASE_NAME, seed=SEED, lineage=0,
     ind = Individual(lineages[lineage][0].genome)
     # Get the JSON.
     json_dict = game_to_json(ind, gen, scrambled=scrambled)
-    import pdb; pdb.set_trace()  # XXX BREAKPOINT
     # Append notes.
     json_dict['notes'] = notes
     # Record fitness.
     json_dict['fitness'] = float(logbook.chapters['fitness'][-1]['max'])
-    # Record phi data.
     with open(output_file, 'w') as f:
-        json.dump(json_dict, f)
+        json.dump(jsonify(json_dict), f)
     print('Saved game representation to `{}`.'.format(output_file))
     return json_dict
 
@@ -466,7 +456,7 @@ def export_network_to_json(case_name=CASE_NAME, seed=SEED, lineage=0,
     lineages = load('lineages', input_filepath, seed, snapshot)
     ind = Individual(lineages[lineage][0].genome)
     # Make json dictionary.
-    json_network = pyphi.json.make_encodable(ind.network)
+    json_network = jsonify(ind.network)
     json_dict = {
         'version': '1.0.2',
         'tpm': json_network['tpm'],

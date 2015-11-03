@@ -20,8 +20,8 @@ import constants as _
 from utils import unique_rows
 
 
-# A registry of available fitness functions
-functions = OrderedDict()
+# Metadata associated with the available fitness functions.
+metadata = OrderedDict()
 # Mapping from parameter values to descriptive names
 LaTeX_NAMES = {
     'nat': 'Correct\ Trials',
@@ -37,17 +37,22 @@ LaTeX_NAMES = {
 }
 
 
-def _register(f):
-    """Register a fitness function to the directory."""
-    functions[f.__name__] = f.__doc__
-    return f
+def _register(data_function=None):
+    """Register a fitness function to the directory.
+
+    Also associates the function to data-gathering data_functions, if any.
+    """
+    def wrapper(f):
+        metadata[f.__name__] = {'doc': f.__doc__,
+                                'data_function': data_function}
+    return wrapper
 
 
 def print_functions():
     """Display a list of available fitness functions with their
     descriptions."""
-    for name, doc in functions.items():
-        print('\n' + name + '\n    ' + doc)
+    for name, data in metadata.items():
+        print('\n' + name + '\n    ' + data['doc'])
     print('\n' + WRAPPER.fill(
         'NB: In order to make selection pressure more even, the fitness '
         'function used in the selection algorithm is transformed so that it '
@@ -151,7 +156,6 @@ def phi_sum(phi_objects):
 # Natural fitness
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-@_register
 def nat(ind):
     """Natural: Animats are evaluated based on the number of game trials they
     successfully complete. For each task given in the ``TASKS`` parameter,
@@ -159,6 +163,7 @@ def nat(ind):
     initial animat position (given by ``config.WORLD_WIDTH``)."""
     ind.play_game()
     return ind.correct
+_register()(nat)
 
 
 # Mutual information
@@ -181,21 +186,21 @@ def mutual_information(states):
     return mi_nats * _.NAT_TO_BIT_CONVERSION_FACTOR
 
 
-@_register
 def mi(ind):
     """Mutual information: Animats are evaluated based on the mutual
     information between their sensors and motor over the course of a game."""
     game = ind.play_game()
     return mutual_information(game.animat_states)
+_register(data_function=mutual_information)(mi)
 
 
-@_register
 def mi_wvn(ind):
     """Same as `mi` but counting the difference between world and noise."""
     # Play the game and a scrambled version of it.
     world = ind.play_game().animat_states
     noise = ind.play_game(scrambled=True).animat_states
     return mutual_information(world) - mutual_information(noise)
+_register(data_function=mutual_information)(mi_wvn)
 
 
 # Extrinsic cause information
@@ -223,7 +228,7 @@ ex.__doc__ = \
     for core causes that are “about” the sensors (the purview is a subset of
     the sensors). This sum is averaged over every unique state the animat
     visits during a game."""
-_register(ex)
+_register(data_function=extrinsic_causes)(ex)
 
 
 ex_wvn = _world_vs_noise(transform=unq_concepts,
@@ -232,7 +237,7 @@ ex_wvn.__name__ = 'ex_wvn'
 ex_wvn.__doc__ = \
     """Same as `ex` but counting the difference between the sum of φ of unique
     concepts that appear in the world and a scrambled version of it."""
-_register(ex_wvn)
+_register(data_function=extrinsic_causes)(ex_wvn)
 
 
 # Sum of small-phi
@@ -263,7 +268,7 @@ sp.__doc__ = \
     incoming connections and the motors lack outgoing, the only possible
     concepts are therefore those whose mechanisms are a subset of the hidden
     units)."""
-_register(sp)
+_register(data_function=all_concepts)(sp)
 
 
 sp_wvn = _world_vs_noise(transform=unq_concepts,
@@ -273,7 +278,7 @@ sp_wvn.__name__ = 'sp_wvn'
 sp_wvn.__doc__ = \
     """Same as `sp` but counting the difference between the sum of φ of unique
     concepts that appear in the world and a scrambled version of it."""
-_register(sp_wvn)
+_register(data_function=all_concepts)(sp_wvn)
 
 
 # Big-Phi
@@ -283,11 +288,9 @@ def main_complex(ind, state):
     """Return the main complex of the individual."""
     return pyphi.compute.main_complex(ind.network, state)
 
-
 # We compute only the N most-frequent states of those visited for performance
 # reasons. Ideally we would consider every unique state.
 NUM_BIG_PHI_STATES_TO_COMPUTE = None
-
 
 bp = _avg_over_visited_states(transform=lambda x: x.phi,
                               upto_attr='SENSOR_HIDDEN_INDICES',
@@ -295,10 +298,10 @@ bp = _avg_over_visited_states(transform=lambda x: x.phi,
 bp.__name__ = 'bp'
 bp.__doc__ = \
     """ϕ: Animats are evaluated based on the ϕ-value of their brains, averaged
-    over the {} most-common unique states the animat visits during a game (where
-    uniqueness is considered up to the state of the sensors and hidden
+    over the {} most-common unique states the animat visits during a game
+    (where uniqueness is considered up to the state of the sensors and hidden
     units).""".format(NUM_BIG_PHI_STATES_TO_COMPUTE)
-_register(bp)
+_register(data_function=main_complex)(bp)
 
 
 bp_wvn = _world_vs_noise(reduce=phi_sum,
@@ -307,7 +310,7 @@ bp_wvn = _world_vs_noise(reduce=phi_sum,
 bp_wvn.__name__ = 'bp_wvn'
 bp_wvn.__doc__ = \
     """Same as `bp` but counting the difference between world and noise."""
-_register(bp_wvn)
+_register(data_function=main_complex)(bp_wvn)
 
 
 # Matching
@@ -379,7 +382,6 @@ def matching_average_weighted(W, N, constellations, complexes):
             sum(c.phi * big_phis_n[c] for c in noise_concepts))
 
 
-@_register
 def mat(ind):
     """Matching: Animats are evaluated based on how well they “match” their
     environment. Roughly speaking, this captures the degree to which their
@@ -447,3 +449,4 @@ def mat(ind):
     return (existence * raw_matching_average_weighted,
             existence * raw_matching_weighted,
             existence * raw_matching)
+_register(data_function=main_complex)(mat)
