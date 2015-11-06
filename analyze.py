@@ -159,7 +159,10 @@ CONFIG = load('config', snapshot=SNAPSHOT)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def get_final_correct(case_name=CASE_NAME, force=False):
-    input_filepath = os.path.join(RESULT_PATH, case_name)
+    if not case_name:
+        input_filepath = RESULT_PATH
+    else:
+        input_filepath = os.path.join(RESULT_DIR, case_name)
     output_filepath = os.path.join(
         ensure_exists(os.path.join(ANALYSIS_DIR, case_name)),
         'final-correct-counts.pkl')
