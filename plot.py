@@ -7,15 +7,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import config
+import constants
 import analyze
 from fitness_functions import LaTeX_NAMES as fit_funcnames
 
+from analyze import CASE_NAME, RESULT_DIR, ANALYSIS_DIR, ANALYSIS_PATH, RESULT_PATH
 
-CASE_NAME = '0.0.10/sp/3-4-6-5/sensors-3/jumpstart-0/gen-4000'
-RESULT_DIR = 'raw_results'
-ANALYSIS_DIR = 'compiled_results'
-RESULT_PATH = os.path.join(RESULT_DIR, CASE_NAME)
-ANALYSIS_PATH = os.path.join(ANALYSIS_DIR, CASE_NAME)
+
 FILENAMES = {
     'config': 'config.pkl',
     'hof': 'hof.pkl',
@@ -49,7 +47,7 @@ def _get_desc(config, seed=False, num_seeds=False):
 
 
 def _get_correct_trials_axis_label(config):
-    return ('$\mathrm{Correct\ trials\ (out\ of\ ' + str(config['NUM_TRIALS'])
+    return ('$\mathrm{Correct\ trials\ (out\ of\ ' + str(constants.NUM_TRIALS)
             + ')}$')
 
 
