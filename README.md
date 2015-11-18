@@ -9,11 +9,11 @@ Installation
 1. Make virtualenv in Python 3
     * Mac
 
-    `mkvirtualenv -p which python3 PyAnimats`
+            `mkvirtualenv -p which python3 PyAnimats`
 
     * Linux
 
-    `mkvirtualenv -p /usr/bin/python3 PyAnimats`
+            `mkvirtualenv -p /usr/bin/python3 PyAnimats`
 
 1. `pip install -r requirements.txt`
 
@@ -29,7 +29,7 @@ Setup of a Task
 -----------------
 
 1. Prepare a task as a yaml file, example:
-    ```
+    ```yaml
     # tasks/1-3-1-3.yml
     # PyAnimat goals and tasks.
     # 1 means catch the block, -1 means avoid it.
@@ -41,7 +41,7 @@ Setup of a Task
     - [-1, '1110000000000000']
     ```
     
-    1. Remove old build, and then rebuild it each time any c++ files change, (eg `animats/constants.hpp`)
+1. Remove old build, and then rebuild it each time any c++ files change, (eg `animats/constants.hpp`)
     
     `rm -r build && python setup.py build_ext --inplace`
 
@@ -57,7 +57,7 @@ In your selected output dir, will appear the following files:
 
 * `config.json`
 
-  The configuration that this game was run with, including for example: NUM_MOTORS, TASKS, NUM_NODES, MUTATION_PROB, etc.
+  The configuration that this game was run with, including for example: `NUM_MOTORS, TASKS, NUM_NODES, MUTATION_PROB`, etc.
 
 * `hof.pkl` - "Hall of Fame"
 
