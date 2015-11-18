@@ -13,3 +13,6 @@ raw_results
 __pyphi_cache__
 pyphi.log
 compiled_results
+
+\#*.*\#
+.\#*.*
