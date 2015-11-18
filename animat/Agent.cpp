@@ -9,6 +9,7 @@
 
 
 Agent::Agent(vector<unsigned char> genome) : genome(genome) {
+    // state = states of sensors, hiddens, motors
     for (int i = 0; i < NUM_NODES; i++) {
         states[i] = 0;
         newStates[i] = 0;
@@ -31,6 +32,7 @@ void Agent::resetState() {
 }
 
 void Agent::updateStates() {
+    // 
     for (int i = 0; i < (int)hmms.size(); i++) {
         hmms[i]->update(&states[0], &newStates[0]);
     }

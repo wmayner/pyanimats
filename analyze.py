@@ -26,6 +26,9 @@ from individual import Individual
 import fitness_functions
 
 
+#############################################################################
+# global vars for this run
+
 VERSION = Version('0.0.20')
 CASE_NAME = os.path.join(
     str(VERSION),
@@ -37,7 +40,7 @@ CASE_NAME = os.path.join(
 )
 SEED = 0
 SNAPSHOT = False
-SNAPSHOT = -1
+SNAPSHOT = -1 # -1 means the latest snapshot
 
 RESULT_DIR = 'raw_results'
 ANALYSIS_DIR = 'compiled_results'
@@ -60,10 +63,16 @@ if VERSION < Version('0.0.20'):
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def _extract_num(path, prefix):
+    '''
+    what is the number immediately after the prefix, eg 'seed-2'
+    '''
     return int(re.split('-|/', path.split(prefix)[-1])[0])
 
 
 def get_seed(path):
+    '''
+    exctract int associated with seed
+    '''
     return _extract_num(path, 'seed-')
 
 
@@ -76,6 +85,9 @@ def get_task_name(tasks):
 
 
 def _get_desc(config, seed=False, num_seeds=False):
+    '''
+    ? get description associated with the run, esp. for labelling graphs
+    '''
     if not seed and not num_seeds:
         raise Exception('Must provide either a single seed number or the '
                         'number of seeds.')
@@ -96,6 +108,16 @@ def _get_correct_trials_axis_label(config):
 
 def load(filetype, input_filepath=RESULT_PATH, seed=SEED, snapshot=SNAPSHOT,
          verbose=False):
+    '''
+    
+    filetype - str - eg "lineages" - key from dictionary (FILENAMES)
+    input_filepath - whole nested name
+    seed - int of the seed within the run
+    snapshot - int
+    verbose - bool - prints more/less
+
+    returns the datastructures inside of the desired file
+    '''
     result_path = os.path.join(input_filepath, 'seed-{}'.format(seed))
     if snapshot:
         result_path = os.path.join(result_path,
@@ -137,6 +159,9 @@ def load(filetype, input_filepath=RESULT_PATH, seed=SEED, snapshot=SNAPSHOT,
 
 def load_all_seeds(filetype, input_filepath=RESULT_PATH, snapshot=SNAPSHOT,
                    verbose=False):
+    '''
+    maps paths to seeds, grabs all the seeds and loads them
+    '''
     data = {}
     for path in glob(os.path.join(input_filepath, '*')):
         try:

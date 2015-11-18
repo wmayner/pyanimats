@@ -12,6 +12,7 @@ HMM::HMM(vector<unsigned char> &genome, int start) {
     // This keeps track of where we are in the genome.
     int scan = (start + 2) % (int)genome.size();
 
+    // bitwise & 3 == modulo 4, enforce 1-4 inputs, and 1-4 outputs
     numInputs = 1 + (genome[(scan++) % (int)genome.size()] & 3);
     numOutputs = 1 + (genome[(scan++) % (int)genome.size()] & 3);
     ins.resize(numInputs);
@@ -20,14 +21,14 @@ HMM::HMM(vector<unsigned char> &genome, int start) {
     for (int i = 0; i < numInputs; i++)
         // Exclude motors from possible inputs.
         ins[i] = genome[(scan + i) % (int)genome.size()]
-                % (NUM_NODES - NUM_MOTORS);
+          % (NUM_NODES - NUM_MOTORS);//motors cannot connect back to anything
     for (int i = 0; i < numOutputs; i++)
         // Exclude sensors from possible outputs.
         outs[i] = (genome[(scan + 4 + i) % (int)genome.size()]
-                % (NUM_NODES - NUM_SENSORS)) + NUM_SENSORS;
+                   % (NUM_NODES - NUM_SENSORS)) + NUM_SENSORS;// nothing can connect back to a sensor
 
     // Probabilities begin after the input and output codons, which are
-    // NUM_NODES long each
+    // 4 long each, followed by a gap of 8
     scan += 16;
 
     // Number of rows
@@ -35,6 +36,10 @@ HMM::HMM(vector<unsigned char> &genome, int start) {
     // Number of columns
     int N = 1 << numOutputs;
 
+    // genome is interpreted as flattened state by state tpm
+    // 2**(input length) number of rows (2**x is the # permutations)
+    // each row is (output length) long
+    
     hmm.resize(M);
     sums.resize(M);
 
@@ -55,6 +60,7 @@ HMM::HMM(vector<unsigned char> &genome, int start) {
             sums[i] = 255;
         }
     } else {
+        // never tested by IIT lab
         for (int i = 0; i < M; i++) {
             hmm[i].resize(N);
             for (int j = 0; j < N; j++) {
@@ -69,6 +75,8 @@ HMM::HMM(vector<unsigned char> &genome, int start) {
 }
 
 void HMM::update(unsigned char *currentStates, unsigned char *nextStates) {
+    // 
+  
     // Encode the given states as an integer to index into the TPM
     int pastStateIndex = 0;
     for (int i = 0; i < (int)ins.size(); i++)

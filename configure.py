@@ -17,9 +17,18 @@ import constants as _
 
 
 def from_args(args):
-    """Load configuration values from command-line arguments."""
+    """
+    Load configuration values from command-line arguments.
+
+    args - dict, comes from doc-opt, contains the arguments from the CLI
+
+    Returns:
+    the list of arguments, cleaned up, now it's a mapping from our internal names, instead of the commandline names,
+    and adds data from tasks/<whatever>.yml, and config.json if it was provided
+    """
+    
     c = {}
-    # Prune optional args that weren't used.
+    # Prune optional args that weren't supplied by user
     args = {key: value for key, value in args.items()
             if not (value is False or value is None)}
     # Load tasks from file if a filename was given.
@@ -43,7 +52,7 @@ def from_args(args):
     return args
 
 
-# Map command-line argument names to parameter names and types.
+# Map command-line argument names to parameter names and types (for casting user input)
 arg_name_and_type = {
     '--fitness': ('FITNESS_FUNCTION', str),
     '--seed': ('SEED', int),
@@ -74,7 +83,11 @@ def from_dict(c):
 
 
 def _update_constants():
-    """Update constants that are derived from configurable parameters."""
+    """
+    Update constants that are derived from configurable parameters.
+
+    
+    """
     # Number of trials is given by
     #   (number of tasks * two directions *
     #    number of initial positions for the animat)
@@ -99,7 +112,7 @@ def _update_constants():
         for i in range(config.INIT_START_CODONS):
             _.INIT_GENOME[(i * gap):(i * gap + 1)] = _.START_CODON
 
-    # Scale raw fitness values so they're in the range 64–128
+    # Normalize/Scale raw fitness values so they're in the range 64–128
     # before using them as an exponent (this depends on which fitness function
     # is used).
     TRANSFORMS = {
@@ -116,6 +129,8 @@ def _update_constants():
         'bp_wvn': {'scale': 63 / 4, 'add': 64},
         'mat': {'scale': 64 / 1, 'add': 64},
     }
+
+    # Use a default if the user didn't provide it
     ff = config.FITNESS_FUNCTION
     if config.FITNESS_EXPONENT_SCALE is None:
         config.FITNESS_EXPONENT_SCALE = TRANSFORMS[ff]['scale']
@@ -148,6 +163,7 @@ def _update_constants():
                          for i in range(2**config.NUM_NODES)]
 
     # Get sensor locations (mapping them to the sensor index).
+    # Hard coded, because animats look like [101]
     if config.NUM_SENSORS == 2:
         _.SENSOR_LOCATIONS = [0, 2]
     else:
@@ -158,6 +174,7 @@ def _update_constants():
         ``padlength``."""
         return list(map(int, bin(i)[2:].zfill(padlength)))
 
+    # TODO necessary?
     _.SENSOR_MOTOR_STATES = [
         ((i, j), (_bitlist(i, config.NUM_SENSORS) +
                   _bitlist(j, config.NUM_MOTORS)))
@@ -166,8 +183,12 @@ def _update_constants():
 
 
 def get_dict(full=False):
-    """Return the current configuration as a dictionary. Optionally, include
-    constants as well."""
+    """
+    Return the current configuration as a dictionary. Optionally, include
+    constants as well.
+
+    used for dumping jsons
+    """
     c = {}
     ignore = ['animat', 'ARGUMENTS', 'POSSIBLE_STATES',
               'HIDDEN_POWERSET', 'SENSORS_AND_HIDDEN_POWERSET',

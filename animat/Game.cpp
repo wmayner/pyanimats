@@ -48,13 +48,6 @@ void executeGame(vector<unsigned char> &allAnimatStates, vector<int>
                 // Set agent position
                 agentPos = initAgentPos;
 
-                // Larissa: Change environment after 30,000 Gen, if patterns is
-                // 1 7 15 3 it changes from 2 blocks with 1 7 to 4 blocks with
-                // 1 7 15 3
-
-                // TODO(wmayner) add logic outside of Game to change the
-                // patterns mid-evolution
-
                 agent->resetState();
 
                 // Generate world
