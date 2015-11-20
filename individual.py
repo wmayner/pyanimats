@@ -85,6 +85,7 @@ class Individual:
         parent (Individual):
             The animat's parent. Must be explicitly set upon cloning.
         gen (int):
+            TODO (josh): is this just the generation number?
         edges (list(tuple(int, int))):
             A list of the edges between animat nodes. May contain duplicates.
         cm (np.ndarray):
@@ -103,9 +104,14 @@ class Individual:
 
     def __init__(self, genome, parent=None, gen=0):
         self.parent = parent
+
+        # TODO: hard-coded: Animat
         self.animat = Animat(genome)
         self.gen = gen
+
+        # TODO: hard-coded: Fitness Function
         self.fitness = ExponentialFitness()
+        
         self._network = False
         # Mark whether the animat's phenotype and network need updating.
         self._dirty_phenotype = True
@@ -191,7 +197,9 @@ class Individual:
 
     def start_codons(self):
         """Return the locations of start codons in the genome, if any."""
+        # TODO: hard-coded: start codon
         start_codon = [42, 213]
+        
         genome = np.array(self.genome)
         window = utils.rolling_window(genome, len(start_codon))
         occurrences = np.all((window == start_codon), axis=1)

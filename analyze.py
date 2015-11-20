@@ -29,18 +29,26 @@ import fitness_functions
 #############################################################################
 # global vars for this run
 
-VERSION = Version('0.0.20')
+# VERSION = Version('0.0.20')
+# CASE_NAME = os.path.join(
+#     str(VERSION),
+#     'mat-from-scratch',
+#     '3-4-6-5',
+#     'sensors-3',
+#     'jumpstart-0',
+#     'ngen-60000',
+# )
+
+VERSION = Version('0.0.21')
 CASE_NAME = os.path.join(
     str(VERSION),
-    'mat-from-scratch',
-    '3-4-6-5',
-    'sensors-3',
-    'jumpstart-0',
-    'ngen-60000',
+    'initial_tests',
 )
+
+
 SEED = 0
 SNAPSHOT = False
-SNAPSHOT = -1 # -1 means the latest snapshot
+#SNAPSHOT = -1 # -1 means the latest snapshot
 
 RESULT_DIR = 'raw_results'
 ANALYSIS_DIR = 'compiled_results'
