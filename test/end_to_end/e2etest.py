@@ -1,3 +1,4 @@
+
 '''
 
 Check that the results from running `./e2etest` are the same between the most recent run, and the last run
@@ -54,9 +55,9 @@ class E2ETest(unittest.TestCase):
             #"play_game",
             #"update_phenotype",
             "edges",
-            #"genome",
+            "genome",
             #"mutate",
-            #"tpm",
+            "tpm",
         ]
         a = lineages[0][0] # the first lineage in the first run
         for i in range(len(lineages)-1): # compare each lineage against the first
@@ -65,7 +66,7 @@ class E2ETest(unittest.TestCase):
             self.assertEqual( len(a), len(b))
             for aanim, banim in zip(a, b):
                 for attr in attrs:
-                    print(attr, getattr(aanim, attr), getattr(banim, attr))
+                    print(attr)#, getattr(aanim, attr), getattr(banim, attr))
                     
                     self.assertEqual(
                         getattr(aanim, attr),

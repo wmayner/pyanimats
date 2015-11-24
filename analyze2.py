@@ -177,13 +177,13 @@ def individual_vars(animat):
 
 
 # Load some stuff for easy access in iPython #################################
-SEEDS = range(10)
-PKL_DIR = "./raw_results/0.0.22/plot_trial/seed-%d"
+SEEDS = [0, 17]
+PKL_DIR = "./raw_results/test_old_data_works/seed-%d"
 FILENAME = "lineages.pkl"
 COLUMNS = {
     'gen': lambda x: x.gen,
     'genome_sum': lambda x: sum(x.genome),
-    'percent_correct': lambda x: x.correct / (x.correct + x.incorrect),
+    #'percent_correct': lambda x: x.correct / (x.correct + x.incorrect),
     'individual_vars': individual_vars,
 }
 
