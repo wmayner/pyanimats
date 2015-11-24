@@ -16,3 +16,4 @@ compiled_results
 
 \#*.*\#
 .\#*.*
+test/end_to_end/init_genome
