@@ -21,7 +21,8 @@ import os
 import pickle
 import unittest
 import json
-
+import logging
+import time
 
 
 
@@ -32,21 +33,16 @@ class E2ETest(unittest.TestCase):
         main_results_dir = "raw_results"
         results_dirs = list(os.listdir(main_results_dir))
         results_dirs = sorted(results_dirs)[::-1] # sort and reverse
-
+        take = [-1, 0, 1] # take these array indexes to compare
 
         
-        # consider the very first run
         lineages = []
-        lineages.append(load_pkl(os.path.join(main_results_dir,
-                                              results_dirs[-1],
-                                              "seed-0/lineages.pkl"
-                                          )))
         # consider the most recent two runs
-        for i in range(2):
-            lineages.append(load_pkl(os.path.join(main_results_dir,
-                                             results_dirs[i],
-                                             "seed-0/lineages.pkl"
-                                         )))
+        take_folders = [results_dirs[i] for i in take]
+        all_paths = [os.path.join(main_results_dir, t, "seed-0/lineages.pkl") for t in take_folders]
+        
+        for path in all_paths:
+            lineages.append(load_pkl(path))
 
         attrs = [
             "correct",
@@ -59,15 +55,26 @@ class E2ETest(unittest.TestCase):
             #"mutate",
             "tpm",
         ]
+
+        log = logging.getLogger("End2End Test")
+        
+        for seconds in take_folders:
+            t = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int(seconds)))
+            log.info('DATES USED: ' + t )
+            
+        for path in all_paths:
+            log.info('FOLDERS USED: ' + path )
+            
         a = lineages[0][0] # the first lineage in the first run
+
+        log.info('# ANIMATS: ' + str(len(a)))
+        
         for i in range(len(lineages)-1): # compare each lineage against the first
             b = lineages[i][0]
 
             self.assertEqual( len(a), len(b))
             for aanim, banim in zip(a, b):
                 for attr in attrs:
-                    print(attr)#, getattr(aanim, attr), getattr(banim, attr))
-                    
                     self.assertEqual(
                         getattr(aanim, attr),
                         getattr(banim, attr)
