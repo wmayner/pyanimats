@@ -60,3 +60,6 @@ do
   # Run it!
   unbuffer $cmd 2>&1 | tee "$cur_output_dir/output.log" && echo "[Seed $seed] Wrote results to '$cur_output_dir'." & 
 done
+# cd test/end_to_end
+# nosetests e2etest.py
+# cd ../..

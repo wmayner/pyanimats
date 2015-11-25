@@ -59,6 +59,7 @@ __version__ = '0.0.22'
 import os
 import pickle
 import json
+import yaml
 import random
 import utils
 from time import time
@@ -106,6 +107,14 @@ mutate.__doc__ = Individual.mutate.__doc__
 
 
 def main(arguments):
+    # Load the main YAML file
+    experiment_yaml = "experiments/refactoring-experiment/experiment.yml"
+    with open(experiment_yaml, 'r') as f:
+        experiment = yaml.load(f)
+    experiment['arguments'] = arguments
+    #print(experiment)
+    
+    
 
     # Handle arguments
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
