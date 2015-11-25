@@ -108,38 +108,43 @@ mutate.__doc__ = Individual.mutate.__doc__
 
 def main(arguments):
     # Load the main YAML file
-    experiment_yaml = "experiments/refactoring-experiment/experiment.yml"
-    with open(experiment_yaml, 'r') as f:
+    #experiment_dir = "experiments/refactoring-experiment"
+    EXPERIMENT_DIR = "test/end_to_end/raw_results" # this should be the main/only thing passed to pyanimats.py
+    
+    experiment_yaml = "experiment.yml"
+    with open(os.path.join(EXPERIMENT_DIR, experiment_yaml), 'r') as f:
         experiment = yaml.load(f)
     experiment['arguments'] = arguments
-    #print(experiment)
-    
+    #import time as this_is_bad # ToDo: remove this, it's for end2end testing during the refactor, only
+    #EXPERIMENT_DIR += "/seed-0/" + str(int(this_is_bad.time())) # ToDo: Remove this, This is a hack for the end to end tests
+
+    random.seed(experiment['seed'])
+
     
 
-    # Handle arguments
+
+
+    
+    # Handle configuration
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    # Print available fitness functions and their descriptions.
-    if arguments['--list-fitness-funcs']:
-        fitness_functions.print_functions()
-        return
-
-    # Print the number of sensors currently set in the C++.
-    if arguments['--num-sensors']:
-        print(config.NUM_SENSORS)
-        return
 
     # Final output and snapshots will be written here.
-    OUTPUT_DIR = arguments['<output_dir>']
+    OUTPUT_DIR = arguments['<output_dir>'] # ToDo: this still needs to be fixed
+    # OUTPUT_DIR = EXPERIMENT_DIR
     del arguments['<output_dir>']
 
     # Ensure profile directory exists and set profile flag.
-    profile_filepath = arguments['--profile']
-    if profile_filepath:
-        PROFILING = True
-        utils.ensure_exists(os.path.dirname(profile_filepath))
+    PROFILING = False
+    if "profile" in experiment:
+        profile_filepath = experiment['profile']
+        if profile_filepath:
+            PROFILING = True
+            utils.ensure_exists(os.path.dirname(profile_filepath))
     del arguments['--profile']
 
+
+    
     # Logbooks will be updated at this interval.
     LOGBOOK_RECORDING_INTERVAL = int(arguments['--log-interval'])
     del arguments['--log-interval']
@@ -162,8 +167,7 @@ def main(arguments):
         SNAPSHOT_TIME_INTERVAL = float('inf')
     del arguments['--snapshot']
 
-    # Whether or not to save every individual in the population, or just the
-    # best one.
+    # Whether or not to save every individual in the population, or just the best one.
     SAVE_ALL_LINEAGES = arguments['--all-lineages']
     del arguments['--all-lineages']
 
@@ -176,12 +180,18 @@ def main(arguments):
     if MIN_SNAPSHOTS <= 0:
         SNAPSHOT_GENERATION_INTERVAL = float('inf')
     else:
-        SNAPSHOT_GENERATION_INTERVAL = config.NGEN // MIN_SNAPSHOTS
+        SNAPSHOT_GENERATION_INTERVAL = experiment['ngen'] // MIN_SNAPSHOTS
 
     # Helper functions
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def save_data(output_dir, gen, config, pop, logbook, hof, elapsed):
+        '''
+        Function for saving data at the end of a run, including:
+          - lineages.pkl
+          - logbook.pkl
+          - hof.pkl
+        '''
         # Ensure output directory exists.
         utils.ensure_exists(output_dir)
         # Collect lineages.
@@ -222,7 +232,7 @@ def main(arguments):
     toolbox.register('individual', Individual, _.INIT_GENOME)
     toolbox.register('population', tools.initRepeat, list, toolbox.individual)
     toolbox.register('evaluate',
-                     fitness_functions.__dict__[config.FITNESS_FUNCTION])
+                     fitness_functions.__dict__[experiment['fitness_function']])
     toolbox.register('select', select)
     toolbox.register('mutate', mutate)
 
@@ -245,7 +255,7 @@ def main(arguments):
 
     # Initialize a MultiStatistics object for convenience that allows for only
     # one call to `compile`.
-    if config.FITNESS_FUNCTION == 'mat':
+    if experiment['fitness_function'] == 'mat':
         mstats = tools.MultiStatistics(correct=correct_stats,
                                        fitness=fitness_stats,
                                        real_fitness=real_fitness_stats,
@@ -257,13 +267,13 @@ def main(arguments):
 
     # Initialize logbooks and hall of fame.
     logbook = tools.Logbook()
-    hall_of_fame = tools.HallOfFame(maxsize=config.POPSIZE)
+    hall_of_fame = tools.HallOfFame(maxsize=experiment['popsize'])
 
     def print_status(line, time):
-        print('[Seed {}] '.format(config.SEED), end='')
+        print('[Seed {}] '.format(experiment['seed']), end='')
         print(line, utils.compress(time))
 
-    print('\nSimulating {} generations...\n'.format(config.NGEN))
+    print('\nSimulating {} generations...\n'.format(experiment['ngen']))
 
     if PROFILING:
         pr = cProfile.Profile()
@@ -284,7 +294,7 @@ def main(arguments):
         for ind, fitness in zip(pop, fitnesses):
             ind.fitness.value = fitness
 
-    evaluate = (multi_fit_evaluate if config.FITNESS_FUNCTION == 'mat'
+    evaluate = (multi_fit_evaluate if experiment['fitness_function'] == 'mat'
                 else single_fit_evaluate)
 
     def record(pop, gen):
@@ -312,7 +322,7 @@ def main(arguments):
         return offspring
 
     # Create initial population.
-    population = toolbox.population(n=config.POPSIZE)
+    population = toolbox.population(n=experiment['popsize'])
 
     log_duration_start = time()
     # Evaluate the initial population.
@@ -321,7 +331,7 @@ def main(arguments):
     record(population, 0)
     # Print first lines of logbook.
     first_lines = str(logbook).split('\n')
-    header_lines = ['[Seed {}] '.format(config.SEED) + l
+    header_lines = ['[Seed {}] '.format(experiment['seed']) + l
                     for l in first_lines[:-1]]
     print('\n'.join(header_lines))
     print_status(first_lines[-1], time() - log_duration_start)
@@ -329,7 +339,7 @@ def main(arguments):
     log_duration_start = time()
     snap_duration_start = time()
     snapshot = 1
-    for gen in range(1, config.NGEN + 1):
+    for gen in range(1, experiment['ngen'] + 1):
         # Evolution.
         population = process_gen(population, gen)
         # Reporting.
@@ -343,7 +353,7 @@ def main(arguments):
         current_time = time()
         if (current_time - snap_duration_start >= SNAPSHOT_TIME_INTERVAL
                 or gen % SNAPSHOT_GENERATION_INTERVAL == 0):
-            print('[Seed {}] –\tRecording snapshot {}... '.format(config.SEED,
+            print('[Seed {}] –\tRecording snapshot {}... '.format(experiment['seed'],
                                                                snapshot), end='')
             dirname = os.path.join(OUTPUT_DIR,
                                    'snapshot-{}-gen-{}'.format(snapshot, gen))
@@ -363,7 +373,7 @@ def main(arguments):
         pr.dump_stats(profile_filepath)
 
     print('\nSimulated {} generations in {}.'.format(
-        config.NGEN, utils.compress(sim_end - sim_start)))
+        experiment['ngen'], utils.compress(sim_end - sim_start)))
 
     # Write final results to disk.
     save_data(OUTPUT_DIR, gen, config=configure.get_dict(), pop=population,
@@ -374,5 +384,5 @@ from docopt import docopt
 if __name__ == '__main__':
     # Get command-line arguments from docopt.
     arguments = docopt(__doc__, version=__version__)
-    random.seed(arguments["--seed"])
+    
     main(arguments)

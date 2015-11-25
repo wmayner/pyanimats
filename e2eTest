@@ -39,7 +39,7 @@ echo "Printing status every $log_freq generations."
 echo "Recording snapshots every "$snapshot_hr":"$snapshot_min":"$snapshot_sec", taking at least "$min_snapshots"."
 
 datename="$(date +%s)" # - $(date)" # name each run the time it was ran as <seconds> - <human readable>
-output_dir="test/end_to_end/raw_results/$datename"
+output_dir="test/end_to_end/raw_results/$datename" # "test/end_to_end/raw_results/$datename"
 echo "Writing results to '$output_dir'."
 echo ""
 

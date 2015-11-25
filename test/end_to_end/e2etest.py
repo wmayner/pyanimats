@@ -23,6 +23,7 @@ import unittest
 import json
 import logging
 import time
+import re
 
 
 
@@ -31,7 +32,16 @@ class E2ETest(unittest.TestCase):
     def test_e2e(self):
         # Locate the results dirs
         main_results_dir = "raw_results"
-        results_dirs = list(os.listdir(main_results_dir))
+        results_dirs = list(
+            filter(
+                os.path.isdir, map(lambda x: main_results_dir + '/' + x,
+                                   os.listdir(main_results_dir)
+                               )
+            )
+        )
+
+        #print(list(os.listdir(main_results_dir)))
+        #print (list(filter(os.path.isdir, os.listdir(main_results_dir))))
         results_dirs = sorted(results_dirs)[::-1] # sort and reverse
         take = [-1, 0, 1] # take these array indexes to compare
 
@@ -39,7 +49,7 @@ class E2ETest(unittest.TestCase):
         lineages = []
         # consider the most recent two runs
         take_folders = [results_dirs[i] for i in take]
-        all_paths = [os.path.join(main_results_dir, t, "seed-0/lineages.pkl") for t in take_folders]
+        all_paths = [os.path.join(t, "seed-0/lineages.pkl") for t in take_folders]
         
         for path in all_paths:
             lineages.append(load_pkl(path))
@@ -59,7 +69,8 @@ class E2ETest(unittest.TestCase):
         log = logging.getLogger("End2End Test")
         
         for seconds in take_folders:
-            t = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int(seconds)))
+            t = time.strftime('%Y-%m-%d %H:%M:%S',
+                              time.localtime(int(re.findall('[0-9]+', seconds)[0]))) # pull the seconds out of "raw_results/12345"
             log.info('DATES USED: ' + t )
             
         for path in all_paths:
