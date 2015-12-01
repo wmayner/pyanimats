@@ -11,11 +11,11 @@ Installation
 1. Make virtualenv in Python 3
     * Mac
 
-            `mkvirtualenv -p which python3 PyAnimats`
+            `mkvirtualenv -p which python3 pyanimats`
 
     * Linux
 
-            `mkvirtualenv -p /usr/bin/python3 PyAnimats`
+            `mkvirtualenv -p /usr/bin/python3 pyanimats`
 
 1. `pip install -r requirements.txt`
 
