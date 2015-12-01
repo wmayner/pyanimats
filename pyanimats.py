@@ -130,7 +130,7 @@ def main(arguments):
 
 
     # Final output and snapshots will be written here.
-    OUTPUT_DIR = arguments['<output_dir>'] # ToDo: this still needs to be fixed
+    OUTPUT_DIR = arguments['<output_dir>'] # ToDo: this still needs to be fixed, should reference the folder where experiments.yml is
     # OUTPUT_DIR = EXPERIMENT_DIR
     del arguments['<output_dir>']
 
