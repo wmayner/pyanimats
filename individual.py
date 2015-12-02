@@ -112,6 +112,7 @@ class Individual:
         self.experiment = experiment
         self.parent = parent
 
+        # Set the genome if not initialized with one
         if genome is None:
             if(Individual.INIT_GENOME is None):
                 if ("init_genome_path" in experiment) and (experiment['init_genome_path'] != ""):

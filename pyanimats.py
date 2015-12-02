@@ -70,8 +70,7 @@ import cProfile
 import fitness_functions
 from individual import Individual
 from deap import base, tools
-import config
-import constants as _
+
 import configure
 
 
