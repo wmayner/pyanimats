@@ -118,6 +118,7 @@ def main(arguments):
     #import time as this_is_bad # ToDo: remove this, it's for end2end testing during the refactor, only
     #EXPERIMENT_DIR += "/seed-0/" + str(int(this_is_bad.time())) # ToDo: Remove this, This is a hack for the end to end tests
 
+    # Set the global random seed
     random.seed(experiment['seed'])
 
     
@@ -229,10 +230,9 @@ def main(arguments):
     toolbox = base.Toolbox()
 
     # Register the various genetic algorithm components to the toolbox.
-    toolbox.register('individual', Individual, _.INIT_GENOME)
+    toolbox.register('individual', Individual, experiment)
     toolbox.register('population', tools.initRepeat, list, toolbox.individual)
-    toolbox.register('evaluate',
-                     fitness_functions.__dict__[experiment['fitness_function']])
+    toolbox.register('evaluate', fitness_functions.__dict__[experiment['fitness_function']])
     toolbox.register('select', select)
     toolbox.register('mutate', mutate)
 

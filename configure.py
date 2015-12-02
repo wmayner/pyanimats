@@ -100,6 +100,7 @@ def _update_constants():
 
     if hasattr(config, 'INIT_GENOME'):
         path = os.path.join(config.INIT_GENOME, 'lineages.pkl')
+
         with open(path, 'rb') as f:
             lineages = pickle.load(f)
             # Use the genome of the best individual of the most recent
@@ -112,7 +113,9 @@ def _update_constants():
         for i in range(config.INIT_START_CODONS):
             _.INIT_GENOME[(i * gap):(i * gap + 1)] = _.START_CODON
 
-    # Normalize/Scale raw fitness values so they're in the range 64–128
+    # print("CONFIGURE"*9, _.INIT_GENOME)
+
+            # Normalize/Scale raw fitness values so they're in the range 64–128
     # before using them as an exponent (this depends on which fitness function
     # is used).
     TRANSFORMS = {

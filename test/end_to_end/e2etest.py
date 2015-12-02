@@ -90,7 +90,6 @@ class E2ETest(unittest.TestCase):
                         getattr(aanim, attr),
                         getattr(banim, attr)
                     )
-                print()
         # import ipdb; ipdb.set_trace()
 
 

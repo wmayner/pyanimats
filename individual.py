@@ -14,6 +14,7 @@ from copy import deepcopy
 from collections import namedtuple
 import functools
 import pyphi
+import pickle
 
 import config
 import constants as _
@@ -61,9 +62,9 @@ class ExponentialFitness:
             config.FITNESS_EXPONENT_ADD + config.FITNESS_EXPONENT_SCALE * v)
 
 
-Game = namedtuple('Game', ['animat_states', 'world_states', 'animat_positions',
-                           'trial_results'])
+Game = namedtuple('Game', ['animat_states', 'world_states', 'animat_positions', 'trial_results'])
 Mechanism = namedtuple('Mechanism', ['inputs', 'tpm'])
+
 
 
 class Individual:
@@ -85,7 +86,7 @@ class Individual:
         parent (Individual):
             The animat's parent. Must be explicitly set upon cloning.
         gen (int):
-            TODO (josh): is this just the generation number?
+            generation number
         edges (list(tuple(int, int))):
             A list of the edges between animat nodes. May contain duplicates.
         cm (np.ndarray):
@@ -102,8 +103,28 @@ class Individual:
             single game. Updated every time a game is played.
     """
 
-    def __init__(self, genome, parent=None, gen=0):
+    # GLOBALS
+    INIT_GENOME = None # Global state, so it doesn't have to be loaded each time, only modified in this file
+
+    
+    def __init__(self,  experiment, genome=None, parent=None, gen=0):
+        
+        self.experiment = experiment
         self.parent = parent
+
+        if genome is None:
+            if(Individual.INIT_GENOME is None):
+                if ("init_genome_path" in experiment) and (experiment['init_genome_path'] != ""):
+                    with open(experiment['init_genome_path'], 'rb') as f:
+                        lineages = pickle.load(f)
+                        # Use the genome of the best individual of the most recent generation.
+                        Individual.INIT_GENOME = lineages[0][0].genome
+                else:
+                     Individual.INIT_GENOME = [ experiment['default_init_genome_value'] ] * \
+                                              experiment['default_init_genome_length']
+                
+            genome = Individual.INIT_GENOME
+
 
         # TODO: hard-coded: Animat
         self.animat = Animat(genome)
@@ -189,7 +210,7 @@ class Individual:
 
     def __deepcopy__(self, memo):
         # Don't copy the underlying animat, parent, or PyPhi network.
-        copy = Individual(genome=self.animat.genome, parent=self.parent)
+        copy = Individual( self.experiment, genome=self.genome, parent=self.parent)
         for key, val in self.__dict__.items():
             if key not in ('animat', 'parent', '_network', '_dirty_network'):
                 copy.__dict__[key] = deepcopy(val, memo)
