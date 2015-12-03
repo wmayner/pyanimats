@@ -174,7 +174,7 @@ def main(arguments):
     # Load and print configuration.
     configure.from_args(arguments)
     print('Configuration:')
-    pprint(configure.get_dict())
+    pprint(experiment)
 
     # Snapshots will be written to disk at this interval.
     if MIN_SNAPSHOTS <= 0:
@@ -204,7 +204,7 @@ def main(arguments):
         lineages = tuple(tuple(ind.lineage())[::step] for ind in to_save)
         # Save config and metadata as JSON.
         data_json = {
-            'config': configure.get_dict(),
+            'config': experiment,
             'metadata': {
                 'elapsed': round(elapsed, 2),
                 'version': __version__
@@ -356,7 +356,7 @@ def main(arguments):
                                                                snapshot), end='')
             dirname = os.path.join(OUTPUT_DIR,
                                    'snapshot-{}-gen-{}'.format(snapshot, gen))
-            save_data(dirname, gen, config=configure.get_dict(),
+            save_data(dirname, gen, config=experiment,
                       pop=population, logbook=logbook, hof=hall_of_fame,
                       elapsed=(current_time - sim_start))
             print('done.')
@@ -375,7 +375,7 @@ def main(arguments):
         experiment['ngen'], utils.compress(sim_end - sim_start)))
 
     # Write final results to disk.
-    save_data(OUTPUT_DIR, gen, config=configure.get_dict(), pop=population,
+    save_data(OUTPUT_DIR, gen, config=experiment, pop=population,
               logbook=logbook, hof=hall_of_fame, elapsed=(sim_end - sim_start))
 
 

@@ -43,7 +43,7 @@ class E2ETest(unittest.TestCase):
         #print(list(os.listdir(main_results_dir)))
         #print (list(filter(os.path.isdir, os.listdir(main_results_dir))))
         results_dirs = sorted(results_dirs)[::-1] # sort and reverse
-        take = [-1, 0, 1] # take these array indexes to compare
+        take = [0, 1, -1] # take these array indexes to compare
 
         
         lineages = []

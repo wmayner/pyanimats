@@ -48,7 +48,7 @@ do
   # Get the output with the seed directory included.
   cur_output_dir="$output_dir/seed-$seed"
   # Build the command.
-  cmd="$python ./pyanimats.py $cur_output_dir $taskfile -f $fitness -n $ngen -s $seed -j $jumpstart -p $popsize -i $num_samples" 
+  cmd="$python ./pyanimats.py $cur_output_dir $taskfile -f $fitness -n $ngen -s $seed -j $jumpstart -p $popsize -i $num_samples"
   # Append the intial genome option if it is set.
   [[ ! -z $init_genome_path ]] && cmd="$cmd -g $init_genome_path"
   # Display command.
@@ -58,7 +58,8 @@ do
   # Ensure the output directory exists.
   mkdir -p $cur_output_dir
   # Run it!
-  unbuffer $cmd 2>&1 | tee "$cur_output_dir/output.log" && echo "[Seed $seed] Wrote results to '$cur_output_dir'." & 
+  unbuffer $cmd 2>&1 | tee "$cur_output_dir/output.log" && echo "[Seed $seed] Wrote results to '$cur_output_dir'." &
+  
 done
 # cd test/end_to_end
 # nosetests e2etest.py

@@ -16,8 +16,6 @@ import functools
 import pyphi
 import pickle
 
-import config
-import constants as _
 import utils
 from animat import Animat
 
@@ -35,7 +33,8 @@ class ExponentialFitness:
     exponential, this class handles transforming it to be so.
     """
 
-    def __init__(self, value=0.0):
+    def __init__(self, experiment, value=0.0):
+        self.experiment = experiment
         self.value = value
 
     def __eq__(self, other):
@@ -58,8 +57,8 @@ class ExponentialFitness:
     @value.setter
     def value(self, v):
         self.raw = v
-        self.exponential = config.FITNESS_BASE**(
-            config.FITNESS_EXPONENT_ADD + config.FITNESS_EXPONENT_SCALE * v)
+        self.exponential = self.experiment['fitness_base']**(
+            self.experiment['fitness_exponent_add'] + self.experiment['fitness_exponent_scale'] * v)
 
 
 Game = namedtuple('Game', ['animat_states', 'world_states', 'animat_positions', 'trial_results'])
@@ -126,13 +125,22 @@ class Individual:
                 
             genome = Individual.INIT_GENOME
 
+        # Process the Tasks into useful variables
+        int_tasks = [(task[0], int(task[1][::-1], 2)) for task in self.experiment['tasks']]
+        self.hit_multipliers, self.block_patterns = zip(*int_tasks)
+        self.num_trials = 2 * len(self.experiment['tasks'] * self.experiment['world_width'])
+
+        
+        # print(self.hit_multipliers, self.block_patterns)
+        # print(_.HIT_MULTIPLIERS, _.BLOCK_PATTERNS)
+        # print()
 
         # TODO: hard-coded: Animat
         self.animat = Animat(genome)
         self.gen = gen
 
         # TODO: hard-coded: Fitness Function
-        self.fitness = ExponentialFitness()
+        self.fitness = ExponentialFitness(self.experiment)
         
         self._network = False
         # Mark whether the animat's phenotype and network need updating.
@@ -171,7 +179,7 @@ class Individual:
     @property
     def cm(self):
         """The animat's connectivity matrix."""
-        cm = np.zeros((config.NUM_NODES, config.NUM_NODES), int)
+        cm = np.zeros((self.experiment['num_nodes'], self.experiment['num_nodes']), int)
         cm[list(zip(*self.edges))] = 1
         return cm
 
@@ -230,37 +238,37 @@ class Individual:
     def as_subsystem(self, state=None):
         """Return the PyPhi subsystem consisting of all the animat's nodes."""
         if state is None:
-            state = [0] * config.NUM_NODES
-        return pyphi.Subsystem(self.network, state, range(config.NUM_NODES))
+            state = [0] * self.experiment['num_nodes']
+        return pyphi.Subsystem(self.network, state, range(self.experiment['num_nodes']))
 
     def brain(self, state=None):
         """Return the PyPhi subsystem consisting of the animat's hidden
         units."""
         if state is None:
-            state = [0] * config.NUM_NODES
-        return pyphi.Subsystem(self.network, state, _.HIDDEN_INDICES)
+            state = [0] * self.experiment['num_nodes']
+        return pyphi.Subsystem(self.network, state, self.experiment['hidden_indices'])
 
     def brain_and_sensors(self, state=None):
         """Return the PyPhi subsystem consisting of the animat's hidden
         units and sensors."""
         if state is None:
-            state = [0] * config.NUM_NODES
+            state = [0] * self.experiment['num_nodes']
         return pyphi.Subsystem(
-            self.network, state, _.HIDDEN_INDICES + _.SENSOR_INDICES)
+            self.network, state, self.experiment['hidden_indices'] + self.experiment['sensor_indices'])
 
     def brain_and_motors(self, state=None):
         """Return the PyPhi subsystem consisting of the animat's hidden
         units and motors."""
         if state is None:
-            state = [0] * config.NUM_NODES
+            state = [0] * self.experiment['num_nodes']
         return pyphi.Subsystem(
-            self.network, state, _.HIDDEN_INDICES + _.MOTOR_INDICES)
+            self.network, state, self.experiment['hidden_indices'] + self.experiment['motor_indices'])
 
     def mutate(self):
         """Mutate the animat's genome in-place."""
-        self.animat.mutate(config.MUTATION_PROB, config.DUPLICATION_PROB,
-                           config.DELETION_PROB, config.MIN_GENOME_LENGTH,
-                           config.MAX_GENOME_LENGTH)
+        self.animat.mutate(self.experiment['mutation_prob'], self.experiment['duplication_prob'],
+                           self.experiment['deletion_prob'], self.experiment['min_genome_length'],
+                                                          self.experiment['max_genome_length'])
         self._dirty_phenotype = True
         self._dirty_network = True
 
@@ -270,17 +278,16 @@ class Individual:
         positions of the animat."""
         self._update_phenotype()
         if scrambled is None:
-            scrambled = config.SCRAMBLE_WORLD
-        game = self.animat.play_game(_.HIT_MULTIPLIERS, _.BLOCK_PATTERNS,
-                                     scramble_world=scrambled)
-        assert self.animat.correct + self.animat.incorrect == _.NUM_TRIALS
-        return Game(animat_states=game[0].reshape(_.NUM_TRIALS,
-                                                  config.WORLD_HEIGHT,
-                                                  config.NUM_NODES),
-                    world_states=game[1].reshape(_.NUM_TRIALS,
-                                                 config.WORLD_HEIGHT),
-                    animat_positions=game[2].reshape(_.NUM_TRIALS,
-                                                     config.WORLD_HEIGHT),
+            scrambled = self.experiment['scramble_world']
+        game = self.animat.play_game(self.hit_multipliers, self.block_patterns, scramble_world=scrambled)
+        assert self.animat.correct + self.animat.incorrect == self.num_trials
+        return Game(animat_states=game[0].reshape(self.num_trials,
+                                                  self.experiment['world_height'],
+                                                  self.experiment['num_nodes']),
+                    world_states=game[1].reshape(self.num_trials,
+                                                 self.experiment['world_height']),
+                    animat_positions=game[2].reshape(self.num_trials,
+                                                     self.experiment['world_height']),
                     trial_results=game[3])
 
     def lineage(self):
