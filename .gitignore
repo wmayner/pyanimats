@@ -17,3 +17,5 @@ compiled_results
 \#*.*\#
 .\#*.*
 test/end_to_end/init_genome
+mi_results
+nat_results

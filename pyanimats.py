@@ -8,18 +8,13 @@ PyAnimats
 Evolve animats.
 
 Usage:
-    pyanimats.py <output_dir> <tasks.yml> [options]
+    pyanimats.py <output_dir> [options]
     pyanimats.py -h | --help
     pyanimats.py -v | --version
     pyanimats.py --list-fitness-funcs
     pyanimats.py --num-sensors
 
 Options:
-    -h, --help                  Show this
-    -v, --version               Show version
-        --list-fitness-funcs    List available fitness functions
-        --num-sensors           Print the number of sensors
-    -n, --num-gen=NGEN          Number of generations to simulate [default: 10]
     -s, --seed=SEED             Random number generator seed [default: 0]
     -f, --fitness=FUNC          Fitness function [default: nat]
     -m, --mut-prob=PROB         Nucleotide mutation probability
@@ -54,7 +49,7 @@ Options:
                                   [default: profiling/profile.pstats]
 """
 
-__version__ = '0.0.22'
+__version__ = '0.0.23'
 
 import os
 import pickle
@@ -107,15 +102,16 @@ mutate.__doc__ = Individual.mutate.__doc__
 
 def main(arguments):
     # Load the main YAML file
-    #experiment_dir = "experiments/refactoring-experiment"
+    
     EXPERIMENT_DIR = "test/end_to_end/raw_results" # this should be the main/only thing passed to pyanimats.py
+
+    # ToDo: add user arguments into `experiment` object
     
     experiment_yaml = "experiment.yml"
     with open(os.path.join(EXPERIMENT_DIR, experiment_yaml), 'r') as f:
         experiment = yaml.load(f)
     experiment['arguments'] = arguments
-    #import time as this_is_bad # ToDo: remove this, it's for end2end testing during the refactor, only
-    #EXPERIMENT_DIR += "/seed-0/" + str(int(this_is_bad.time())) # ToDo: Remove this, This is a hack for the end to end tests
+    
 
     # Set the global random seed
     random.seed(experiment['seed'])
