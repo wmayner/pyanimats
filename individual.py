@@ -58,12 +58,13 @@ class ExponentialFitness:
     def value(self, v):
         self.raw = v
         self.exponential = self.experiment['fitness_base']**(
-            self.experiment['fitness_exponent_add'] + self.experiment['fitness_exponent_scale'] * v)
+            self.experiment['fitness_exponent_add'] +
+            self.experiment['fitness_exponent_scale'] * v)
 
 
-Game = namedtuple('Game', ['animat_states', 'world_states', 'animat_positions', 'trial_results'])
+Game = namedtuple('Game', ['animat_states', 'world_states',
+                           'animat_positions', 'trial_results'])
 Mechanism = namedtuple('Mechanism', ['inputs', 'tpm'])
-
 
 
 class Individual:
@@ -103,37 +104,37 @@ class Individual:
     """
 
     # GLOBALS
-    INIT_GENOME = None # Global state, so it doesn't have to be loaded each time, only modified in this file
+    # Global state, so it doesn't have to be loaded each time,
+    # only modified in this file
+    INIT_GENOME = None
 
-    
     def __init__(self,  experiment, genome=None, parent=None, gen=0):
-        
         self.experiment = experiment
         self.parent = parent
 
         # Set the genome if not initialized with one
         if genome is None:
             if(Individual.INIT_GENOME is None):
-                if ("init_genome_path" in experiment) and (experiment['init_genome_path'] != ""):
+                if ("init_genome_path" in experiment) and \
+                   (experiment['init_genome_path'] != ""):
                     with open(experiment['init_genome_path'], 'rb') as f:
                         lineages = pickle.load(f)
-                        # Use the genome of the best individual of the most recent generation.
+                        # Use the genome of the best individual of the
+                        # most recent generation.
                         Individual.INIT_GENOME = lineages[0][0].genome
                 else:
-                     Individual.INIT_GENOME = [ experiment['default_init_genome_value'] ] * \
-                                              experiment['default_init_genome_length']
-                
+                    Individual.INIT_GENOME = \
+                        [experiment['default_init_genome_value']] * \
+                        experiment['default_init_genome_length']
+
             genome = Individual.INIT_GENOME
 
         # Process the Tasks into useful variables
-        int_tasks = [(task[0], int(task[1][::-1], 2)) for task in self.experiment['tasks']]
+        int_tasks = [(task[0], int(task[1][::-1], 2)) for
+                     task in self.experiment['tasks']]
         self.hit_multipliers, self.block_patterns = zip(*int_tasks)
-        self.num_trials = 2 * len(self.experiment['tasks'] * self.experiment['world_width'])
-
-        
-        # print(self.hit_multipliers, self.block_patterns)
-        # print(_.HIT_MULTIPLIERS, _.BLOCK_PATTERNS)
-        # print()
+        self.num_trials = 2 * len(self.experiment['tasks'] *
+                                  self.experiment['world_width'])
 
         # TODO: hard-coded: Animat
         self.animat = Animat(genome)
@@ -141,7 +142,7 @@ class Individual:
 
         # TODO: hard-coded: Fitness Function
         self.fitness = ExponentialFitness(self.experiment)
-        
+
         self._network = False
         # Mark whether the animat's phenotype and network need updating.
         self._dirty_phenotype = True
@@ -179,7 +180,8 @@ class Individual:
     @property
     def cm(self):
         """The animat's connectivity matrix."""
-        cm = np.zeros((self.experiment['num_nodes'], self.experiment['num_nodes']), int)
+        cm = np.zeros((self.experiment['num_nodes'],
+                       self.experiment['num_nodes']), int)
         cm[list(zip(*self.edges))] = 1
         return cm
 
@@ -219,7 +221,8 @@ class Individual:
 
     def __deepcopy__(self, memo):
         # Don't copy the underlying animat, parent, or PyPhi network.
-        copy = Individual( self.experiment, genome=self.genome, parent=self.parent)
+        copy = Individual(self.experiment, genome=self.genome,
+                          parent=self.parent)
         for key, val in self.__dict__.items():
             if key not in ('animat', 'parent', '_network', '_dirty_network'):
                 copy.__dict__[key] = deepcopy(val, memo)
@@ -227,9 +230,8 @@ class Individual:
 
     def start_codons(self):
         """Return the locations of start codons in the genome, if any."""
-        # TODO: hard-coded: start codon
-        start_codon = [42, 213]
-        
+        start_codon = self.experiment["start_codon"]
+
         genome = np.array(self.genome)
         window = utils.rolling_window(genome, len(start_codon))
         occurrences = np.all((window == start_codon), axis=1)
@@ -239,14 +241,16 @@ class Individual:
         """Return the PyPhi subsystem consisting of all the animat's nodes."""
         if state is None:
             state = [0] * self.experiment['num_nodes']
-        return pyphi.Subsystem(self.network, state, range(self.experiment['num_nodes']))
+        return pyphi.Subsystem(self.network, state,
+                               range(self.experiment['num_nodes']))
 
     def brain(self, state=None):
         """Return the PyPhi subsystem consisting of the animat's hidden
         units."""
         if state is None:
             state = [0] * self.experiment['num_nodes']
-        return pyphi.Subsystem(self.network, state, self.experiment['hidden_indices'])
+        return pyphi.Subsystem(self.network, state,
+                               self.experiment['hidden_indices'])
 
     def brain_and_sensors(self, state=None):
         """Return the PyPhi subsystem consisting of the animat's hidden
@@ -254,7 +258,10 @@ class Individual:
         if state is None:
             state = [0] * self.experiment['num_nodes']
         return pyphi.Subsystem(
-            self.network, state, self.experiment['hidden_indices'] + self.experiment['sensor_indices'])
+            self.network, state,
+            self.experiment['hidden_indices'] +
+            self.experiment['sensor_indices']
+        )
 
     def brain_and_motors(self, state=None):
         """Return the PyPhi subsystem consisting of the animat's hidden
@@ -262,13 +269,18 @@ class Individual:
         if state is None:
             state = [0] * self.experiment['num_nodes']
         return pyphi.Subsystem(
-            self.network, state, self.experiment['hidden_indices'] + self.experiment['motor_indices'])
+            self.network, state,
+            self.experiment['hidden_indices'] +
+            self.experiment['motor_indices']
+        )
 
     def mutate(self):
         """Mutate the animat's genome in-place."""
-        self.animat.mutate(self.experiment['mutation_prob'], self.experiment['duplication_prob'],
-                           self.experiment['deletion_prob'], self.experiment['min_genome_length'],
-                                                          self.experiment['max_genome_length'])
+        self.animat.mutate(self.experiment['mutation_prob'],
+                           self.experiment['duplication_prob'],
+                           self.experiment['deletion_prob'],
+                           self.experiment['min_genome_length'],
+                           self.experiment['max_genome_length'])
         self._dirty_phenotype = True
         self._dirty_network = True
 
@@ -279,16 +291,23 @@ class Individual:
         self._update_phenotype()
         if scrambled is None:
             scrambled = self.experiment['scramble_world']
-        game = self.animat.play_game(self.hit_multipliers, self.block_patterns, scramble_world=scrambled)
+        game = self.animat.play_game(self.hit_multipliers,
+                                     self.block_patterns,
+                                     scramble_world=scrambled)
         assert self.animat.correct + self.animat.incorrect == self.num_trials
-        return Game(animat_states=game[0].reshape(self.num_trials,
-                                                  self.experiment['world_height'],
-                                                  self.experiment['num_nodes']),
-                    world_states=game[1].reshape(self.num_trials,
-                                                 self.experiment['world_height']),
-                    animat_positions=game[2].reshape(self.num_trials,
-                                                     self.experiment['world_height']),
-                    trial_results=game[3])
+        return Game(
+            animat_states=game[0].reshape(self.num_trials,
+                                          self.experiment['world_height'],
+                                          self.experiment['num_nodes']),
+
+            world_states=game[1].reshape(self.num_trials,
+                                         self.experiment['world_height']),
+
+            animat_positions=game[2].reshape(self.num_trials,
+                                             self.experiment['world_height']),
+
+            trial_results=game[3]
+        )
 
     def lineage(self):
         """Return a generator for the lineage of this individual."""

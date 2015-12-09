@@ -49,7 +49,7 @@ Options:
                                   [default: profiling/profile.pstats]
 """
 
-__version__ = '0.0.23'
+__version__ = "0.0.24"
 
 import os
 import pickle
@@ -63,7 +63,6 @@ import numpy as np
 import cProfile
 
 import fitness_functions
-from individual import Individual
 from deap import base, tools
 
 import configure
@@ -97,36 +96,39 @@ def select(individuals, k):
 def mutate(ind):
     ind.mutate()
     return (ind,)
-mutate.__doc__ = Individual.mutate.__doc__
+# mutate.__doc__ = Individual.mutate.__doc__
 
 
 def main(arguments):
     # Load the main YAML file
-    
-    EXPERIMENT_DIR = "test/end_to_end/raw_results" # this should be the main/only thing passed to pyanimats.py
+
+    # this should be the main/only thing passed to pyanimats.py
+    EXPERIMENT_DIR = "test/end_to_end/raw_results"
 
     # ToDo: add user arguments into `experiment` object
-    
+
+    # Load the Experiment's config stuff
     experiment_yaml = "experiment.yml"
     with open(os.path.join(EXPERIMENT_DIR, experiment_yaml), 'r') as f:
         experiment = yaml.load(f)
     experiment['arguments'] = arguments
-    
 
     # Set the global random seed
     random.seed(experiment['seed'])
 
-    
+    # Import the appropriate Individual
+    individual_mod = __import__(experiment['individual'],
+                                fromlist=['Individual'])
+    Individual = getattr(individual_mod, "Individual")
 
-
-
-    
     # Handle configuration
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
     # Final output and snapshots will be written here.
-    OUTPUT_DIR = arguments['<output_dir>'] # ToDo: this still needs to be fixed, should reference the folder where experiments.yml is
+    # ToDo: this still needs to be fixed, should reference the
+    # folder where experiments.yml is
+    OUTPUT_DIR = arguments['<output_dir>']
+
     # OUTPUT_DIR = EXPERIMENT_DIR
     del arguments['<output_dir>']
 
@@ -139,8 +141,6 @@ def main(arguments):
             utils.ensure_exists(os.path.dirname(profile_filepath))
     del arguments['--profile']
 
-
-    
     # Logbooks will be updated at this interval.
     LOGBOOK_RECORDING_INTERVAL = int(arguments['--log-interval'])
     del arguments['--log-interval']
@@ -163,7 +163,8 @@ def main(arguments):
         SNAPSHOT_TIME_INTERVAL = float('inf')
     del arguments['--snapshot']
 
-    # Whether or not to save every individual in the population, or just the best one.
+    # Whether or not to save every individual in the population,
+    # or just the best one.
     SAVE_ALL_LINEAGES = arguments['--all-lineages']
     del arguments['--all-lineages']
 
@@ -222,12 +223,21 @@ def main(arguments):
     # Setup
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+    # Needs:
+    #   individual
+    #   fitness function
+    #   select individuals from population
+    #   mutate
+
     toolbox = base.Toolbox()
 
     # Register the various genetic algorithm components to the toolbox.
     toolbox.register('individual', Individual, experiment)
     toolbox.register('population', tools.initRepeat, list, toolbox.individual)
-    toolbox.register('evaluate', fitness_functions.__dict__[experiment['fitness_function']])
+    toolbox.register('evaluate',
+                     fitness_functions.__dict__[
+                         experiment['fitness_function']
+                     ])
     toolbox.register('select', select)
     toolbox.register('mutate', mutate)
 
@@ -265,7 +275,8 @@ def main(arguments):
     hall_of_fame = tools.HallOfFame(maxsize=experiment['popsize'])
 
     def print_status(line, time):
-        print('[Seed {}] '.format(experiment['seed']), end='')
+        print('[Seed {}] '.format(experiment['seed']),
+              end="")
         print(line, utils.compress(time))
 
     print('\nSimulating {} generations...\n'.format(experiment['ngen']))
@@ -279,12 +290,21 @@ def main(arguments):
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def multi_fit_evaluate(pop, gen):
+        '''
+        adds to individuals in population:
+          fitness.value
+          alt_fitness
+        '''
         fitnesses = toolbox.map(toolbox.evaluate, pop)
         for ind, fitness in zip(pop, fitnesses):
             ind.fitness.value = fitness[0]
             ind.alt_fitness = fitness[1:]
 
     def single_fit_evaluate(pop, gen):
+        '''
+        adds to individuals in population:
+          fitness.value
+        '''
         fitnesses = toolbox.map(toolbox.evaluate, pop)
         for ind, fitness in zip(pop, fitnesses):
             ind.fitness.value = fitness
@@ -293,12 +313,19 @@ def main(arguments):
                 else single_fit_evaluate)
 
     def record(pop, gen):
+        '''
+        update hall_of_fame, and logbook
+        '''
         hall_of_fame.update(pop)
         if gen % LOGBOOK_RECORDING_INTERVAL == 0:
             record = mstats.compile(pop)
             logbook.record(gen=gen, **record)
 
     def process_gen(pop, gen):
+        '''
+        return next generation of a population
+        '''
+
         # Selection.
         pop = toolbox.select(pop, len(pop))
         # Cloning.
@@ -334,22 +361,24 @@ def main(arguments):
     log_duration_start = time()
     snap_duration_start = time()
     snapshot = 1
+
+    # Iterate over each generation ############
     for gen in range(1, experiment['ngen'] + 1):
         # Evolution.
         population = process_gen(population, gen)
-        # Reporting.
+        # Reporting:  every "stdout-interval"
         if gen % STATUS_PRINTING_INTERVAL == 0:
             # Get time since last report was printed.
             log_duration_end = time()
             print_status(logbook.__str__(startindex=gen),
                          log_duration_end - log_duration_start)
             log_duration_start = time()
-        # Snapshotting.
+        # Snapshotting: every time, or generation interval
         current_time = time()
         if (current_time - snap_duration_start >= SNAPSHOT_TIME_INTERVAL
                 or gen % SNAPSHOT_GENERATION_INTERVAL == 0):
-            print('[Seed {}] –\tRecording snapshot {}... '.format(experiment['seed'],
-                                                               snapshot), end='')
+            print('[Seed {}] –\tRecording snapshot {}... '.
+                  format(experiment['seed'], snapshot), end='')
             dirname = os.path.join(OUTPUT_DIR,
                                    'snapshot-{}-gen-{}'.format(snapshot, gen))
             save_data(dirname, gen, config=experiment,
@@ -379,5 +408,4 @@ from docopt import docopt
 if __name__ == '__main__':
     # Get command-line arguments from docopt.
     arguments = docopt(__doc__, version=__version__)
-    
     main(arguments)
