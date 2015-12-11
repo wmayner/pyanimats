@@ -17,6 +17,10 @@ import pyphi
 
 import config
 import constants as _
+
+import configure
+configure._update_constants()
+
 from utils import unique_rows
 
 
@@ -186,7 +190,7 @@ def mutual_information(states):
     return mi_nats * _.NAT_TO_BIT_CONVERSION_FACTOR
 
 
-def mi(ind):
+def mi(ind, experiment):
     """Mutual information: Animats are evaluated based on the mutual
     information between their sensors and motor over the course of a game."""
     game = ind.play_game()

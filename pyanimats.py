@@ -58,14 +58,14 @@ import yaml
 import random
 import utils
 from time import time
-from pprint import pprint
+# from pprint import pprint
 import numpy as np
 import cProfile
+from deap import base, tools
+from functools import partial
 
 import fitness_functions
-from deap import base, tools
 
-import configure
 
 
 PROFILING = False
@@ -141,37 +141,32 @@ def main(arguments):
             utils.ensure_exists(os.path.dirname(profile_filepath))
     del arguments['--profile']
 
+    # ToDo: These hard coded variables need to be removed
+    
     # Logbooks will be updated at this interval.
-    LOGBOOK_RECORDING_INTERVAL = int(arguments['--log-interval'])
-    del arguments['--log-interval']
+    LOGBOOK_RECORDING_INTERVAL = 1
 
     # Individuals will be recorded in the lineage at this interval.
-    NUM_INDIVIDUAL_SAMPLES = int(arguments['--num-samples'])
-    del arguments['--num-samples']
+    # `0` saves the entire lineage
+    NUM_INDIVIDUAL_SAMPLES = 0
 
     # Status will be printed at this interval.
-    STATUS_PRINTING_INTERVAL = int(arguments['--stdout-interval'])
-    del arguments['--stdout-interval']
+    STATUS_PRINTING_INTERVAL = 1
 
     # Get the minimum number of snapshots to be taken.
-    MIN_SNAPSHOTS = int(arguments['--min-snapshots'])
-    del arguments['--min-snapshots']
+    MIN_SNAPSHOTS = 0
 
     # Get the interval at which to take snapshots.
-    SNAPSHOT_TIME_INTERVAL = float(arguments['--snapshot'])
-    if SNAPSHOT_TIME_INTERVAL <= 0:
-        SNAPSHOT_TIME_INTERVAL = float('inf')
-    del arguments['--snapshot']
+    SNAPSHOT_TIME_INTERVAL = float('inf')
 
     # Whether or not to save every individual in the population,
     # or just the best one.
-    SAVE_ALL_LINEAGES = arguments['--all-lineages']
-    del arguments['--all-lineages']
+    SAVE_ALL_LINEAGES = False
 
     # Load and print configuration.
-    configure.from_args(arguments)
-    print('Configuration:')
-    pprint(experiment)
+    # configure.from_args(arguments)
+    # print('Configuration:')
+    # pprint(experiment)
 
     # Snapshots will be written to disk at this interval.
     if MIN_SNAPSHOTS <= 0:
@@ -235,9 +230,12 @@ def main(arguments):
     toolbox.register('individual', Individual, experiment)
     toolbox.register('population', tools.initRepeat, list, toolbox.individual)
     toolbox.register('evaluate',
-                     fitness_functions.__dict__[
-                         experiment['fitness_function']
-                     ])
+                     partial(
+                         fitness_functions.__dict__[
+                             experiment['fitness_function']
+                         ],
+                         experiment=experiment
+                     ))
     toolbox.register('select', select)
     toolbox.register('mutate', mutate)
 

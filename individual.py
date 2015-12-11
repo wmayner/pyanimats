@@ -231,7 +231,6 @@ class Individual:
     def start_codons(self):
         """Return the locations of start codons in the genome, if any."""
         start_codon = self.experiment["start_codon"]
-
         genome = np.array(self.genome)
         window = utils.rolling_window(genome, len(start_codon))
         occurrences = np.all((window == start_codon), axis=1)
