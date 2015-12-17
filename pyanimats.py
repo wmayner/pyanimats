@@ -234,12 +234,9 @@ def main(arguments):
     toolbox.register('individual', Individual)
     toolbox.register('population', tools.initRepeat, list, toolbox.individual)
     toolbox.register('evaluate',
-                     partial(
-                         fitness_functions.__dict__[
-                             experiment['fitness_function']
-                         ],
-                         Individual=Individual
-                     ))
+                     fitness_functions.__dict__[
+                         experiment['fitness_function']
+                     ])
     toolbox.register('select', select)
     toolbox.register('mutate', mutate)
 

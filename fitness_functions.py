@@ -173,30 +173,30 @@ _register()(nat)
 # Mutual information
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def mutual_information(states, Individual):
+def mutual_information(states, ind):
     """Get the sensor-motor mutual information for a group of trials."""
     # The contingency matrix has a row for every sensors state and a column for
     # every motor state.
-    contingency = np.zeros([Individual.num_sensor_states,
-                            Individual.num_motor_states])
+    contingency = np.zeros([ind.num_sensor_states,
+                            ind.num_motor_states])
     # Get only the sensor and motor states.
-    sensor_motor = np.concatenate([states[:, :, :Individual.experiment['num_sensors']],
-                                   states[:, :, -Individual.experiment['num_motors']:]],
+    sensor_motor = np.concatenate([states[:, :, :ind.experiment['num_sensors']],
+                                   states[:, :, -ind.experiment['num_motors']:]],
                                   axis=2)
     # Count!
-    for idx, state in Individual.sensor_motor_states:
+    for idx, state in ind.sensor_motor_states:
         contingency[idx] = (sensor_motor == state).all(axis=2).sum()
     # Calculate mutual information in nats.
     mi_nats = mutual_info_score(None, None, contingency=contingency)
     # Convert from nats to bits and return.
-    return mi_nats * Individual.nat_to_bit_conversion_factor
+    return mi_nats * ind.nat_to_bit_conversion_factor
 
 
-def mi(ind, Individual):
+def mi(ind):
     """Mutual information: Animats are evaluated based on the mutual
     information between their sensors and motor over the course of a game."""
     game = ind.play_game()
-    return mutual_information(game.animat_states, Individual)
+    return mutual_information(game.animat_states, ind)
 _register(data_function=mutual_information)(mi)
 
 
