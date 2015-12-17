@@ -15,11 +15,11 @@ import numpy as np
 from sklearn.metrics import mutual_info_score
 import pyphi
 
-import config
-import constants as _
+# import config
+# import constants as _
 
-import configure
-configure._update_constants()
+# import configure
+# configure._update_constants()
 
 from utils import unique_rows
 
@@ -173,28 +173,30 @@ _register()(nat)
 # Mutual information
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def mutual_information(states):
+def mutual_information(states, Individual):
     """Get the sensor-motor mutual information for a group of trials."""
     # The contingency matrix has a row for every sensors state and a column for
     # every motor state.
-    contingency = np.zeros([_.NUM_SENSOR_STATES, _.NUM_MOTOR_STATES])
+    contingency = np.zeros([Individual.num_sensor_states,
+                            Individual.num_motor_states])
     # Get only the sensor and motor states.
-    sensor_motor = np.concatenate([states[:, :, :config.NUM_SENSORS],
-                                   states[:, :, -config.NUM_MOTORS:]], axis=2)
+    sensor_motor = np.concatenate([states[:, :, :Individual.experiment['num_sensors']],
+                                   states[:, :, -Individual.experiment['num_motors']:]],
+                                  axis=2)
     # Count!
-    for idx, state in _.SENSOR_MOTOR_STATES:
+    for idx, state in Individual.sensor_motor_states:
         contingency[idx] = (sensor_motor == state).all(axis=2).sum()
     # Calculate mutual information in nats.
     mi_nats = mutual_info_score(None, None, contingency=contingency)
     # Convert from nats to bits and return.
-    return mi_nats * _.NAT_TO_BIT_CONVERSION_FACTOR
+    return mi_nats * Individual.nat_to_bit_conversion_factor
 
 
-def mi(ind, experiment):
+def mi(ind, Individual):
     """Mutual information: Animats are evaluated based on the mutual
     information between their sensors and motor over the course of a game."""
     game = ind.play_game()
-    return mutual_information(game.animat_states)
+    return mutual_information(game.animat_states, Individual)
 _register(data_function=mutual_information)(mi)
 
 

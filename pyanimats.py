@@ -117,9 +117,10 @@ def main(arguments):
     random.seed(experiment['seed'])
 
     # Import the appropriate Individual
-    individual_mod = __import__(experiment['individual'],
-                                fromlist=['Individual'])
-    Individual = getattr(individual_mod, "Individual")
+    individual_mod = __import__("animats." + experiment['individual'],
+                                fromlist=['makeIndividual'])
+    # Individual = getattr(individual_mod, "Individual")
+    Individual = getattr(individual_mod, 'makeIndividual')(experiment)
 
     # Handle configuration
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -227,14 +228,14 @@ def main(arguments):
     toolbox = base.Toolbox()
 
     # Register the various genetic algorithm components to the toolbox.
-    toolbox.register('individual', Individual, experiment)
+    toolbox.register('individual', Individual)
     toolbox.register('population', tools.initRepeat, list, toolbox.individual)
     toolbox.register('evaluate',
                      partial(
                          fitness_functions.__dict__[
                              experiment['fitness_function']
                          ],
-                         experiment=experiment
+                         Individual=Individual
                      ))
     toolbox.register('select', select)
     toolbox.register('mutate', mutate)

@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+'''
+A utility for `test_utils.py`
+'''
+
 import os
 
 import pytest

@@ -20,10 +20,10 @@ class build_ext(_build_ext):
 extensions = [
     Extension('animat',
               sources=[
-                  'animat/animat.pyx',
-                  'animat/Agent.cpp',
-                  'animat/HMM.cpp',
-                  'animat/Game.cpp'
+                  'animats/helpers/animat.pyx',
+                  'animats/helpers/Agent.cpp',
+                  'animats/helpers/HMM.cpp',
+                  'animats/helpers/Game.cpp'
               ],
               language='c++')
 ]

@@ -15,7 +15,7 @@ Seeding is never being called
 
 import sys
 sys.path.append("../../")
-from individual import Individual
+from animats import hmu
 
 import os
 import pickle
@@ -25,6 +25,7 @@ import logging
 import time
 import re
 
+# Individual = hmu.makeIndividual()
 
 
 class E2ETest(unittest.TestCase):
