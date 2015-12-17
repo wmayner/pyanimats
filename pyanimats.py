@@ -118,9 +118,12 @@ def main(arguments):
 
     # Import the appropriate Individual
     individual_mod = __import__("animats." + experiment['individual'],
-                                fromlist=['makeIndividual'])
+                                fromlist=['Individual'])
     # Individual = getattr(individual_mod, "Individual")
-    Individual = getattr(individual_mod, 'makeIndividual')(experiment)
+    Individual = getattr(individual_mod, 'Individual')
+
+    # load up static vars onto the class
+    Individual.initializeClass(experiment)
 
     # Handle configuration
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
