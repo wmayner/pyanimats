@@ -1,0 +1,7 @@
+---
+  individual: "ones_max" # the module containing the class `Individual`
+  seed: 42
+  fitness_function: "ones_max"
+
+  popsize: 20
+  ngen: 10000

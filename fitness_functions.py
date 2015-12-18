@@ -17,7 +17,6 @@ import pyphi
 
 # import config
 # import constants as _
-
 # import configure
 # configure._update_constants()
 
@@ -37,7 +36,8 @@ LaTeX_NAMES = {
     'sp_wvn': '\sum\\varphi\ (world\ vs.\ noise)',
     'bp': '\Phi',
     'bp_wvn': '\Phi\ (world\ vs.\ noise)',
-    'mat': 'Matching'
+    'mat': 'Matching',
+    'ones_max': "Ones Max",
 }
 
 
@@ -456,3 +456,13 @@ def mat(ind):
             existence * raw_matching_weighted,
             existence * raw_matching)
 _register(data_function=main_complex)(mat)
+
+
+# Ones Max
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def ones_max(ind):
+    """ The fitness function for the demo Individual"""
+    ind.play_game()
+    return ind.animat.correct
+_register()(ones_max)

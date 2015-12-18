@@ -103,7 +103,9 @@ def main(arguments):
     # Load the main YAML file
 
     # this should be the main/only thing passed to pyanimats.py
-    EXPERIMENT_DIR = "test/end_to_end/raw_results"
+    # EXPERIMENT_DIR = arguments['<output_dir>']
+    EXPERIMENT_DIR = "test/end_to_end/raw_results"  # e2etest expects this
+
 
     # ToDo: add user arguments into `experiment` object
 
@@ -297,6 +299,9 @@ def main(arguments):
         fitnesses = toolbox.map(toolbox.evaluate, pop)
         for ind, fitness in zip(pop, fitnesses):
             ind.fitness.value = fitness[0]
+
+            # ToDo: grrr, side-effects. `alt_fitness` is
+            # undocumented in the actual Individuals
             ind.alt_fitness = fitness[1:]
 
     def single_fit_evaluate(pop, gen):
@@ -309,7 +314,7 @@ def main(arguments):
             ind.fitness.value = fitness
 
     evaluate = (multi_fit_evaluate if experiment['fitness_function'] == 'mat'
-                else single_fit_evaluate)
+                else single_fit_evaluate) # ToDo: More hardcoding
 
     def record(pop, gen):
         '''
