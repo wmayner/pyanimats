@@ -27,13 +27,14 @@ import fitness_functions
 VERSION = Version('0.0.20')
 CASE_NAME = os.path.join(
     str(VERSION),
-    'ex',
+    'mat',
     '3-4-6-5',
     'sensors-3',
     'jumpstart-0',
     'ngen-60000',
 )
-SEED = 1
+SEED = 0
+
 SNAPSHOT = False
 SNAPSHOT = -1
 
@@ -335,6 +336,32 @@ def limit_cycles(ind, states=None):
         initial_conditions = map(tuple, states)
     return {state: limit_cycle(ind, start=state)
             for state in initial_conditions}
+
+
+def movements(ind, scrambled=False):
+    """Return a boolean array of whether the individual moved."""
+    states = ind.play_game(scrambled=scrambled).animat_states
+    LEFT = constants.MOTOR_INDICES[0]
+    RIGHT = constants.MOTOR_INDICES[1]
+    return np.logical_xor(states[:, :, [LEFT]], states[:, :, [RIGHT]])
+
+
+def num_moves(ind, scrambled=False):
+    "Return the number of moves the animat made in the game."
+    m = movements(ind, scrambled=scrambled)
+    return m.sum()
+
+
+def percentage_moved(ind, scrambled=False):
+    """Return the percentage of timesteps in which the individual moved."""
+    m = movements(ind, scrambled=scrambled)
+    return m.sum() / m.size
+
+
+def unq_states(ind, scrambled=False):
+    """Return the unique states that the individual visits."""
+    states = ind.play_game(scrambled=scrambled).animat_states
+    return utils.unique_rows(states)
 
 
 # Visual interface
