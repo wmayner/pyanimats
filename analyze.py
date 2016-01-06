@@ -225,6 +225,18 @@ def get_avg_elapsed(case_name=CASE_NAME):
 # Dynamics
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+
+def avg_over_noise_states(n=50):
+    """Apply a function of animat states ``n`` times and take the average."""
+    def decorator(func):
+        @wraps(func)
+        def wrapper(ind, **kwargs):
+            return np.mean([func(ind.play_game(scrambled=True).animat_states)
+                            for _ in range(n)])
+        return wrapper
+    return decorator
+
+
 def entropy(ind, node_indices, scrambled=False):
     states = ind.play_game(scrambled=scrambled).animat_states
     sensor_states = states[:, :, node_indices]
@@ -361,7 +373,14 @@ def percentage_moved(ind, scrambled=False):
 def unq_states(ind, scrambled=False):
     """Return the unique states that the individual visits."""
     states = ind.play_game(scrambled=scrambled).animat_states
-    return utils.unique_rows(states)
+    return unique_rows(states)
+
+
+def get_num_unq_states(states):
+    return unique_rows(states).size
+
+
+get_avg_num_unq_noise_states = avg_over_noise_states()(get_num_unq_states)
 
 
 # Visual interface
