@@ -10,6 +10,7 @@ import json
 import re
 from glob import glob
 from collections import Counter
+from functools import wraps
 import numpy as np
 import config
 import constants
@@ -29,13 +30,14 @@ import fitness_functions
 VERSION = Version('0.0.20')
 CASE_NAME = os.path.join(
     str(VERSION),
-    'mat-from-scratch',
+    'mat',
     '3-4-6-5',
     'sensors-3',
     'jumpstart-0',
     'ngen-60000',
 )
 SEED = 0
+
 SNAPSHOT = False
 SNAPSHOT = -1
 
@@ -229,6 +231,18 @@ def get_avg_elapsed(case_name=CASE_NAME):
 # Dynamics
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+
+def avg_over_noise_states(n=50):
+    """Apply a function of animat states ``n`` times and take the average."""
+    def decorator(func):
+        @wraps(func)
+        def wrapper(ind, **kwargs):
+            return np.mean([func(ind.play_game(scrambled=True).animat_states)
+                            for _ in range(n)])
+        return wrapper
+    return decorator
+
+
 def entropy(ind, node_indices, scrambled=False):
     states = ind.play_game(scrambled=scrambled).animat_states
     sensor_states = states[:, :, node_indices]
@@ -340,6 +354,39 @@ def limit_cycles(ind, states=None):
         initial_conditions = map(tuple, states)
     return {state: limit_cycle(ind, start=state)
             for state in initial_conditions}
+
+
+def movements(ind, scrambled=False):
+    """Return a boolean array of whether the individual moved."""
+    states = ind.play_game(scrambled=scrambled).animat_states
+    LEFT = constants.MOTOR_INDICES[0]
+    RIGHT = constants.MOTOR_INDICES[1]
+    return np.logical_xor(states[:, :, [LEFT]], states[:, :, [RIGHT]])
+
+
+def num_moves(ind, scrambled=False):
+    "Return the number of moves the animat made in the game."
+    m = movements(ind, scrambled=scrambled)
+    return m.sum()
+
+
+def percentage_moved(ind, scrambled=False):
+    """Return the percentage of timesteps in which the individual moved."""
+    m = movements(ind, scrambled=scrambled)
+    return m.sum() / m.size
+
+
+def unq_states(ind, scrambled=False):
+    """Return the unique states that the individual visits."""
+    states = ind.play_game(scrambled=scrambled).animat_states
+    return unique_rows(states)
+
+
+def get_num_unq_states(states):
+    return unique_rows(states).size
+
+
+get_avg_num_unq_noise_states = avg_over_noise_states()(get_num_unq_states)
 
 
 # Visual interface
