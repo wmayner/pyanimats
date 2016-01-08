@@ -85,7 +85,7 @@ class Individual:
 
     Attributes:
     """
-    MUTATION_PROB = .001
+    MUTATION_PROB = .05
 
     def __init__(self, genome=[0]*100, parent=None, gen=0):
         self.fitness = ExponentialFitness(self.experiment)

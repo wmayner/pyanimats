@@ -1,4 +1,4 @@
-#!/bin/bash
+x#!/bin/bash
 
 MINUTE=60
 HOUR=3600
@@ -39,14 +39,17 @@ echo "Printing status every $log_freq generations."
 echo "Recording snapshots every "$snapshot_hr":"$snapshot_min":"$snapshot_sec", taking at least "$min_snapshots"."
 
 datename="$(date +%s)" # - $(date)" # name each run the time it was ran as <seconds> - <human readable>
-output_dir="test/end_to_end/raw_results/$datename" # "test/end_to_end/raw_results/$datename"
+output_dir="test/end_to_end/raw_results" # "test/end_to_end/raw_results/$datename"
 echo "Writing results to '$output_dir'."
 echo ""
 
 for ((seed=$seed_start; seed < $(($seed_start + $num_cores)); seed++))
 do
   # Get the output with the seed directory included.
-  cur_output_dir="$output_dir/seed-$seed"
+  cur_output_dir="$output_dir/$datename/seed-$seed"
+  mkdir "$output_dir/$datename"
+  mkdir "$cur_output_dir"
+  cp "$output_dir/experiment.yml" "$cur_output_dir/experiment.yml"
   # Build the command.
   cmd="$python ./pyanimats.py $cur_output_dir" # $taskfile -f $fitness -n $ngen -s $seed -j $jumpstart -p $popsize -i $num_samples"
   # Append the intial genome option if it is set.

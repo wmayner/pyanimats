@@ -67,7 +67,6 @@ from functools import partial
 import fitness_functions
 
 
-
 PROFILING = False
 
 
@@ -96,19 +95,15 @@ def select(individuals, k):
 def mutate(ind):
     ind.mutate()
     return (ind,)
-# mutate.__doc__ = Individual.mutate.__doc__
 
 
 def main(arguments):
     # Load the main YAML file
 
     # this should be the main/only thing passed to pyanimats.py
-    # EXPERIMENT_DIR = arguments['<output_dir>']
-    EXPERIMENT_DIR = "test/end_to_end/raw_results"  # e2etest expects this
-
+    EXPERIMENT_DIR = arguments['<output_dir>']
 
     # ToDo: add user arguments into `experiment` object
-
     # Load the Experiment's config stuff
     experiment_yaml = "experiment.yml"
     with open(os.path.join(EXPERIMENT_DIR, experiment_yaml), 'r') as f:
