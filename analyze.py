@@ -17,6 +17,7 @@ import constants
 import configure
 import scipy.stats
 from sklearn.utils.extmath import cartesian
+import pyphi
 from pyphi.convert import loli_index2state as i2s
 from pyphi.convert import state2loli_index as s2i
 from pyphi.jsonify import jsonify
@@ -30,7 +31,7 @@ import fitness_functions
 VERSION = Version('0.0.20')
 CASE_NAME = os.path.join(
     str(VERSION),
-    'mat',
+    'mat-from-scratch',
     '3-4-6-5',
     'sensors-3',
     'jumpstart-0',
@@ -154,7 +155,7 @@ def already_exists_msg(output_filepath):
             'from raw data and overwrite.'.format(output_filepath))
 
 
-CONFIG = load('config', snapshot=SNAPSHOT)
+# CONFIG = load('config', snapshot=SNAPSHOT)
 
 
 # Correct counts
@@ -232,6 +233,7 @@ def get_avg_elapsed(case_name=CASE_NAME):
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
+# TODO use ff.avg_over_visited_states instead?
 def avg_over_noise_states(n=50):
     """Apply a function of animat states ``n`` times and take the average."""
     def decorator(func):
@@ -389,10 +391,24 @@ def get_num_unq_states(states):
 get_avg_num_unq_noise_states = avg_over_noise_states()(get_num_unq_states)
 
 
+# Phi-theoretic
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def num_concepts(ind, state):
+    mc = pyphi.compute.main_complex(ind.network, state)
+    return len(mc.unpartitioned_constellation)
+
+get_avg_num_concepts_world = \
+    fitness_functions.avg_over_visited_states(n=5)(num_concepts)
+get_avg_num_concepts_noise = \
+    fitness_functions.avg_over_visited_states(
+        n=5, scrambled=True)(num_concepts)
+
+
 # Visual interface
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def get_phi_data(ind, game, config=CONFIG):
+def get_phi_data(ind, game, config):
     """Calculate the IIT properties of the given animat for every state.
 
     The data function must take and individual and a state.
