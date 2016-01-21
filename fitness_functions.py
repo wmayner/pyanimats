@@ -67,8 +67,8 @@ def print_functions():
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # TODO document kwargs
-def _avg_over_visited_states(shortcircuit=True, upto_attr=False,
-                             transform=False, n=None):
+def avg_over_visited_states(shortcircuit=True, upto_attr=False,
+                            transform=False, n=None, scrambled=False):
     """A decorator that takes an animat and applies a function for every unique
     state the animat visits during a game (up to the given units only) and
     returns the average.
@@ -81,7 +81,7 @@ def _avg_over_visited_states(shortcircuit=True, upto_attr=False,
             if shortcircuit and ind.cm.sum() == 0:
                 return 0.0
             upto = getattr(_, upto_attr) if upto_attr else False
-            game = ind.play_game()
+            game = ind.play_game(scrambled=scrambled)
             sort = n is not None
             unique_states = unique_rows(game.animat_states, upto=upto,
                                         sort=sort)[:n]
@@ -93,14 +93,15 @@ def _avg_over_visited_states(shortcircuit=True, upto_attr=False,
     return decorator
 
 
-def _world_vs_noise(shortcircuit=True, upto_attr=False, transform=False,
-                    reduce=sum, n=None):
-    """A decorator that returns the difference between the sum of the given
-    function applied to unique states visited in the world, and the same for
-    noise.
+def world_vs_noise(shortcircuit=True, upto_attr=False, transform=False,
+                   reduce=sum, n=None):
+    """A decorator that returns the difference between the sum (or some other
+    reducing function) of the given function applied to unique states visited
+    in the world, and the same for noise.
 
     The wrapped function must take an animat and a state, and return a
-    number."""
+    number.
+    """
     def decorator(func):
         @wraps(func)
         def wrapper(ind, **kwargs):
@@ -221,7 +222,7 @@ def extrinsic_causes(ind, state):
     return list(filter(lambda m: m.phi > 0, mice))
 
 
-ex = _avg_over_visited_states(transform=phi_sum)(extrinsic_causes)
+ex = avg_over_visited_states(transform=phi_sum)(extrinsic_causes)
 ex.__name__ = 'ex'
 ex.__doc__ = \
     """Extrinsic cause information: Animats are evaluated based on the sum of φ
@@ -231,8 +232,8 @@ ex.__doc__ = \
 _register(data_function=extrinsic_causes)(ex)
 
 
-ex_wvn = _world_vs_noise(transform=unq_concepts,
-                         reduce=phi_sum)(extrinsic_causes)
+ex_wvn = world_vs_noise(transform=unq_concepts,
+                        reduce=phi_sum)(extrinsic_causes)
 ex_wvn.__name__ = 'ex_wvn'
 ex_wvn.__doc__ = \
     """Same as `ex` but counting the difference between the sum of φ of unique
@@ -256,8 +257,8 @@ def all_concepts(ind, state):
 # The states only need to be considered unique up to the hidden units because
 # the subsystem is always the entire network (not the main complex), so there
 # are no background conditions.
-sp = _avg_over_visited_states(transform=phi_sum,
-                              upto_attr='HIDDEN_INDICES')(all_concepts)
+sp = avg_over_visited_states(transform=phi_sum,
+                             upto_attr='HIDDEN_INDICES')(all_concepts)
 sp.__name__ = 'sp'
 sp.__doc__ = \
     """Sum of φ: Animats are evaluated based on the sum of φ for all the
@@ -271,9 +272,9 @@ sp.__doc__ = \
 _register(data_function=all_concepts)(sp)
 
 
-sp_wvn = _world_vs_noise(transform=unq_concepts,
-                         reduce=phi_sum,
-                         upto_attr='HIDDEN_INDICES')(all_concepts)
+sp_wvn = world_vs_noise(transform=unq_concepts,
+                        reduce=phi_sum,
+                        upto_attr='HIDDEN_INDICES')(all_concepts)
 sp_wvn.__name__ = 'sp_wvn'
 sp_wvn.__doc__ = \
     """Same as `sp` but counting the difference between the sum of φ of unique
@@ -292,9 +293,9 @@ def main_complex(ind, state):
 # reasons. Ideally we would consider every unique state.
 NUM_BIG_PHI_STATES_TO_COMPUTE = None
 
-bp = _avg_over_visited_states(transform=lambda x: x.phi,
-                              upto_attr='SENSOR_HIDDEN_INDICES',
-                              n=NUM_BIG_PHI_STATES_TO_COMPUTE)(main_complex)
+bp = avg_over_visited_states(transform=lambda x: x.phi,
+                             upto_attr='SENSOR_HIDDEN_INDICES',
+                             n=NUM_BIG_PHI_STATES_TO_COMPUTE)(main_complex)
 bp.__name__ = 'bp'
 bp.__doc__ = \
     """ϕ: Animats are evaluated based on the ϕ-value of their brains, averaged
@@ -304,9 +305,9 @@ bp.__doc__ = \
 _register(data_function=main_complex)(bp)
 
 
-bp_wvn = _world_vs_noise(reduce=phi_sum,
-                         upto_attr='SENSOR_HIDDEN_INDICES',
-                         n=NUM_BIG_PHI_STATES_TO_COMPUTE)(main_complex)
+bp_wvn = world_vs_noise(reduce=phi_sum,
+                        upto_attr='SENSOR_HIDDEN_INDICES',
+                        n=NUM_BIG_PHI_STATES_TO_COMPUTE)(main_complex)
 bp_wvn.__name__ = 'bp_wvn'
 bp_wvn.__doc__ = \
     """Same as `bp` but counting the difference between world and noise."""
