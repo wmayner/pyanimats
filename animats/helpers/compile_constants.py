@@ -3,7 +3,7 @@
 Creates a `constants.hpp` that matches the current `experiment.yml`
 
 usage:
-python hmu_compile_constants.py <experiment.yml's dir>
+python animats/helpers/compile_constants.py <experiment.yml's dir>
 
 """
 
