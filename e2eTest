@@ -1,45 +1,38 @@
-x#!/bin/bash
+#!/bin/bash
+
+#################################
+#
+#  Usage: ./e2eTest test/end_to_end/raw_results
+#
+#################################
 
 MINUTE=60
 HOUR=3600
+
+experiment_path=$1
 
 python="$HOME/.virtualenvs/pyanimats/bin/python" # ToDo: should this be `which python` instead, so it gets the current env's python?
 
 seed_start=0
 num_cores=1
 
-fitness="nat"
-ngen=1000
-taskname="1-3-1-3"
-jumpstart=0
-popsize=100
-#paramfile="params.yml"
+
+# This is specific to the End to End test
 init_genome_path="test/end_to_end/init_genome"
-num_samples=$ngen
-log_freq=1
-
-snapshot_hr=2
-snapshot_min=00
-snapshot_sec=00
-snapshot_freq=$(($snapshot_hr*$HOUR + $snapshot_min*$MINUTE + $snapshot_sec))
-min_snapshots=0
-
-# Derived parameters.
-sensors=2 #`$python ./pyanimats.py --num-sensors`
-version=2 #`$python ./pyanimats.py --version`
-taskfile="test/end_to_end/tasks/"$taskname".yml"
 
 echo "PyAnimats multi-seed simulation ($(date))"
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo "Rebuilding animat C++ extension..."
 rm -r build && rm animat.cpython-34m.so && $python setup.py build_ext --inplace &> /dev/null && echo "...finished."
 echo ""
-echo "Sampling $num_samples genomes per save."
-echo "Printing status every $log_freq generations."
-echo "Recording snapshots every "$snapshot_hr":"$snapshot_min":"$snapshot_sec", taking at least "$min_snapshots"."
+
+
+# compile the HMU constants file
+$python animats/helpers/compile_constants.py $experiment_path  #raw_results/hmu_test/
+
 
 datename="$(date +%s)" # - $(date)" # name each run the time it was ran as <seconds> - <human readable>
-output_dir="test/end_to_end/raw_results" # "test/end_to_end/raw_results/$datename"
+output_dir=$experiment_path # "test/end_to_end/raw_results" 
 echo "Writing results to '$output_dir'."
 echo ""
 
@@ -51,7 +44,7 @@ do
   mkdir "$cur_output_dir"
   cp "$output_dir/experiment.yml" "$cur_output_dir/experiment.yml"
   # Build the command.
-  cmd="$python ./pyanimats.py $cur_output_dir" # $taskfile -f $fitness -n $ngen -s $seed -j $jumpstart -p $popsize -i $num_samples"
+  cmd="$python ./pyanimats.py $cur_output_dir" # --seed=123
   # Append the intial genome option if it is set.
   [[ ! -z $init_genome_path ]] && cmd="$cmd -g $init_genome_path"
   # Display command.

@@ -110,6 +110,12 @@ def main(arguments):
         experiment = yaml.load(f)
     experiment['arguments'] = arguments
 
+    # Set seed to runtime value, if it was set at runtime
+    if "--seed" in arguments:
+        print("Setting original seed: %s to: %s" % (str(experiment["seed"]),
+                                                    str(arguments["--seed"])))
+        experiment["seed"] = arguments["--seed"]
+
     # Set the global random seed
     random.seed(experiment['seed'])
 
@@ -125,13 +131,7 @@ def main(arguments):
     # Handle configuration
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    # Final output and snapshots will be written here.
-    # ToDo: this still needs to be fixed, should reference the
-    # folder where experiments.yml is
-    OUTPUT_DIR = arguments['<output_dir>']
-
-    # OUTPUT_DIR = EXPERIMENT_DIR
-    del arguments['<output_dir>']
+    OUTPUT_DIR = EXPERIMENT_DIR
 
     # Ensure profile directory exists and set profile flag.
     PROFILING = False
@@ -140,29 +140,30 @@ def main(arguments):
         if profile_filepath:
             PROFILING = True
             utils.ensure_exists(os.path.dirname(profile_filepath))
-    del arguments['--profile']
 
     # ToDo: These hard coded variables need to be removed
-    
+
     # Logbooks will be updated at this interval.
-    LOGBOOK_RECORDING_INTERVAL = 1
+    LOGBOOK_RECORDING_INTERVAL = experiment["log_freq"]
 
     # Individuals will be recorded in the lineage at this interval.
     # `0` saves the entire lineage
-    NUM_INDIVIDUAL_SAMPLES = 0
+    NUM_INDIVIDUAL_SAMPLES = experiment["num_samples"]
 
     # Status will be printed at this interval.
-    STATUS_PRINTING_INTERVAL = 1
+    STATUS_PRINTING_INTERVAL = experiment["status_printing_interval"]
 
     # Get the minimum number of snapshots to be taken.
-    MIN_SNAPSHOTS = 0
+    MIN_SNAPSHOTS = experiment["min_snapshots"]
 
     # Get the interval at which to take snapshots.
-    SNAPSHOT_TIME_INTERVAL = float('inf')
+    SNAPSHOT_TIME_INTERVAL = float(experiment["snapshot_freq"])
 
     # Whether or not to save every individual in the population,
     # or just the best one.
-    SAVE_ALL_LINEAGES = False
+    SAVE_ALL_LINEAGES = experiment["save_all_lineages"]
+
+    print(experiment["num_samples"])
 
     # Load and print configuration.
     # configure.from_args(arguments)
