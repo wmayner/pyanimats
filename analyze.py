@@ -388,6 +388,35 @@ def get_num_unq_states(states):
     return unique_rows(states).size
 
 
+def simulate(ind, stimuli, initial_state=False, given=False):
+    """Present the animat with the given stimuli and return its states.
+
+    Args:
+        ind (Individual): The individual to simulate.
+        stimuli (Iterable): An iterable of sensor states to present to the
+            animat.
+
+    Keyword Args:
+        initial_state (Iterable): The initial state of the animat when
+            simulation begins
+        given (Iterable): If supplied, then the animat's non-sensor units are
+            set to the given states after each stimulus.
+    """
+    SENSORS = list(constants.SENSOR_INDICES)
+    if len(SENSORS) != len(stimuli[0]):
+        raise ValueError("Stimuli must fit the sensors!")
+    if not initial_state:
+        initial_state = np.array([0]*config.NUM_NODES)
+    cs = np.array(initial_state)
+    cs[SENSORS] = stimuli[0]
+    animat_states = [cs]
+    for stimulus in stimuli[1:]:
+        cs = next_state(ind, cs)
+        cs[SENSORS] = stimulus
+        animat_states.append(cs)
+    return np.array(animat_states)
+
+
 get_avg_num_unq_noise_states = avg_over_noise_states()(get_num_unq_states)
 
 
