@@ -101,9 +101,11 @@ class Individual:
             single game. Updated every time a game is played.
     """
 
-    def __init__(self, genome, parent=None, gen=0):
+    def __init__(self, genome, numSensors, numHidden, numMotors, deterministic,
+                 parent=None, gen=0):
         self.parent = parent
-        self.animat = Animat(genome)
+        self.animat = Animat(genome, numSensors, numHidden, numMotors,
+                             deterministic)
         self.gen = gen
         self.fitness = ExponentialFitness()
         self._network = False
@@ -126,6 +128,41 @@ class Individual:
         return self.animat.genome
 
     @property
+    def numSensors(self):
+        """The number of sensors in the animat."""
+        return self.animat.numSensors
+
+    @property
+    def numHidden(self):
+        """The number of hidden units in the animat."""
+        return self.animat.numHidden
+
+    @property
+    def numMotors(self):
+        """The number of motors in the animat."""
+        return self.animat.numMotors
+
+    @property
+    def numNodes(self):
+        """The number of nodes in the animat."""
+        return self.animat.numNodes
+
+    @property
+    def numStates(self):
+        """The number of possible states of the animat."""
+        return self.animat.numStates
+
+    @property
+    def bodyLength(self):
+        """The length of the animat's body."""
+        return self.animat.bodyLength
+
+    @property
+    def deterministic(self):
+        """Whether the animat's TPM was set to be deterministic."""
+        return self.animat.deterministic
+
+    @property
     def gen(self):
         """The generation this animat belongs to."""
         return self.animat.gen
@@ -143,7 +180,7 @@ class Individual:
     @property
     def cm(self):
         """The animat's connectivity matrix."""
-        cm = np.zeros((config.NUM_NODES, config.NUM_NODES), int)
+        cm = np.zeros((self.numNodes, self.numNodes), int)
         cm[list(zip(*self.edges))] = 1
         return cm
 
@@ -200,21 +237,21 @@ class Individual:
     def as_subsystem(self, state=None):
         """Return the PyPhi subsystem consisting of all the animat's nodes."""
         if state is None:
-            state = [0] * config.NUM_NODES
-        return pyphi.Subsystem(self.network, state, range(config.NUM_NODES))
+            state = [0] * self.numNodes
+        return pyphi.Subsystem(self.network, state, range(self.numNodes))
 
     def brain(self, state=None):
         """Return the PyPhi subsystem consisting of the animat's hidden
         units."""
         if state is None:
-            state = [0] * config.NUM_NODES
+            state = [0] * self.numNodes
         return pyphi.Subsystem(self.network, state, _.HIDDEN_INDICES)
 
     def brain_and_sensors(self, state=None):
         """Return the PyPhi subsystem consisting of the animat's hidden
         units and sensors."""
         if state is None:
-            state = [0] * config.NUM_NODES
+            state = [0] * self.numNodes
         return pyphi.Subsystem(
             self.network, state, _.HIDDEN_INDICES + _.SENSOR_INDICES)
 
@@ -222,7 +259,7 @@ class Individual:
         """Return the PyPhi subsystem consisting of the animat's hidden
         units and motors."""
         if state is None:
-            state = [0] * config.NUM_NODES
+            state = [0] * self.numNodes
         return pyphi.Subsystem(
             self.network, state, _.HIDDEN_INDICES + _.MOTOR_INDICES)
 
@@ -230,27 +267,30 @@ class Individual:
         """Mutate the animat's genome in-place."""
         self.animat.mutate(config.MUTATION_PROB, config.DUPLICATION_PROB,
                            config.DELETION_PROB, config.MIN_GENOME_LENGTH,
-                           config.MAX_GENOME_LENGTH)
+                           config.MAX_GENOME_LENGTH, config.MIN_DUP_DEL_WIDTH,
+                           config.MAX_DUP_DEL_WIDTH)
         self._dirty_phenotype = True
         self._dirty_network = True
 
-    def play_game(self, scrambled=None):
+    def play_game(self, hit_multipliers, block_patterns, world_width,
+                  world_height, scrambled=None):
         """Return the list of state transitions the animat goes through when
         playing the game. Optionally also returns the world states and the
         positions of the animat."""
         self._update_phenotype()
         if scrambled is None:
             scrambled = config.SCRAMBLE_WORLD
-        game = self.animat.play_game(_.HIT_MULTIPLIERS, _.BLOCK_PATTERNS,
+        game = self.animat.play_game(hit_multipliers, block_patterns,
+                                     world_width, world_height,
                                      scramble_world=scrambled)
         assert self.animat.correct + self.animat.incorrect == _.NUM_TRIALS
         return Game(animat_states=game[0].reshape(_.NUM_TRIALS,
-                                                  config.WORLD_HEIGHT,
-                                                  config.NUM_NODES),
+                                                  world_height,
+                                                  self.numNodes),
                     world_states=game[1].reshape(_.NUM_TRIALS,
-                                                 config.WORLD_HEIGHT),
+                                                 world_height),
                     animat_positions=game[2].reshape(_.NUM_TRIALS,
-                                                     config.WORLD_HEIGHT),
+                                                     world_height),
                     trial_results=game[3])
 
     def lineage(self):
