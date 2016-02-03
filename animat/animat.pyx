@@ -22,26 +22,10 @@ ctypedef unsigned char uchar
 
 # Expose #defined constants to Python.
 cdef extern from 'constants.hpp':
-    cdef int _NUM_NODES 'NUM_NODES'
-    cdef bool _DETERMINISTIC 'DETERMINISTIC'
-    cdef int _WORLD_HEIGHT 'WORLD_HEIGHT'
-    cdef int _WORLD_WIDTH 'WORLD_WIDTH'
-    cdef int _NUM_STATES 'NUM_STATES'
-    cdef int _NUM_SENSORS 'NUM_SENSORS'
-    cdef int _NUM_MOTORS 'NUM_MOTORS'
-    cdef int _BODY_LENGTH 'BODY_LENGTH'
     cdef int _CORRECT_CATCH 'CORRECT_CATCH'
     cdef int _WRONG_CATCH 'WRONG_CATCH'
     cdef int _CORRECT_AVOID 'CORRECT_AVOID'
     cdef int _WRONG_AVOID 'WRONG_AVOID'
-NUM_NODES = _NUM_NODES
-DETERMINISTIC = _DETERMINISTIC
-WORLD_HEIGHT = _WORLD_HEIGHT
-WORLD_WIDTH = _WORLD_WIDTH
-NUM_STATES = _NUM_STATES
-NUM_SENSORS = _NUM_SENSORS
-NUM_MOTORS = _NUM_MOTORS
-BODY_LENGTH = _BODY_LENGTH
 CORRECT_CATCH = _CORRECT_CATCH
 WRONG_CATCH = _WRONG_CATCH
 CORRECT_AVOID = _CORRECT_AVOID
@@ -51,7 +35,16 @@ WRONG_AVOID = _WRONG_AVOID
 cdef extern from 'Agent.hpp':
     void srand(int s)
     cdef cppclass Agent:
-        Agent(vector[uchar] genome)
+        Agent(vector[uchar] genome, int numSensors, int numHidden, int
+              numMotors, bool deterministic)
+
+        int mNumSensors
+        int mNumHidden
+        int mNumMotors
+        int mNumNodes
+        int mNumStates
+        int mBodyLength
+        bool mDeterministic
 
         vector[uchar] genome
         int gen
@@ -62,16 +55,18 @@ cdef extern from 'Agent.hpp':
         void generatePhenotype()
         void mutateGenome(
             double mutProb, double dupProb, double delProb, int
-            minGenomeLength, int maxGenomeLength)
+            minGenomeLength, int maxGenomeLength, int minDupDelLength, 
+            int maxDupDelLength)
         vector[vector[int]] getEdges()
         vector[vector[bool]] getTransitions()
 
 
 cdef extern from 'Game.hpp':
     cdef void executeGame(
-        vector[uchar] animatStates, vector[int] worldStates, vector[int]
-        animatPositions, vector[int] trialResults, Agent* agent, vector[int]
-        hitMultipliers, vector[int] patterns, bool scrambleWorld);
+        vector[uchar] animatStates, vector[int] worldStates, 
+        vector[int] animatPositions, vector[int] trialResults, Agent* agent,
+        vector[int] hitMultipliers, vector[int] patterns, int worldWidth, 
+        int worldHeight, bool scrambleWorld)
 
 
 cdef extern from 'asvoid.hpp':
@@ -154,8 +149,10 @@ cdef class Animat:
     # Hold the C++ instance that we're wrapping.
     cdef Agent *thisptr
 
-    def __cinit__(self, genome, gen=0, correct=0, incorrect=0):
-        self.thisptr = new Agent(genome)
+    def __cinit__(self, genome, numSensors, numHidden, numMotors,
+                  deterministic, gen=0, correct=0, incorrect=0):
+        self.thisptr = new Agent(genome, numSensors, numHidden, numMotors,
+                                 deterministic)
         self.thisptr.gen = gen
         self.thisptr.correct = correct
         self.thisptr.incorrect = incorrect
@@ -164,7 +161,8 @@ cdef class Animat:
         del self.thisptr
 
     def __deepcopy__(self, memo):
-        return Animat(self.genome, gen=self.gen,
+        return Animat(self.genome, self.mNumSensors, self.mNumHidden,
+                      self.mNumMotors, self.mDeterministic, gen=self.gen,
                       correct=self.thisptr.correct,
                       incorrect=self.thisptr.incorrect)
 
@@ -172,13 +170,53 @@ cdef class Animat:
         return self.__deepcopy__()
 
     def __reduce__(self):
-        return (Animat, (self.thisptr.genome, self.thisptr.gen,
+        return (Animat, (self.thisptr.genome, self.thisptr.mNumSensors,
+                         self.thisptr.mNumHidden, self.thisptr.mNumMotors,
+                         self.thisptr.mDeterministic, self.thisptr.gen,
                          self.thisptr.correct, self.thisptr.incorrect))
 
     property genome:
 
         def __get__(self):
             return self.thisptr.genome
+
+    property numSensors:
+
+        def __get__(self):
+            return self.thisptr.mNumSensors
+
+
+    property numHidden:
+
+        def __get__(self):
+            return self.thisptr.mNumHidden
+
+
+    property numMotors:
+
+        def __get__(self):
+            return self.thisptr.mNumMotors
+
+
+    property numNodes:
+
+        def __get__(self):
+            return self.thisptr.mNumNodes
+
+    property numStates:
+
+        def __get__(self):
+            return self.thisptr.mNumStates
+
+    property deterministic:
+
+        def __get__(self):
+            return self.thisptr.mDeterministic
+
+    property bodyLength:
+
+        def __get__(self):
+            return self.thisptr.mBodyLength
 
     property gen:
 
@@ -218,20 +256,22 @@ cdef class Animat:
         self.thisptr.generatePhenotype()
 
     def mutate(self, mutProb, dupProb, delProb, minGenomeLength,
-               maxGenomeLength):
+               maxGenomeLength, minDupDelLength, maxDupDelLength):
         self.thisptr.mutateGenome(mutProb, dupProb, delProb, minGenomeLength,
-                                  maxGenomeLength);
+                                  maxGenomeLength, minDupDelLength,
+                                  maxDupDelLength);
 
-    def play_game(self, hit_multipliers, patterns, scramble_world=False):
+    def play_game(self, hit_multipliers, patterns, worldWidth, worldHeight,
+                  scramble_world=False):
         # Reset the animat's hit and miss counts every time the game is played.
         self.thisptr.correct = 0
         self.thisptr.incorrect = 0
         # Calculate the size of the state transition vector, which has an entry
         # for every node state of every timestep of every trial, and initialize.
-        num_trials = len(patterns) * 2 * WORLD_WIDTH 
-        num_timesteps = num_trials * WORLD_HEIGHT
+        num_trials = len(patterns) * 2 * worldWidth
+        num_timesteps = num_trials * worldHeight
         cdef UnsignedCharWrapper animat_states = \
-            UnsignedCharWrapper(num_timesteps * NUM_NODES)
+            UnsignedCharWrapper(num_timesteps * self.numNodes)
         cdef Int32Wrapper world_states = Int32Wrapper(num_timesteps)
         cdef Int32Wrapper animat_positions = Int32Wrapper(num_timesteps)
         cdef Int32Wrapper trial_results = Int32Wrapper(num_trials)
@@ -239,7 +279,8 @@ cdef class Animat:
         # the given transition vector with the states the animat went through.
         executeGame(animat_states.buf[0], world_states.buf[0],
                     animat_positions.buf[0], trial_results.buf[0],
-                    self.thisptr, hit_multipliers, patterns, scramble_world)
+                    self.thisptr, hit_multipliers, patterns, worldWidth,
+                    worldHeight, scramble_world)
         # Return the state transitions and world states as NumPy arrays.
         return (animat_states.asarray(), world_states.asarray(),
                 animat_positions.asarray(), trial_results.asarray())
