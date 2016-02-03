@@ -75,11 +75,11 @@ LOGGING_CONFIG:
     format: "%(asctime)s [%(name)s.%(funcName)s] %(levelname)s: %(message)s"
     # `level` can be "DEBUG", "INFO", "WARNING", "ERROR", or "CRITICAL".
     file:
-        enabled: true
+        enabled: false
         level: "INFO"
         filename: "pyphi.log"
     stdout:
-        enabled: true
+        enabled: false
         level: "INFO"
 # Log the current configuration when PyPhi is imported. This is useful for
 # checking what settings were used for a previous calculation.
