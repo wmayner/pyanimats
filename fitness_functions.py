@@ -237,10 +237,8 @@ def extrinsic_causes(ind, state):
     # TODO generate powerset once (change PyPhi to use indices in find_mice
     # purview restriction)?
     subsystem = ind.as_subsystem(state)
-    hidden_and_motors = subsystem.indices2nodes(_.HIDDEN_MOTOR_INDICES)
-    sensors = subsystem.indices2nodes(_.SENSOR_INDICES)
-    mechanisms = tuple(pyphi.utils.powerset(hidden_and_motors))
-    purviews = tuple(pyphi.utils.powerset(sensors))
+    mechanisms = tuple(pyphi.utils.powerset(_.HIDDEN_MOTOR_INDICES))
+    purviews = tuple(pyphi.utils.powerset(_.SENSOR_INDICES))
     mice = [subsystem.core_cause(mechanism, purviews=purviews)
             for mechanism in mechanisms]
     return list(filter(lambda m: m.phi > 0, mice))
