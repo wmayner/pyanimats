@@ -256,8 +256,8 @@ ex.__doc__ = \
 _register(data_function=extrinsic_causes)(ex)
 
 
-ex_wvn = world_vs_noise(transform=unq_concepts,
-                        reduce=phi_sum)(extrinsic_causes)
+ex_wvn = wvn(transform=unq_concepts, reduce=phi_sum,
+             upto=[3, 4, 5, 6, 7])(extrinsic_causes)
 ex_wvn.__name__ = 'ex_wvn'
 ex_wvn.__doc__ = \
     """Same as `ex` but counting the difference between the sum of φ of unique
@@ -296,9 +296,8 @@ sp.__doc__ = \
 _register(data_function=all_concepts)(sp)
 
 
-sp_wvn = world_vs_noise(transform=unq_concepts,
-                        reduce=phi_sum,
-                        upto_attr='HIDDEN_INDICES')(all_concepts)
+sp_wvn = wvn(transform=unq_concepts, reduce=phi_sum,
+             upto=[3, 4, 5])(all_concepts)
 sp_wvn.__name__ = 'sp_wvn'
 sp_wvn.__doc__ = \
     """Same as `sp` but counting the difference between the sum of φ of unique
@@ -329,9 +328,7 @@ bp.__doc__ = \
 _register(data_function=main_complex)(bp)
 
 
-bp_wvn = world_vs_noise(reduce=phi_sum,
-                        upto_attr='SENSOR_HIDDEN_INDICES',
-                        n=NUM_BIG_PHI_STATES_TO_COMPUTE)(main_complex)
+bp_wvn = wvn(reduce=phi_sum, upto=[3, 4, 5])(main_complex)
 bp_wvn.__name__ = 'bp_wvn'
 bp_wvn.__doc__ = \
     """Same as `bp` but counting the difference between world and noise."""
