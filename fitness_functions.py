@@ -6,20 +6,20 @@
 Fitness functions for driving animat evolution.
 """
 
-import textwrap
-WRAPPER = textwrap.TextWrapper(width=80)
-
-from collections import OrderedDict, Counter
-from functools import wraps
-import numpy as np
-from sklearn.metrics import mutual_info_score
-import pyphi
-
 import config
+import textwrap
+from collections import Counter, OrderedDict
+from functools import wraps
+
+import numpy as np
+import pyphi
+from sklearn.metrics import mutual_info_score
+
 import constants as _
 from utils import unique_rows
 
 
+WRAPPER = textwrap.TextWrapper(width=80)
 # Metadata associated with the available fitness functions.
 metadata = OrderedDict()
 # Mapping from parameter values to descriptive names
