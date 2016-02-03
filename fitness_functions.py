@@ -333,6 +333,27 @@ bp_wvn.__doc__ = \
 _register(data_function=main_complex)(bp_wvn)
 
 
+# World vs. noise state differentiation
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+def state_wvn(ind, upto=[3, 4, 5]):
+    """State differentiation (world vs. noise): Measures the number of
+    hidden-unit states that appear only in the world or only in the scrambled
+    world."""
+    if ind.cm.sum() == 0:
+        return 0
+    world = ind.play_game().animat_states
+    noise = ind.play_game(scrambled=True).animat_states
+    num_trials = world.shape[0]
+    return sum(
+        (len(unique_rows(world_trial, upto=upto)) -
+         len(unique_rows(noise_trial, upto=upto)))
+        for world_trial, noise_trial in zip(world, noise)
+    ) / num_trials
+_register()(state_wvn)
+
+
 # Matching
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

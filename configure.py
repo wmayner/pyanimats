@@ -114,6 +114,7 @@ def _update_constants():
         'sp_wvn': {'scale': 64 / 4, 'add': 64},
         'bp': {'scale': 64 / 4, 'add': 64},
         'bp_wvn': {'scale': 63 / 4, 'add': 64},
+        'state_wvn': {'scale': 64 / 8, 'add': 64},
         'mat': {'scale': 64 / 1, 'add': 64},
     }
     ff = config.FITNESS_FUNCTION
