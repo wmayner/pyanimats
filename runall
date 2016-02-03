@@ -5,16 +5,21 @@ HOUR=3600
 
 python="$HOME/.virtualenvs/pyanimats/bin/python"
 
-seed_start=0
-num_cores=14
+echo "PyAnimats multi-seed simulation ($(date))"
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+echo "Rebuilding animat C++ extension..."
+rm -r build && rm animat.cpython-34m.so 
+$python setup.py build_ext --inplace &> /dev/null && echo "...finished."
 
-fitness="mat"
+seed_start=0
+num_cores=1
+
+fitness="mi_wvn"
 ngen=60000
 taskname="3-4-6-5"
 jumpstart=0
 popsize=100
-paramfile="params.yml"
-init_genome_path="raw_results/0.0.16/nat/3-4-6-5/sensors-3/jumpstart-4/gen-60000/seed-8"
+init_genome_path=""
 num_samples=200
 log_freq=1
 
@@ -29,10 +34,6 @@ sensors=`$python ./pyanimats.py --num-sensors`
 version=`$python ./pyanimats.py --version`
 taskfile="tasks/"$taskname".yml"
 
-echo "PyAnimats multi-seed simulation ($(date))"
-echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-echo "Rebuilding animat C++ extension..."
-rm -r build && rm animat.cpython-34m.so && $python setup.py build_ext --inplace &> /dev/null && echo "...finished."
 echo ""
 echo "Sampling $num_samples genomes per save."
 echo "Printing status every $log_freq generations."
@@ -47,7 +48,7 @@ do
   # Get the output with the seed directory included.
   cur_output_dir="$output_dir/seed-$seed"
   # Build the command.
-  cmd="$python ./pyanimats.py $cur_output_dir $taskfile $paramfile -f $fitness -n $ngen -s $seed -j $jumpstart -p $popsize -i $num_samples -l $log_freq -t $snapshot_freq" 
+  cmd="$python ./pyanimats.py $cur_output_dir $taskfile -f $fitness -n $ngen -s $seed -j $jumpstart -p $popsize -i $num_samples -l $log_freq -t $snapshot_freq" 
   # Append the intial genome option if it is set.
   [[ ! -z $init_genome_path ]] && cmd="$cmd -g $init_genome_path"
   # Display command.
@@ -57,5 +58,5 @@ do
   # Ensure the output directory exists.
   mkdir -p $cur_output_dir
   # Run it!
-  unbuffer $cmd 2>&1 | tee "$cur_output_dir/output.log" && echo "[Seed $seed] Wrote results to '$cur_output_dir'." & 
+  unbuffer $cmd 2>&1 | tee "$cur_output_dir/output.log" && echo "[Seed $seed] Wrote results to '$cur_output_dir'." &
 done
