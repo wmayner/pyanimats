@@ -93,51 +93,75 @@ def avg_over_visited_states(shortcircuit=True, upto_attr=False,
     return decorator
 
 
-def world_vs_noise(shortcircuit=True, upto_attr=False, transform=False,
-                   reduce=sum, n=None):
-    """A decorator that returns the difference between the sum (or some other
-    reducing function) of the given function applied to unique states visited
-    in the world, and the same for noise.
+def wvn_trial(world_trial, noise_trial, state_data, transform, reduce,
+              upto):
+    if upto:
+        world_values = [state_data[tuple(state[upto])] for state in world_trial]
+        noise_values = [state_data[tuple(state[upto])] for state in noise_trial]
+    else:
+        world_values = [state_data[tuple(state)] for state in world_trial]
+        noise_values = [state_data[tuple(state)] for state in noise_trial]
+    # Map the values if necessary.
+    if transform:
+        world_values = transform(world_values)
+        noise_values = transform(noise_values)
+    # Reduce the values and take the difference.
+    return reduce(world_values) - reduce(noise_values)
 
-    The wrapped function must take an animat and a state, and return a
-    number.
+
+def wvn(transform=None, reduce=sum, upto=[1, 2, 3], shortcircuit=True,
+        shortcircuit_value=0.0):
+    """Compute the world vs. noise difference for a given function.
+
+    Args:
+        func: The function with which to compare world and noise. Must take an
+            individual and the individual's state.
+
+    Keyword Args:
+        transform (function): An optional function with which to transform the
+            values of ``func`` for a given trial.
+        reduce (function): The world values and noise values are reduced to a
+            single value with this function, and the difference between the
+            reduced world and noise values is returned. Defaults to the sum of
+            the values.
+        upto (list(int)): Consider states to be the same up to these indices.
+        shortcircuit (bool): If the animat has no connections, then immediately
+            return the ``shortcircuit_value``.
+        shortcircuit_value (float): The value to immediately return if
+            ``shortcircuit`` is enabled.
     """
     def decorator(func):
         @wraps(func)
         def wrapper(ind, **kwargs):
             # Short-circuit if the animat has no connections.
             if shortcircuit and ind.cm.sum() == 0:
-                return 0.0
-            upto = getattr(_, upto_attr) if upto_attr else False
+                return shortcircuit_value
             # Play the game and a scrambled version of it.
             world = ind.play_game().animat_states
             noise = ind.play_game(scrambled=True).animat_states
-            sort = n is not None
-            # Uniqify and flatten the world and noise state arrays.
-            world = unique_rows(world, upto=upto, sort=sort)[:n]
-            noise = unique_rows(noise, upto=upto, sort=sort)[:n]
-            # Get a flat list of all the the states.
-            combined = np.concatenate([world, noise])
-            combined = combined.reshape(-1, combined.shape[-1])
-            # Get unique world and noise states.
-            all_states, unq_idx = unique_rows(combined, upto=upto,
-                                              indices=True)
-            all_states = list(map(tuple, all_states))
-            # Compute the value for each unique state.
-            values = {state: func(ind, state, **kwargs)
-                      for state in all_states}
-            # Collect the world and noise values.
-            world_values = [values[all_states[unq_idx[i]]]
-                            for i in range(len(world))]
-            noise_values = [values[all_states[unq_idx[i]]]
-                            for i in range(len(world),
-                                           len(world) + len(noise))]
-            # Transform.
-            if transform:
-                world_values = transform(world_values)
-                noise_values = transform(noise_values)
-            # Reduce and take the difference.
-            return reduce(world_values) - reduce(noise_values)
+            # Uniqify all states up to the given indices.
+            w_and_n = np.concatenate([world, noise])
+            w_and_n = w_and_n.reshape(-1, w_and_n.shape[-1])
+            unq_w_and_n = unique_rows(w_and_n, upto=upto)
+            # Compute the wrapped function for the unique states.
+            # Cast uniqe states to tuples for hashing. Only include `upto`
+            # indices.
+            if upto:
+                state_data = {
+                    tuple(state[upto]): func(ind, tuple(state), **kwargs)
+                    for state in unq_w_and_n
+                }
+            else:
+                unq_w_and_n = map(tuple, unq_w_and_n)
+                state_data = {state: func(ind, state, **kwargs)
+                              for state in unq_w_and_n}
+            # Return the mean world vs. noise value over all trials.
+            num_trials = world.shape[0]
+            return sum(
+                wvn_trial(world_trial, noise_trial, state_data, transform,
+                          reduce, upto, **kwargs)
+                for world_trial, noise_trial in zip(world, noise)
+            ) / num_trials
         return wrapper
     return decorator
 
