@@ -125,6 +125,13 @@ class Individual:
     def __repr__(self):
         return str(self)
 
+    def __getattr__(self, name):
+        """Fall back to experiment attributes."""
+        # Note: this works as expected because `__getattr__` is only called as
+        # a last resort (unlike `__getattribute__`, which should rarely be
+        # overriden).
+        return getattr(self._experiment, name)
+
     @property
     def cm(self):
         """The animat's connectivity matrix."""
