@@ -28,9 +28,9 @@ fitness_exponent_scale: 1
 
 # Animat
 # ~~~~~~
-num_motors: 3
+num_sensors: 3
 num_hidden: 3
-num_sensors: 2
+num_motors: 2
 # Note: cannot be less than 3
 body_length: 3
 
