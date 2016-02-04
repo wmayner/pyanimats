@@ -123,61 +123,6 @@ class Individual:
         return str(self)
 
     @property
-    def genome(self):
-        """The animat's genome."""
-        return self.animat.genome
-
-    @property
-    def numSensors(self):
-        """The number of sensors in the animat."""
-        return self.animat.numSensors
-
-    @property
-    def numHidden(self):
-        """The number of hidden units in the animat."""
-        return self.animat.numHidden
-
-    @property
-    def numMotors(self):
-        """The number of motors in the animat."""
-        return self.animat.numMotors
-
-    @property
-    def numNodes(self):
-        """The number of nodes in the animat."""
-        return self.animat.numNodes
-
-    @property
-    def numStates(self):
-        """The number of possible states of the animat."""
-        return self.animat.numStates
-
-    @property
-    def bodyLength(self):
-        """The length of the animat's body."""
-        return self.animat.bodyLength
-
-    @property
-    def deterministic(self):
-        """Whether the animat's TPM was set to be deterministic."""
-        return self.animat.deterministic
-
-    @property
-    def gen(self):
-        """The generation this animat belongs to."""
-        return self.animat.gen
-
-    @gen.setter
-    def gen(self, value):
-        self.animat.gen = value
-
-    @property
-    def edges(self):
-        """The animat's edge list."""
-        self._update_phenotype()
-        return self.animat.edges
-
-    @property
     def cm(self):
         """The animat's connectivity matrix."""
         cm = np.zeros((self.num_nodes, self.num_nodes), int)
@@ -309,3 +254,19 @@ class Individual:
         mechanism = Mechanism(inputs=node.inputs,
                               tpm=logical_function)
         return mechanism
+
+
+def _animat_getter(name):
+    """Returns a function that gets ``name`` from the underlying animat."""
+    def getter(self):
+        return getattr(self._animat, name)
+    return getter
+
+# A list of animat attributes to expose as read-only properties
+_animat_properties = ['genome', 'num_sensors', 'num_hidden', 'num_motors',
+                      'num_nodes', 'num_states', 'deterministic',
+                      'body_length', 'correct', 'incorrect', 'edges', 'tpm']
+
+# Add underlying animat properties to the Individual class
+for name in _animat_properties:
+    setattr(Individual, name, property(_animat_getter(name)))
