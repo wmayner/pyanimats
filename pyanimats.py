@@ -56,23 +56,24 @@ Options:
 
 __version__ = '0.0.23'
 
+import config
+import cProfile
+import json
 import os
 import pickle
-import json
 import random
-import utils
-from time import time
 from pprint import pprint
+from time import time
+
 import numpy as np
-import cProfile
-
-import fitness_functions
-from individual import Individual
 from deap import base, tools
-import config
-import constants as _
-import configure
+from docopt import docopt
 
+import configure
+import constants as _
+import fitness_functions
+import utils
+from individual import Individual
 
 PROFILING = False
 
@@ -361,7 +362,6 @@ def main(arguments):
               logbook=logbook, hof=hall_of_fame, elapsed=(sim_end - sim_start))
 
 
-from docopt import docopt
 if __name__ == '__main__':
     # Get command-line arguments from docopt.
     arguments = docopt(__doc__, version=__version__)
