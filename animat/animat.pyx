@@ -182,79 +182,60 @@ cdef class Animat:
                          self.thisptr.correct, self.thisptr.incorrect))
 
     property genome:
-
         def __get__(self):
             return self.thisptr.genome
 
-    property numSensors:
-
+    property num_sensors:
         def __get__(self):
             return self.thisptr.mNumSensors
 
-
-    property numHidden:
-
+    property num_hidden:
         def __get__(self):
             return self.thisptr.mNumHidden
 
-
-    property numMotors:
-
+    property num_motors:
         def __get__(self):
             return self.thisptr.mNumMotors
 
-
-    property numNodes:
-
+    property num_nodes:
         def __get__(self):
             return self.thisptr.mNumNodes
 
-    property numStates:
-
+    property num_states:
         def __get__(self):
             return self.thisptr.mNumStates
 
     property deterministic:
-
         def __get__(self):
             return self.thisptr.mDeterministic
 
-    property bodyLength:
-
+    property body_length:
         def __get__(self):
             return self.thisptr.mBodyLength
 
     property gen:
-
         def __get__(self):
             return self.thisptr.gen
-
         def __set__(self, v):
             self.thisptr.gen = v
 
     property correct:
-
         def __get__(self):
             return self.thisptr.correct
-
         def __set__(self, v):
             self.thisptr.correct = v
 
     property incorrect:
-
         def __get__(self):
             return self.thisptr.incorrect
-
         def __set__(self, v):
             self.thisptr.incorrect = v
 
     property edges:
-
         def __get__(self):
             return self.thisptr.getEdges()
 
     property tpm:
-
         def __get__(self):
             return self.thisptr.getTransitions()
 
