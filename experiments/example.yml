@@ -1,0 +1,65 @@
+# Example PyAnimats experiment
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# See documentation for the `Experiment` object for more info.
+---
+# Simulation
+# ~~~~~~~~~~
+seed: 0
+snapshot_frequency: 7200
+log_freq: 1
+min_snapshots: 0
+num_samples: 100
+jumpstart: 0
+version: 2
+profile: 'profiling/profileNew.pstats'
+num_cores: 1
+
+# Evolution
+# ~~~~~~~~~
+fitness_function: 'mi'
+ngen: 100
+# Must be a path to a `lineages.pkl` file, or `false`
+init_genome_path: false
+init_start_codons: 20
+popsize: 100
+fitness_base: 1.02
+fitness_exponent_add: 0
+fitness_exponent_scale: 1
+
+# Animat
+# ~~~~~~
+num_motors: 3
+num_hidden: 3
+num_sensors: 2
+# Note: cannot be less than 3
+body_length: 3
+
+# Environment
+# ~~~~~~~~~~~
+task: 
+  - [ 1, '1110000000000000']
+  - [-1, '1111000000000000']
+  - [ 1, '1111110000000000']
+  - [-1, '1111100000000000']
+world_width: 16
+world_height: 36
+scramble_world: false
+
+# Mutation
+# ~~~~~~~~
+mutation_prob: 0.005
+deletion_prob: 0.02
+duplication_prob: 0.05
+max_dup_del_width: 511
+max_genome_length: 10000
+min_dup_del_width: 15
+min_genome_length: 1000
+
+# Genetics
+# ~~~~~~~~
+default_init_genome_value: 127
+default_init_genome_length: 5000
+# Interpret the genome as specifying a deterministic TPM
+deterministic: true
+# TODO parametrize this in the C++?
+# start_codon: [42, 213]
