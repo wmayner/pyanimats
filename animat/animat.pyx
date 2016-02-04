@@ -258,14 +258,13 @@ cdef class Animat:
         def __get__(self):
             return self.thisptr.getTransitions()
 
-    def update_phenotype(self):
-        self.thisptr.generatePhenotype()
-
     def mutate(self, mutProb, dupProb, delProb, minGenomeLength,
                maxGenomeLength, minDupDelLength, maxDupDelLength):
         self.thisptr.mutateGenome(mutProb, dupProb, delProb, minGenomeLength,
                                   maxGenomeLength, minDupDelLength,
                                   maxDupDelLength);
+        # Update the animat's phenotype after changing the genome.
+        self.thisptr.generatePhenotype();
 
     def play_game(self, hit_multipliers, patterns, worldWidth, worldHeight,
                   scramble_world=False):
