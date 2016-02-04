@@ -219,10 +219,9 @@ class Individual:
 
     def start_codons(self):
         """Return the locations of start codons in the genome, if any."""
-        start_codon = [42, 213]
         genome = np.array(self.genome)
-        window = utils.rolling_window(genome, len(start_codon))
-        occurrences = np.all((window == start_codon), axis=1)
+        window = utils.rolling_window(genome, len(constants.START_CODON))
+        occurrences = np.all((window == constants.START_CODON), axis=1)
         return np.where(occurrences)[0]
 
     def as_subsystem(self, state=None):
