@@ -209,11 +209,10 @@ class Individual:
 
     def mutate(self):
         """Mutate the animat's genome in-place."""
-        self._animat.mutate(config.MUTATION_PROB, config.DUPLICATION_PROB,
-                           config.DELETION_PROB, config.MIN_GENOME_LENGTH,
-                           config.MAX_GENOME_LENGTH, config.MIN_DUP_DEL_WIDTH,
-                           config.MAX_DUP_DEL_WIDTH)
-        self._dirty_phenotype = True
+        self._animat.mutate(self.mutation_prob, self.duplication_prob,
+                            self.deletion_prob, self.min_genome_length,
+                            self.max_genome_length, self.min_dup_del_width,
+                            self.max_dup_del_width)
         self._dirty_network = True
 
     def play_game(self, hit_multipliers, block_patterns, world_width,
