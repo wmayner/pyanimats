@@ -61,8 +61,8 @@ class ExponentialFitness:
             config.FITNESS_EXPONENT_ADD + config.FITNESS_EXPONENT_SCALE * v)
 
 
-Game = namedtuple('Game', ['animat_states', 'world_states', 'animat_positions',
-                           'trial_results'])
+Game = namedtuple('Game', ['animat_states', 'world_states',
+                           'animat_positions', 'trial_results'])
 Mechanism = namedtuple('Mechanism', ['inputs', 'tpm'])
 
 
@@ -259,8 +259,7 @@ class Individual:
             on_mapping = [mapping for mapping in logical_function
                           if mapping[1]]
             logical_function = [off_mapping, on_mapping]
-        mechanism = Mechanism(inputs=node.inputs,
-                              tpm=logical_function)
+        mechanism = Mechanism(inputs=node.inputs, tpm=logical_function)
         return mechanism
 
 
