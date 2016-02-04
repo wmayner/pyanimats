@@ -9,6 +9,7 @@ pytest==2.8.7
 PyYAML==3.11
 scikit-learn==0.17
 semantic-version==2.4.2
+munch==2.0.4
 # Specific pyphi commit
 git+https://github.com/wmayner/pyphi.git@96c201c#egg=pyphi
 #
