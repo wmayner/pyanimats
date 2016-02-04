@@ -10,7 +10,6 @@ log_freq: 1
 min_snapshots: 0
 num_samples: 100
 jumpstart: 0
-version: 2
 profile: 'profiling/profileNew.pstats'
 num_cores: 1
 
