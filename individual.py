@@ -180,7 +180,7 @@ class Individual:
     @property
     def cm(self):
         """The animat's connectivity matrix."""
-        cm = np.zeros((self.numNodes, self.numNodes), int)
+        cm = np.zeros((self.num_nodes, self.num_nodes), int)
         cm[list(zip(*self.edges))] = 1
         return cm
 
@@ -227,21 +227,21 @@ class Individual:
     def as_subsystem(self, state=None):
         """Return the PyPhi subsystem consisting of all the animat's nodes."""
         if state is None:
-            state = [0] * self.numNodes
-        return pyphi.Subsystem(self.network, state, range(self.numNodes))
+            state = [0] * self.num_nodes
+        return pyphi.Subsystem(self.network, state, range(self.num_nodes))
 
     def brain(self, state=None):
         """Return the PyPhi subsystem consisting of the animat's hidden
         units."""
         if state is None:
-            state = [0] * self.numNodes
+            state = [0] * self.num_nodes
         return pyphi.Subsystem(self.network, state, _.HIDDEN_INDICES)
 
     def brain_and_sensors(self, state=None):
         """Return the PyPhi subsystem consisting of the animat's hidden
         units and sensors."""
         if state is None:
-            state = [0] * self.numNodes
+            state = [0] * self.num_nodes
         return pyphi.Subsystem(
             self.network, state, _.HIDDEN_INDICES + _.SENSOR_INDICES)
 
@@ -249,7 +249,7 @@ class Individual:
         """Return the PyPhi subsystem consisting of the animat's hidden
         units and motors."""
         if state is None:
-            state = [0] * self.numNodes
+            state = [0] * self.num_nodes
         return pyphi.Subsystem(
             self.network, state, _.HIDDEN_INDICES + _.MOTOR_INDICES)
 
@@ -276,7 +276,7 @@ class Individual:
         assert self.animat.correct + self.animat.incorrect == _.NUM_TRIALS
         return Game(animat_states=game[0].reshape(_.NUM_TRIALS,
                                                   world_height,
-                                                  self.numNodes),
+                                                  self.num_nodes),
                     world_states=game[1].reshape(_.NUM_TRIALS,
                                                  world_height),
                     animat_positions=game[2].reshape(_.NUM_TRIALS,
