@@ -18,7 +18,7 @@ import pyphi
 import config
 import constants as _
 import utils
-from animat import Animat
+from animat import cAnimat
 
 
 class ExponentialFitness:

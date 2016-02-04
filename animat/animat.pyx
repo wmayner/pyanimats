@@ -151,7 +151,7 @@ cdef class Int32Wrapper:
 
 # TODO(wmayner) does this help?
 @cython.freelist(60000)
-cdef class Animat:
+cdef class cAnimat:
     # Hold the C++ instance that we're wrapping.
     cdef Agent *thisptr
 
@@ -167,7 +167,7 @@ cdef class Animat:
         del self.thisptr
 
     def __deepcopy__(self, memo):
-        return Animat(self.genome, self.mNumSensors, self.mNumHidden,
+        return cAnimat(self.genome, self.mNumSensors, self.mNumHidden,
                       self.mNumMotors, self.mDeterministic, gen=self.gen,
                       correct=self.thisptr.correct,
                       incorrect=self.thisptr.incorrect)
@@ -176,7 +176,7 @@ cdef class Animat:
         return self.__deepcopy__()
 
     def __reduce__(self):
-        return (Animat, (self.thisptr.genome, self.thisptr.mNumSensors,
+        return (cAnimat, (self.thisptr.genome, self.thisptr.mNumSensors,
                          self.thisptr.mNumHidden, self.thisptr.mNumMotors,
                          self.thisptr.mDeterministic, self.thisptr.gen,
                          self.thisptr.correct, self.thisptr.incorrect))
