@@ -142,8 +142,7 @@ class Individual:
     @property
     def tpm(self):
         """The animats's TPM."""
-        self._update_phenotype()
-        return np.array(self.animat.tpm).astype(float)
+        return np.array(self._animat.tpm).astype(float)
 
     @property
     def network(self):
@@ -157,18 +156,18 @@ class Individual:
     @property
     def correct(self):
         """The number of correct catches/avoidances in the game."""
-        return self.animat.correct
+        return self._animat.correct
 
     @property
     def incorrect(self):
         """The number of incorrect catches/avoidances in the game."""
-        return self.animat.incorrect
+        return self._animat.incorrect
 
     def __deepcopy__(self, memo):
         # Don't copy the underlying animat, parent, or PyPhi network.
-        copy = Individual(genome=self.animat.genome, parent=self.parent)
+        copy = Individual(genome=self._animat.genome, parent=self.parent)
         for key, val in self.__dict__.items():
-            if key not in ('animat', 'parent', '_network', '_dirty_network'):
+            if key not in ('_animat', 'parent', '_network', '_dirty_network'):
                 copy.__dict__[key] = deepcopy(val, memo)
         return copy
 
@@ -210,7 +209,7 @@ class Individual:
 
     def mutate(self):
         """Mutate the animat's genome in-place."""
-        self.animat.mutate(config.MUTATION_PROB, config.DUPLICATION_PROB,
+        self._animat.mutate(config.MUTATION_PROB, config.DUPLICATION_PROB,
                            config.DELETION_PROB, config.MIN_GENOME_LENGTH,
                            config.MAX_GENOME_LENGTH, config.MIN_DUP_DEL_WIDTH,
                            config.MAX_DUP_DEL_WIDTH)
@@ -225,10 +224,10 @@ class Individual:
         self._update_phenotype()
         if scrambled is None:
             scrambled = config.SCRAMBLE_WORLD
-        game = self.animat.play_game(hit_multipliers, block_patterns,
+        game = self._animat.play_game(hit_multipliers, block_patterns,
                                      world_width, world_height,
                                      scramble_world=scrambled)
-        assert self.animat.correct + self.animat.incorrect == _.NUM_TRIALS
+        assert self._animat.correct + self._animat.incorrect == _.NUM_TRIALS
         return Game(animat_states=game[0].reshape(_.NUM_TRIALS,
                                                   world_height,
                                                   self.num_nodes),
@@ -240,10 +239,10 @@ class Individual:
 
     def lineage(self):
         """Return a generator for the lineage of this individual."""
-        yield self.animat
+        yield self._animat
         ancestor = self.parent
         while ancestor is not None:
-            yield ancestor.animat
+            yield ancestor._animat
             ancestor = ancestor.parent
 
     def mechanism(self, node_index, separate_on_off=False):
