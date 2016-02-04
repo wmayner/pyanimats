@@ -215,25 +215,22 @@ class Individual:
                             self.max_dup_del_width)
         self._dirty_network = True
 
-    def play_game(self, hit_multipliers, block_patterns, world_width,
-                  world_height, scrambled=None):
+    def play_game(self, scrambled=None):
         """Return the list of state transitions the animat goes through when
-        playing the game. Optionally also returns the world states and the
-        positions of the animat."""
-        self._update_phenotype()
+        playing the game."""
         if scrambled is None:
-            scrambled = config.SCRAMBLE_WORLD
-        game = self._animat.play_game(hit_multipliers, block_patterns,
-                                     world_width, world_height,
-                                     scramble_world=scrambled)
-        assert self._animat.correct + self._animat.incorrect == _.NUM_TRIALS
-        return Game(animat_states=game[0].reshape(_.NUM_TRIALS,
-                                                  world_height,
+            scrambled = self.scramble_world
+        game = self._animat.play_game(
+            self.hit_multipliers, self.block_patterns, self.world_width,
+            self.world_height, scramble_world=scrambled)
+        assert self._animat.correct + self._animat.incorrect == self.num_trials
+        return Game(animat_states=game[0].reshape(self.num_trials,
+                                                  self.world_height,
                                                   self.num_nodes),
-                    world_states=game[1].reshape(_.NUM_TRIALS,
-                                                 world_height),
-                    animat_positions=game[2].reshape(_.NUM_TRIALS,
-                                                     world_height),
+                    world_states=game[1].reshape(self.num_trials,
+                                                 self.world_height),
+                    animat_positions=game[2].reshape(self.num_trials,
+                                                     self.world_height),
                     trial_results=game[3])
 
     def lineage(self):
