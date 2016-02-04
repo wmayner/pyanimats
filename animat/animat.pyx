@@ -257,7 +257,7 @@ cdef class cAnimat:
         num_trials = len(patterns) * 2 * worldWidth
         num_timesteps = num_trials * worldHeight
         cdef UnsignedCharWrapper animat_states = \
-            UnsignedCharWrapper(num_timesteps * self.numNodes)
+            UnsignedCharWrapper(num_timesteps * self.num_nodes)
         cdef Int32Wrapper world_states = Int32Wrapper(num_timesteps)
         cdef Int32Wrapper animat_positions = Int32Wrapper(num_timesteps)
         cdef Int32Wrapper trial_results = Int32Wrapper(num_trials)
