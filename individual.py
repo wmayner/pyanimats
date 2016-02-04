@@ -101,11 +101,14 @@ class Individual:
             single game. Updated every time a game is played.
     """
 
-    def __init__(self, genome, numSensors, numHidden, numMotors, deterministic,
-                 parent=None, gen=0):
+    def __init__(self, experiment, genome, parent=None, gen=0):
+        self._experiment = experiment
+        self._animat = cAnimat(genome,
+                               experiment.num_sensors,
+                               experiment.num_hidden,
+                               experiment.num_motors,
+                               experiment.deterministic)
         self.parent = parent
-        self.animat = Animat(genome, numSensors, numHidden, numMotors,
-                             deterministic)
         self.gen = gen
         self.fitness = ExponentialFitness()
         self._network = False
