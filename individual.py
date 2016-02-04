@@ -209,15 +209,6 @@ class Individual:
         """The number of incorrect catches/avoidances in the game."""
         return self.animat.incorrect
 
-    def _update_phenotype(self):
-        """Update the animat's phenotype if necessary. Returns whether an
-        update was performed."""
-        if self._dirty_phenotype:
-            self.animat.update_phenotype()
-            self._dirty_phenotype = False
-            return True
-        return False
-
     def __deepcopy__(self, memo):
         # Don't copy the underlying animat, parent, or PyPhi network.
         copy = Individual(genome=self.animat.genome, parent=self.parent)
