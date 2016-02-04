@@ -3,9 +3,7 @@
 # constants.py
 
 """
-Container for static constants and values derived from parameters.
-
-Populated by :mod:`configure`.
+Container for package-level constants.
 """
 
 import math
