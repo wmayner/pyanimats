@@ -49,10 +49,10 @@ scramble_world: false
 mutation_prob: 0.005
 deletion_prob: 0.02
 duplication_prob: 0.05
-max_dup_del_width: 511
-max_genome_length: 10000
 min_dup_del_width: 15
+max_dup_del_width: 511
 min_genome_length: 1000
+max_genome_length: 10000
 
 # Genetics
 # ~~~~~~~~
