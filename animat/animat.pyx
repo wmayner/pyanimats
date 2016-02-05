@@ -159,6 +159,8 @@ cdef class cAnimat:
                   deterministic, gen=0, correct=0, incorrect=0):
         self.thisptr = new Agent(genome, numSensors, numHidden, numMotors,
                                  deterministic)
+        self.thisptr.generatePhenotype()
+
         self.thisptr.gen = gen
         self.thisptr.correct = correct
         self.thisptr.incorrect = incorrect
