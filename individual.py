@@ -16,7 +16,7 @@ import functools
 import pyphi
 
 import config
-import constants as _
+import constants
 import utils
 from animat import cAnimat
 
