@@ -72,6 +72,7 @@ from deap import base, tools
 import config
 import constants as _
 import configure
+import animat
 
 
 PROFILING = False
@@ -263,6 +264,10 @@ def main(arguments):
 
     # Simulation
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    # Seed the C++ and Python RNGs
+    animat.seed(config.SEED)
+    random.seed(config.SEED)
 
     def multi_fit_evaluate(pop, gen):
         fitnesses = toolbox.map(toolbox.evaluate, pop)
