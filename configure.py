@@ -111,7 +111,7 @@ def _update_constants():
         'ex': {'scale': 64 / 4, 'add': 64},
         'ex_wvn': {'scale': 64 / 1, 'add': 64},
         'sp': {'scale': 64 / 4, 'add': 64},
-        'sp_wvn': {'scale': 64 / 4, 'add': 64},
+        'sp_wvn': {'scale': 64 / 1, 'add': 64},
         'bp': {'scale': 64 / 4, 'add': 64},
         'bp_wvn': {'scale': 63 / 4, 'add': 64},
         'state_wvn': {'scale': 64 / 8, 'add': 64},
