@@ -442,11 +442,11 @@ def mat(ind):
 
         ϕ * (Σφ'(W) - Σφ'(N)),
 
-    where ϕ is just the animat's ϕ-value (averaged over the 5 most-common
-    unique states that it visits during a game), Σφ'(W) is the sum of φ for
-    each *unique* concept that the animat obtains when presented with a
-    stimulus set from the world, and Σφ'(N) is the same but for a stimulus set
-    that has been scrambled first in space and then in time."""
+    where ϕ is the animat's ϕ-value (averaged over the *unique* states that it
+    visits during a game), Σφ'(W) is the sum of φ for each *unique* concept
+    that the animat obtains when presented with a stimulus set from the world,
+    and Σφ'(N) is the same but for a stimulus set that has been scrambled first
+    in space and then in time."""
     # Short-circuit if the animat has no connections.
     if ind.cm.sum() == 0:
         return (0, 0, 0)
