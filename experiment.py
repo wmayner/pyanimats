@@ -86,18 +86,20 @@ def _derive_params(d):
     num_nodes = d['num_sensors'] + d['num_hidden'] + d['num_motors']
     # Load initial genome if provided.
     if d['init_genome_path']:
-        path = os.path.join(d['init_genome'], 'lineages.pkl')
+        path = os.path.join(d['init_genome_path'], 'lineages.pkl')
         with open(path, 'rb') as f:
             lineages = pickle.load(f)
             # Use the genome of the best individual of the most recent
             # generation.
             init_genome = lineages[0][0].genome
-    # If no initial genome was given, then the we inject start codons.
-    elif d['init_start_codons']:
-        init_genome = copy(constants.DEFAULT_INIT_GENOME)
-        gap = len(init_genome) // d['init_start_codons']
-        for i in range(d['init_start_codons']):
-            init_genome[(i * gap):(i * gap + 1)] = constants.START_CODON
+    else:
+        # Use the default genome and inject start codons.
+        init_genome = ([d['default_init_genome_value']] *
+                       d['default_init_genome_length'])
+        if d['init_start_codons']:
+            gap = len(init_genome) // d['init_start_codons']
+            for i in range(d['init_start_codons']):
+                init_genome[(i * gap):(i * gap + 1)] = constants.START_CODON
     # If no fitness transform was given, use the defaults.
     if 'fitness_transform' not in d:
         # The fitness scale of mutual information depends on the number of
