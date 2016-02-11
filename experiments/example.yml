@@ -1,64 +1,97 @@
 # Example PyAnimats experiment
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # See documentation for the `Experiment` object for more info.
 ---
 # Simulation
-# ~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# The RNG seed to use.
 seed: 0
-snapshot_frequency: 7200
-log_freq: 1
+# Length of snapshots interval in minutes.
+snapshot_frequency: 120
+# Generational interval at which to print evolution status to the screen.
+log_frequency: 1
+# Minimum number of snapshots.
 min_snapshots: 0
+# Number of genomes to save over the course of the evolution
 num_samples: 100
-jumpstart: 0
-profile: 'profiling/profileNew.pstats'
+# Number of CPU cores to use.
 num_cores: 1
 
 # Evolution
-# ~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# The fitness function to evolve to.
 fitness_function: 'mi'
+# Number of generations to evolve.
 ngen: 100
-# Must be a path to a `lineages.pkl` file, or `false`
+# Must be a path to a `lineages.pkl` file, or `false`.
 init_genome_path: false
-init_start_codons: 20
+# Number of start codons to inject into the initial genome.
+# Note: this has no effect if loading from a snapshot.
+init_start_codons: 0
+# Size of the population.
 popsize: 100
-fitness_base: 1.02
-fitness_exponent_add: 0
-fitness_exponent_scale: 1
+# Raw fitness values are scaled exponentially according to the formula
+#   F(R) = B^(S*R + A)
+fitness_base: 1.02         # B
+fitness_exponent_add: 0    # A
+fitness_exponent_scale: 1  # S
 
 # Animat
-# ~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 num_sensors: 3
 num_hidden: 3
 num_motors: 2
-# Note: cannot be less than 3
+# Note: cannot be less than 3.
 body_length: 3
 
 # Environment
-# ~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# The task the animats will be presented width.
+# - Each item in the list specifies a hit multiplier and a block pattern. 
+# - '1' indicates a block cell, '0' indicates empty space. 
+# - The blocks fall toward the animat from the top of the environment to the
+#   bottom.
+# - Each block pattern is presented in each possible initial position twice:
+#   once falling to the left (shifting one cell down and one cell left), and
+#   once falling to the right (shifting one cell down and one cell right).
+# - If the animat overlaps with a block cell at the bottom, the trial is
+#   counted as a 'hit'. 
+# - The hit multiplier is added to the animat's score if there was a hit, and
+#   subtracted if there wasn't.
 task: 
   - [ 1, '1110000000000000']
   - [-1, '1111000000000000']
   - [ 1, '1111110000000000']
   - [-1, '1111100000000000']
+# The width of the animats' environment.
 world_width: 16
+# The height of the animats' environment.
 world_height: 36
-scramble_world: false
 
 # Mutation
-# ~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Probability of a point mutation at any point in the genome.
 mutation_prob: 0.005
+# Probability of a deletion.
 deletion_prob: 0.02
+# Probability of a duplication.
 duplication_prob: 0.05
+# Minimum duplication or deletion section width.
 min_dup_del_width: 15
+# Maximum duplication or deletion section width.
 max_dup_del_width: 511
+# Deletions will not occur if the genome is shorter than this.
 min_genome_length: 1000
+# Duplications will not occur if the genome is longer than this.
 max_genome_length: 10000
 
 # Genetics
-# ~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Value of every nucleotide initially.
 default_init_genome_value: 127
+# Initial length of the genome.
 default_init_genome_length: 5000
-# Interpret the genome as specifying a deterministic TPM
+# Interpret the genome as specifying a deterministic TPM.
 deterministic: true
 # TODO parametrize this in the C++?
 # start_codon: [42, 213]
