@@ -19,7 +19,8 @@ import constants as _
 from utils import unique_rows
 
 
-WRAPPER = textwrap.TextWrapper(width=80)
+_WRAPPER_WIDTH = 72
+_base_wrapper = textwrap.TextWrapper(width=_WRAPPER_WIDTH)
 # Metadata associated with the available fitness functions.
 metadata = OrderedDict()
 # Mapping from parameter values to descriptive names
@@ -48,19 +49,32 @@ def _register(data_function=None):
     return wrapper
 
 
+def _docstring_dedent(docstring):
+    """Dedents like ``textwrap.dedent`` but ignores the first line."""
+    lines = docstring.split('\n')
+    return lines[0].strip() + '\n' + textwrap.dedent('\n'.join(lines[1:]))
+
+
+def _wrap_docstring(docstring, width=_WRAPPER_WIDTH, indent='  '):
+    """Wraps a docstring with the given indent and width."""
+    wrapper = textwrap.TextWrapper(width=width, initial_indent=indent,
+                                   subsequent_indent=indent)
+    # Dedent and split into paragraphs
+    paragraphs = _docstring_dedent(docstring).split('\n\n')
+    return '\n\n'.join(map(wrapper.fill, paragraphs))
+
+
 def print_functions():
-    """Display a list of available fitness functions with their
-    descriptions."""
-    for name, data in metadata.items():
-        print('\n' + name + '\n    ' + data['doc'])
-    print('\n' + WRAPPER.fill(
-        'NB: In order to make selection pressure more even, the fitness '
-        'function used in the selection algorithm is transformed so that it '
-        'is exponential, according to the formula F(R) = B^(S*R + A), where '
-        'R is one of the “raw” fitness values described above, and where B, '
-        'S, A are controlled with the FITNESS_BASE, FITNESS_EXPONENT_SCALE, '
-        'and FITNESS_EXPONENT_ADD parameters, respectively.'))
-    print('')
+    """Display a list of available fitness functions."""
+    print('\n\n'.join(name + '\n' + _wrap_docstring(data['doc'])
+                      for name, data in metadata.items()))
+    print('\n' + _base_wrapper.fill(textwrap.dedent("""\
+        Note: In order to make selection pressure more even, the fitness
+        function used in the selection algorithm is transformed so that it is
+        exponential, according to the formula F(R) = B^(S*R + A), where R is
+        one of the “raw” fitness values described above, and where B, S, A are
+        controlled with the FITNESS_BASE, FITNESS_EXPONENT_SCALE, and
+        FITNESS_EXPONENT_ADD parameters, respectively.\n""")))
 
 
 # Helper functions
@@ -246,20 +260,19 @@ def extrinsic_causes(ind, state):
 
 ex = avg_over_visited_states(transform=phi_sum)(extrinsic_causes)
 ex.__name__ = 'ex'
-ex.__doc__ = \
-    """Extrinsic cause information: Animats are evaluated based on the sum of φ
-    for core causes that are “about” the sensors (the purview is a subset of
-    the sensors). This sum is averaged over every unique state the animat
-    visits during a game."""
+ex.__doc__ = """Extrinsic cause information: Animats are evaluated based on the
+    sum of φ for core causes that are “about” the sensors (the purview is a
+    subset of the sensors). This sum is averaged over every unique state the
+    animat visits during a game."""
 _register(data_function=extrinsic_causes)(ex)
 
 
 ex_wvn = wvn(transform=unq_concepts, reduce=phi_sum,
              upto=[3, 4, 5, 6, 7])(extrinsic_causes)
 ex_wvn.__name__ = 'ex_wvn'
-ex_wvn.__doc__ = \
-    """Same as `ex` but counting the difference between the sum of φ of unique
-    concepts that appear in the world and a scrambled version of it."""
+ex_wvn.__doc__ = """Same as `ex` but counting the difference between the sum of
+    φ of unique concepts that appear in the world and a scrambled version of
+    it."""
 _register(data_function=extrinsic_causes)(ex_wvn)
 
 
@@ -282,24 +295,23 @@ def all_concepts(ind, state):
 sp = avg_over_visited_states(transform=phi_sum,
                              upto_attr='HIDDEN_INDICES')(all_concepts)
 sp.__name__ = 'sp'
-sp.__doc__ = \
-    """Sum of φ: Animats are evaluated based on the sum of φ for all the
-    concepts of the animat's hidden units, or “brain”, averaged over the unique
-    states the animat visits during a game, where uniqueness is considered up
-    to the state of the hidden units (since the entire animat is the system, no
-    background conditions need to be considered, and since the sensors lack
-    incoming connections and the motors lack outgoing, the only possible
-    concepts are therefore those whose mechanisms are a subset of the hidden
-    units)."""
+sp.__doc__ = """Sum of φ: Animats are evaluated based on the sum of φ for all
+    the concepts of the animat's hidden units, or “brain”, averaged over the
+    unique states the animat visits during a game, where uniqueness is
+    considered up to the state of the hidden units (since the entire animat is
+    the system, no background conditions need to be considered, and since the
+    sensors lack incoming connections and the motors lack outgoing, the only
+    possible concepts are therefore those whose mechanisms are a subset of the
+    hidden units)."""
 _register(data_function=all_concepts)(sp)
 
 
 sp_wvn = wvn(transform=unq_concepts, reduce=phi_sum,
              upto=[3, 4, 5])(all_concepts)
 sp_wvn.__name__ = 'sp_wvn'
-sp_wvn.__doc__ = \
-    """Same as `sp` but counting the difference between the sum of φ of unique
-    concepts that appear in the world and a scrambled version of it."""
+sp_wvn.__doc__ = """Same as `sp` but counting the difference between the sum of
+    φ of unique concepts that appear in the world and a scrambled version of
+    it."""
 _register(data_function=all_concepts)(sp_wvn)
 
 
@@ -312,30 +324,29 @@ def main_complex(ind, state):
 
 # We compute only the N most-frequent states of those visited for performance
 # reasons. Ideally we would consider every unique state.
-NUM_BIG_PHI_STATES_TO_COMPUTE = None
+NUM_BIG_PHI_STATES_TO_COMPUTE = 5
 
 bp = avg_over_visited_states(transform=lambda x: x.phi,
                              upto_attr='SENSOR_HIDDEN_INDICES',
                              n=NUM_BIG_PHI_STATES_TO_COMPUTE)(main_complex)
 bp.__name__ = 'bp'
-bp.__doc__ = \
-    """ϕ: Animats are evaluated based on the ϕ-value of their brains, averaged
-    over the {} most-common unique states the animat visits during a game
-    (where uniqueness is considered up to the state of the sensors and hidden
-    units).""".format(NUM_BIG_PHI_STATES_TO_COMPUTE)
+bp.__doc__ = """Animats are evaluated based on the ϕ-value of their brains,
+    averaged over the {}unique states the animat visits during a game (where
+    uniqueness is considered up to the state of the sensors and hidden
+    units).""".format(str(NUM_BIG_PHI_STATES_TO_COMPUTE) + ' most-common '
+                      if NUM_BIG_PHI_STATES_TO_COMPUTE else '')
 _register(data_function=main_complex)(bp)
 
 
 bp_wvn = wvn(reduce=phi_sum, upto=[3, 4, 5])(main_complex)
 bp_wvn.__name__ = 'bp_wvn'
-bp_wvn.__doc__ = \
-    """Same as `bp` but counting the difference between world and noise."""
+bp_wvn.__doc__ = """Same as `bp` but counting the difference between world and
+    noise."""
 _register(data_function=main_complex)(bp_wvn)
 
 
 # World vs. noise state differentiation
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 
 def state_wvn(ind, upto=[3, 4, 5]):
     """State differentiation (world vs. noise): Measures the number of
@@ -351,7 +362,7 @@ def state_wvn(ind, upto=[3, 4, 5]):
          len(unique_rows(noise_trial, upto=upto)))
         for world_trial, noise_trial in zip(world, noise)
     ) / num_trials
-_register()(state_wvn)
+_register(data_function=main_complex)(state_wvn)
 
 
 # Matching
@@ -427,7 +438,7 @@ def mat(ind):
     """Matching: Animats are evaluated based on how well they “match” their
     environment. Roughly speaking, this captures the degree to which their
     conceptual structure “resonates” with statistical regularities in the
-    world. This quantity is given by:
+    world. This quantity is given by
 
         ϕ * (Σφ'(W) - Σφ'(N)),
 
@@ -475,7 +486,6 @@ def mat(ind):
     # Now we calculate the matching terms for many stimulus sets (each trial)
     # which are later averaged to obtain the matching value for a “typical”
     # stimulus set.
-    # TODO weight each concept by average big phi of its states?
     raw_matching = np.mean([
         matching(W, N, constellations) for W, N in zip(world, noise)
     ])
@@ -487,6 +497,7 @@ def mat(ind):
         matching_average_weighted(W, N, constellations, complexes)
         for W, N in zip(world, noise)
     ])
+    # TODO don't double-weight last two by phi
     return (existence * raw_matching_average_weighted,
             existence * raw_matching_weighted,
             existence * raw_matching)
