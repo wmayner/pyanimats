@@ -51,7 +51,7 @@ def _register(data_function=None):
 
 def _docstring_dedent(docstring):
     """Dedents like ``textwrap.dedent`` but ignores the first line."""
-    lines = docstring.split('\n')
+    lines = docstring.splitlines()
     return lines[0].strip() + '\n' + textwrap.dedent('\n'.join(lines[1:]))
 
 
