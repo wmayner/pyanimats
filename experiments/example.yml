@@ -1,14 +1,15 @@
 # Example PyAnimats experiment
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # See documentation for the `Experiment` object for more info.
 ---
 # Simulation
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # The RNG seed to use.
 seed: 0
 # Length of snapshots interval in minutes.
 snapshot_frequency: 120
-# Generational interval at which to print evolution status to the screen.
+# Generational interval at which to print evolution status to the
+# screen.
 log_frequency: 1
 # Minimum number of snapshots.
 min_snapshots: 0
@@ -18,7 +19,7 @@ num_samples: 100
 num_cores: 1
 
 # Evolution
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # The fitness function to evolve to.
 fitness_function: 'mi'
 # Number of generations to evolve.
@@ -37,7 +38,7 @@ fitness_exponent_add: 0    # A
 fitness_exponent_scale: 1  # S
 
 # Animat
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 num_sensors: 3
 num_hidden: 3
 num_motors: 2
@@ -45,19 +46,21 @@ num_motors: 2
 body_length: 3
 
 # Environment
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # The task the animats will be presented width.
-# - Each item in the list specifies a hit multiplier and a block pattern. 
+# - Each item in the list specifies a hit multiplier and a block
+#   pattern. 
 # - '1' indicates a block cell, '0' indicates empty space. 
-# - The blocks fall toward the animat from the top of the environment to the
-#   bottom.
-# - Each block pattern is presented in each possible initial position twice:
-#   once falling to the left (shifting one cell down and one cell left), and
-#   once falling to the right (shifting one cell down and one cell right).
+# - The blocks fall toward the animat from the top of the environment to
+#   the bottom.
+# - Each block pattern is presented in each possible initial position
+#   twice: once falling to the left (shifting one cell down and one cell
+#   left), and once falling to the right (shifting one cell down and one
+#   cell right).
 # - If the animat overlaps with a block cell at the bottom, the trial is
 #   counted as a 'hit'. 
-# - The hit multiplier is added to the animat's score if there was a hit, and
-#   subtracted if there wasn't.
+# - The hit multiplier is added to the animat's score if there was a
+#   hit, and subtracted if there wasn't.
 task: 
   - [ 1, '1110000000000000']
   - [-1, '1111000000000000']
@@ -69,7 +72,7 @@ world_width: 16
 world_height: 36
 
 # Mutation
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Probability of a point mutation at any point in the genome.
 mutation_prob: 0.005
 # Probability of a deletion.
@@ -86,7 +89,7 @@ min_genome_length: 1000
 max_genome_length: 10000
 
 # Genetics
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Value of every nucleotide initially.
 default_init_genome_value: 127
 # Initial length of the genome.
