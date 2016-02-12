@@ -215,11 +215,9 @@ class Individual:
                             self.max_dup_del_width)
         self._dirty_network = True
 
-    def play_game(self, scrambled=None):
+    def play_game(self, scrambled=False):
         """Return the list of state transitions the animat goes through when
         playing the game."""
-        if scrambled is None:
-            scrambled = self.scramble_world
         game = self._animat.play_game(
             self.hit_multipliers, self.block_patterns, self.world_width,
             self.world_height, scramble_world=scrambled)
