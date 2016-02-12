@@ -5,7 +5,6 @@
 import os
 import pickle
 import pprint
-from copy import copy
 
 import pyphi
 import yaml
@@ -76,8 +75,7 @@ class Experiment(Munch):
         # Exclude derived parameters.
         printable = {k: v for k, v in self.items() if k != '_derived'}
         # Format with pretty print, and indent.
-        return ('Experiment({\n ' +
-                _indent(pprint.pformat(printable, indent=1)[1:-1], amount=1) +
+        return ('Experiment({\n ' + pprint.pformat(printable, indent=1)[1:-1] +
                 '\n})')
 
 
@@ -183,24 +181,3 @@ def _bitlist(i, padlength):
         bitlist (list(int)): The list of bits.
     """
     return list(map(int, bin(i)[2:].zfill(padlength)))
-
-
-def _indent(lines, amount=2, chr=' '):
-    """Indent a string.
-
-    Prepends whitespace to every line in the passed string. (Lines are
-    separated by newline characters.)
-
-    Args:
-        lines (str): The string to indent.
-
-    Keyword Args:
-        amount (int): The number of columns to indent by.
-        chr (char): The character to to use as the indentation.
-
-    Returns:
-        str: The indented string.
-    """
-    lines = str(lines)
-    padding = amount * chr
-    return padding + ('\n' + padding).join(lines.split('\n'))
