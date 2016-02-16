@@ -176,7 +176,7 @@ class Individual:
 
     def __deepcopy__(self, memo):
         # Don't copy the underlying animat, parent, or PyPhi network.
-        copy = Individual(genome=self._animat.genome, parent=self.parent)
+        copy = Individual(self._experiment, genome=self._animat.genome, parent=self.parent)
         for key, val in self.__dict__.items():
             if key not in ('_animat', 'parent', '_network', '_dirty_network'):
                 copy.__dict__[key] = deepcopy(val, memo)
