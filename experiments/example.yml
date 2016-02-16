@@ -49,9 +49,14 @@ fitness_transform:
 
 # Animat
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# The number of sensors in an animat.
 num_sensors: 3
+# The number of hidden units in an animat.
 num_hidden: 3
+# The number of motors in an animat.
+# Note: changing this has not been tested and probably won't work!
 num_motors: 2
+# The length of the animat's body.
 # Note: cannot be less than 3.
 body_length: 3
 
@@ -85,10 +90,10 @@ world_height: 36
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Probability of a point mutation at any point in the genome.
 mutation_prob: 0.005
-# Probability of a deletion.
-deletion_prob: 0.02
 # Probability of a duplication.
 duplication_prob: 0.05
+# Probability of a deletion.
+deletion_prob: 0.02
 # Minimum duplication or deletion section width.
 min_dup_del_width: 15
 # Maximum duplication or deletion section width.
