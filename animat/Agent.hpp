@@ -28,7 +28,6 @@ class Agent {
 
     vector<HMM*> hmms;
     vector<unsigned char> genome;
-    int gen;
     // TODO(wmayner) change these to bool?
     vector<unsigned char> states;
     vector<unsigned char> newStates;

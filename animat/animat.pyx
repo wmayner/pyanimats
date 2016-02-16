@@ -53,7 +53,6 @@ cdef extern from 'Agent.hpp':
         bool mDeterministic
 
         vector[uchar] genome
-        int gen
 
         void injectStartCodons(int n)
         void generatePhenotype()
@@ -154,27 +153,25 @@ cdef class cAnimat:
     cdef Agent *thisptr
 
     def __cinit__(self, genome, numSensors, numHidden, numMotors,
-                  deterministic, gen=0):
+                  deterministic):
         self.thisptr = new Agent(genome, numSensors, numHidden, numMotors,
                                  deterministic)
         self.thisptr.generatePhenotype()
-
-        self.thisptr.gen = gen
 
     def __dealloc__(self):
         del self.thisptr
 
     def __deepcopy__(self, memo):
         return cAnimat(self.genome, self.mNumSensors, self.mNumHidden,
-                      self.mNumMotors, self.mDeterministic, gen=self.gen)
+                      self.mNumMotors, self.mDeterministic)
 
     def __copy__(self):
         return self.__deepcopy__()
 
     def __reduce__(self):
         return (cAnimat, (self.thisptr.genome, self.thisptr.mNumSensors,
-                         self.thisptr.mNumHidden, self.thisptr.mNumMotors,
-                         self.thisptr.mDeterministic, self.thisptr.gen))
+                          self.thisptr.mNumHidden, self.thisptr.mNumMotors,
+                          self.thisptr.mDeterministic))
 
     property genome:
         def __get__(self):
@@ -207,12 +204,6 @@ cdef class cAnimat:
     property body_length:
         def __get__(self):
             return self.thisptr.mBodyLength
-
-    property gen:
-        def __get__(self):
-            return self.thisptr.gen
-        def __set__(self, v):
-            self.thisptr.gen = v
 
     property edges:
         def __get__(self):

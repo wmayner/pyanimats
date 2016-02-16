@@ -24,7 +24,6 @@ Agent::Agent(vector<unsigned char> genome, int numSensors, int numHidden,
         states[i] = 0;
         newStates[i] = 0;
     }
-    gen = 0;
     hmms.clear();
 }
 
