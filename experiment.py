@@ -166,7 +166,7 @@ def _derive_params(d):
         'num_possible_states': 2**num_nodes,
         'possible_states': [pyphi.convert.loli_index2state(i, num_nodes)
                             for i in range(2**num_nodes)],
-        'sensor_motor_state': sensor_motor_states,
+        'sensor_motor_states': sensor_motor_states,
         'sensor_locations': sensor_locations,
     })
 
