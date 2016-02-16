@@ -8,15 +8,21 @@
 seed: 0
 # Length of snapshots interval in minutes.
 snapshot_frequency: 120
-# Generational interval at which to print evolution status to the
-# screen.
-log_frequency: 1
+# Generational interval at which to print evolution status to the screen. 
+# Note: printing to the screen is a slow operation; setting a short interval
+# can significantly impact performance if simulating a generation is fast.
+status_frequency: 1
 # Minimum number of snapshots.
 min_snapshots: 0
-# Number of genomes to save over the course of the evolution
-num_samples: 100
 # Number of CPU cores to use.
 num_cores: 1
+    
+# Data
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Generational interval at which to record fitness data into the logbook.
+log_frequency: 1
+# Number of genomes to save over the course of the evolution.
+num_samples: 100
 
 # Evolution
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -24,13 +30,13 @@ num_cores: 1
 fitness_function: 'mi'
 # Number of generations to evolve.
 ngen: 100
+# Size of the population.
+popsize: 100
 # Must be a path to a `lineages.pkl` file, or `false`.
 init_genome_path: false
 # Number of start codons to inject into the initial genome.
 # Note: this has no effect if loading from a snapshot.
 init_start_codons: 0
-# Size of the population.
-popsize: 100
 # Raw fitness values are scaled exponentially according to the formula
 #   F(R) = B^(S*R + A)
 # If no `fitness_transform` is set, then the default fitness transform for the
