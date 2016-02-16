@@ -17,11 +17,15 @@ int wrap(int i, int width) {
  * Executes a game, updates the agent's hit count accordingly, and returns a
  * vector of the agent's state transitions over the course of the game
  */
-void executeGame(vector<unsigned char> &allAnimatStates, vector<int>
+vector<int> executeGame(vector<unsigned char> &allAnimatStates, vector<int>
         &allWorldStates, vector<int> &allAnimatPositions, vector<int>
-        &trialResults, Agent* agent, vector<int> hitMultipliers,
-        vector<int> patterns, int worldWidth, int worldHeight,
-        bool scrambleWorld) {
+        &trialResults, Agent* agent, vector<int> hitMultipliers, vector<int>
+        patterns, int worldWidth, int worldHeight, bool scrambleWorld) {
+    // Holds the correct/incorrect counts; this is returned
+    vector<int> totals;
+    totals.resize(2, 0);
+
+    // Holds all the states of the world
     vector<int> world;
     world.clear();
     world.resize(worldHeight);
@@ -182,14 +186,14 @@ void executeGame(vector<unsigned char> &allAnimatStates, vector<int>
                         #endif
                         if (hitMultipliers[patternIndex] > 0) {
                             if (hit == 1) {
-                                agent->correct++;
+                                totals[CORRECT]++;
                                 trialResults[trialResultsIndex++] = CORRECT_CATCH;
                                 #ifdef _DEBUG
                                 printf("CAUGHT (CORRECT!)");
                                 #endif
                             }
                             else {
-                                agent->incorrect++;
+                                totals[INCORRECT]++;
                                 trialResults[trialResultsIndex++] = WRONG_AVOID;
                                 #ifdef _DEBUG
                                 printf("AVOIDED (WRONG.)");
@@ -198,14 +202,14 @@ void executeGame(vector<unsigned char> &allAnimatStates, vector<int>
                         }
                         if (hitMultipliers[patternIndex] <= 0) {
                             if (hit == 0) {
-                                agent->correct++;
+                                totals[CORRECT]++;
                                 trialResults[trialResultsIndex++] = CORRECT_AVOID;
                                 #ifdef _DEBUG
                                 printf("AVOIDED (CORRECT!)");
                                 #endif
                             }
                             else {
-                                agent->incorrect++;
+                                totals[INCORRECT]++;
                                 trialResults[trialResultsIndex++] = WRONG_CATCH;
                                 #ifdef _DEBUG
                                 printf("CAUGHT (WRONG.)");
@@ -244,4 +248,5 @@ void executeGame(vector<unsigned char> &allAnimatStates, vector<int>
             }  // Agent starting position
         }  // Directions
     }  // Block patterns
+    return totals;
 }  // executeGame

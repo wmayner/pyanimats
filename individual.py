@@ -61,8 +61,8 @@ class ExponentialFitness:
             config.FITNESS_EXPONENT_ADD + config.FITNESS_EXPONENT_SCALE * v)
 
 
-Game = namedtuple('Game', ['animat_states', 'world_states',
-                           'animat_positions', 'trial_results'])
+Game = namedtuple('Game', ['animat_states', 'world_states', 'animat_positions',
+                           'trial_results', 'correct', 'incorrect'])
 Mechanism = namedtuple('Mechanism', ['inputs', 'tpm'])
 
 
@@ -93,12 +93,6 @@ class Individual:
             The animat's 2-D transition probability matrix.
         network (pyphi.Network):
             The animat as a PyPhi network.
-        correct (int):
-            The number of trials correctly completed by the animat during a
-            single game. Updated every time a game is played.
-        incorrect (int):
-            The number of trials incorrectly completed by the animat during a
-            single game. Updated every time a game is played.
     """
 
     def __init__(self, experiment, genome, parent=None, gen=0):
@@ -110,6 +104,8 @@ class Individual:
                                experiment.deterministic)
         self.parent = parent
         self.gen = gen
+        self.correct = False
+        self.incorrect = False
         self.fitness = ExponentialFitness()
         self._network = False
         # Mark whether the animat's phenotype and network need updating.
@@ -152,16 +148,6 @@ class Individual:
                                           connectivity_matrix=self.cm)
             self._dirty_network = False
         return self._network
-
-    @property
-    def correct(self):
-        """The number of correct catches/avoidances in the game."""
-        return self._animat.correct
-
-    @property
-    def incorrect(self):
-        """The number of incorrect catches/avoidances in the game."""
-        return self._animat.incorrect
 
     def __deepcopy__(self, memo):
         # Don't copy the underlying animat, parent, or PyPhi network.
@@ -221,15 +207,18 @@ class Individual:
         game = self._animat.play_game(
             self.hit_multipliers, self.block_patterns, self.world_width,
             self.world_height, scramble_world=scrambled)
-        assert self._animat.correct + self._animat.incorrect == self.num_trials
-        return Game(animat_states=game[0].reshape(self.num_trials,
+        game = Game(animat_states=game[0].reshape(self.num_trials,
                                                   self.world_height,
                                                   self.num_nodes),
                     world_states=game[1].reshape(self.num_trials,
                                                  self.world_height),
                     animat_positions=game[2].reshape(self.num_trials,
                                                      self.world_height),
-                    trial_results=game[3])
+                    trial_results=game[3], correct=game[4], incorrect=game[5])
+        assert game.correct + game.incorrect == self.num_trials
+        self.correct = game.correct
+        self.incorrect = game.incorrect
+        return game
 
     def lineage(self):
         """Return a generator for the lineage of this individual."""
@@ -267,7 +256,7 @@ def _animat_getter(name):
 # A list of animat attributes to expose as read-only properties
 _animat_properties = ['genome', 'num_sensors', 'num_hidden', 'num_motors',
                       'num_nodes', 'num_states', 'deterministic',
-                      'body_length', 'correct', 'incorrect', 'edges', 'tpm']
+                      'body_length', 'edges', 'tpm']
 
 # Add underlying animat properties to the Individual class
 for name in _animat_properties:

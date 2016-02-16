@@ -16,6 +16,8 @@
 #define START_CODON_NUCLEOTIDE_TWO 213
 
 // Enumeration constants
+#define CORRECT 0
+#define INCORRECT 1
 #define WRONG_AVOID 0
 #define WRONG_CATCH 1
 #define CORRECT_AVOID 2

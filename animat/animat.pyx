@@ -54,8 +54,6 @@ cdef extern from 'Agent.hpp':
 
         vector[uchar] genome
         int gen
-        int correct
-        int incorrect
 
         void injectStartCodons(int n)
         void generatePhenotype()
@@ -68,7 +66,7 @@ cdef extern from 'Agent.hpp':
 
 
 cdef extern from 'Game.hpp':
-    cdef void executeGame(
+    cdef vector[int] executeGame(
         vector[uchar] animatStates, vector[int] worldStates, 
         vector[int] animatPositions, vector[int] trialResults, Agent* agent,
         vector[int] hitMultipliers, vector[int] patterns, int worldWidth, 
@@ -156,23 +154,19 @@ cdef class cAnimat:
     cdef Agent *thisptr
 
     def __cinit__(self, genome, numSensors, numHidden, numMotors,
-                  deterministic, gen=0, correct=0, incorrect=0):
+                  deterministic, gen=0):
         self.thisptr = new Agent(genome, numSensors, numHidden, numMotors,
                                  deterministic)
         self.thisptr.generatePhenotype()
 
         self.thisptr.gen = gen
-        self.thisptr.correct = correct
-        self.thisptr.incorrect = incorrect
 
     def __dealloc__(self):
         del self.thisptr
 
     def __deepcopy__(self, memo):
         return cAnimat(self.genome, self.mNumSensors, self.mNumHidden,
-                      self.mNumMotors, self.mDeterministic, gen=self.gen,
-                      correct=self.thisptr.correct,
-                      incorrect=self.thisptr.incorrect)
+                      self.mNumMotors, self.mDeterministic, gen=self.gen)
 
     def __copy__(self):
         return self.__deepcopy__()
@@ -180,8 +174,7 @@ cdef class cAnimat:
     def __reduce__(self):
         return (cAnimat, (self.thisptr.genome, self.thisptr.mNumSensors,
                          self.thisptr.mNumHidden, self.thisptr.mNumMotors,
-                         self.thisptr.mDeterministic, self.thisptr.gen,
-                         self.thisptr.correct, self.thisptr.incorrect))
+                         self.thisptr.mDeterministic, self.thisptr.gen))
 
     property genome:
         def __get__(self):
@@ -221,18 +214,6 @@ cdef class cAnimat:
         def __set__(self, v):
             self.thisptr.gen = v
 
-    property correct:
-        def __get__(self):
-            return self.thisptr.correct
-        def __set__(self, v):
-            self.thisptr.correct = v
-
-    property incorrect:
-        def __get__(self):
-            return self.thisptr.incorrect
-        def __set__(self, v):
-            self.thisptr.incorrect = v
-
     property edges:
         def __get__(self):
             return self.thisptr.getEdges()
@@ -251,9 +232,6 @@ cdef class cAnimat:
 
     def play_game(self, hit_multipliers, patterns, worldWidth, worldHeight,
                   scramble_world=False):
-        # Reset the animat's hit and miss counts every time the game is played.
-        self.thisptr.correct = 0
-        self.thisptr.incorrect = 0
         # Calculate the size of the state transition vector, which has an entry
         # for every node state of every timestep of every trial, and initialize.
         num_trials = len(patterns) * 2 * worldWidth
@@ -265,13 +243,14 @@ cdef class cAnimat:
         cdef Int32Wrapper trial_results = Int32Wrapper(num_trials)
         # Play the game, updating the animats hit and miss counts and filling
         # the given transition vector with the states the animat went through.
-        executeGame(animat_states.buf[0], world_states.buf[0],
-                    animat_positions.buf[0], trial_results.buf[0],
-                    self.thisptr, hit_multipliers, patterns, worldWidth,
-                    worldHeight, scramble_world)
+        correct, incorrect = executeGame(
+            animat_states.buf[0], world_states.buf[0], animat_positions.buf[0],
+            trial_results.buf[0], self.thisptr, hit_multipliers, patterns,
+            worldWidth, worldHeight, scramble_world)
         # Return the state transitions and world states as NumPy arrays.
         return (animat_states.asarray(), world_states.asarray(),
-                animat_positions.asarray(), trial_results.asarray())
+                animat_positions.asarray(), trial_results.asarray(), correct,
+                incorrect)
 
          
 def seed(s):
