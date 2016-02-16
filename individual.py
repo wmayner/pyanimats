@@ -15,7 +15,6 @@ from collections import namedtuple
 import functools
 import pyphi
 
-import config
 import constants
 import utils
 from animat import cAnimat
@@ -32,10 +31,19 @@ class ExponentialFitness:
     We use an exponential fitness function to ensure that selection pressure is
     more even as the animats improve. When the actual fitness function is not
     exponential, this class handles transforming it to be so.
+
+    Args:
+        transform (dict): A dictionary containing keys ``base``, ``scale``, and
+            ``add``, which are the constants ``B``, ``S``, and ``A`` in the
+            exponential formula.
+        value (float): The initial raw fitness value.
     """
 
-    def __init__(self, value=0.0):
-        self.value = value
+    def __init__(self, transform, value=0.0):
+        self.base = transform['base']
+        self.scale = transform['scale']
+        self.add = transform['add']
+        self.raw = value
 
     def __eq__(self, other):
         return self.value == other.value
@@ -57,8 +65,7 @@ class ExponentialFitness:
     @value.setter
     def value(self, v):
         self.raw = v
-        self.exponential = config.FITNESS_BASE**(
-            config.FITNESS_EXPONENT_ADD + config.FITNESS_EXPONENT_SCALE * v)
+        self.exponential = self.base**(self.scale * v + self.add)
 
 
 Game = namedtuple('Game', ['animat_states', 'world_states', 'animat_positions',
@@ -114,7 +121,7 @@ class Individual:
         self.gen = gen
         self._correct = False
         self._incorrect = False
-        self.fitness = ExponentialFitness()
+        self.fitness = ExponentialFitness(experiment.fitness_transform)
         self._network = False
         # Mark whether the animat's phenotype and network need updating.
         self._dirty_phenotype = True
