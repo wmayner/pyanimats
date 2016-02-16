@@ -19,39 +19,34 @@ Options:
     -v, --version               Show version
         --list-fitness-funcs    List available fitness functions
         --num-sensors           Print the number of sensors
-    -n, --num-gen=NGEN          Number of generations to simulate [default: 10]
-    -s, --seed=SEED             Random number generator seed [default: 0]
-    -f, --fitness=FUNC          Fitness function [default: nat]
+    -n, --num-gen=NGEN          Number of generations to simulate
+    -s, --seed=SEED             Random number generator seed
+    -f, --fitness=FUNC          Fitness function
     -m, --mut-prob=PROB         Nucleotide mutation probability
-                                  [default: 0.005]
-    -p, --pop-size=SIZE         Population size [default: 100]
+    -p, --pop-size=SIZE         Population size
     -d, --log-interval=FREQ     Logbook recording interval (generations)
-                                  [default: 1]
     -i, --num-samples=NUM       Number of individuals to sample from evolution
-                                  (0 saves entire lineage) [default: 0]
-    -t, --snapshot=FREQ         Snapshot interval (seconds) [default: 0]
+                                  (0 saves entire lineage)
+    -t, --snapshot=FREQ         Snapshot interval (seconds)
     -o, --min-snapshots=NUM     Minimum number of snapshots to take
-                                  [default: 0]
     -l, --stdout-interval=FREQ  Status-printing interval (generations)
-                                  [default: 1]
-    -j, --jumpstart=NUM         Begin with this many start codons [default: 0]
+    -j, --jumpstart=NUM         Begin with this many start codons
     -g, --init-genome=PATH      Path to a lineage file for an intial genome
     -a, --all-lineages          Save lineages of entire final population
     -c, --config=PATH           Path to a configuration file to load
         --scramble              Randomly rearrange the world in each trial
-        --dup-prob=PROB         Duplication probability [default: 0.05]
-        --del-prob=PROB         Deletion probability [default: 0.02]
-        --max-length=LENGTH     Maximum genome length [default: 10000]
-        --min-length=LENGTH     Minimum genome length [default: 1000]
+        --dup-prob=PROB         Duplication probability
+        --del-prob=PROB         Deletion probability
+        --max-length=LENGTH     Maximum genome length
+        --min-length=LENGTH     Minimum genome length
         --min-dup-del=LENGTH    Minimum length of duplicated/deleted genome
-                                  part [default: 15]
+                                  part
         --fit-base=FLOAT        Base used in the fitness function (see
-                                  --list-fitness-funcs) [default: 1.02]
+                                  --list-fitness-funcs)
         --fit-exp-add=FLOAT     Add this term to the fitness exponent
         --fit-exp-scale=FLOAT   Scale raw fitness values before they're used as
                                   an exponent
         --profile=PATH          Profile performance and store results at PATH
-                                  [default: profiling/profile.pstats]
 """
 
 __version__ = '0.0.23'
