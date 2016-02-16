@@ -15,7 +15,7 @@ import numpy as np
 import pyphi
 from sklearn.metrics import mutual_info_score
 
-import constants as _
+import constants
 from utils import unique_rows
 
 
@@ -194,29 +194,24 @@ _register()(nat)
 # Mutual information
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def mutual_information(states):
-    """Get the sensor-motor mutual information for a group of trials."""
+def mi(ind):
+    """Mutual information: Animats are evaluated based on the mutual
+    information between their sensors and motor over the course of a game."""
+    states = ind.play_game().animat_states
     # The contingency matrix has a row for every sensors state and a column for
     # every motor state.
-    contingency = np.zeros([_.NUM_SENSOR_STATES, _.NUM_MOTOR_STATES])
+    contingency = np.zeros([ind.num_sensor_states, ind.num_motor_states])
     # Get only the sensor and motor states.
-    sensor_motor = np.concatenate([states[:, :, :config.NUM_SENSORS],
-                                   states[:, :, -config.NUM_MOTORS:]], axis=2)
+    sensor_motor = np.concatenate([states[:, :, :ind.num_sensors],
+                                   states[:, :, -ind.num_motors:]], axis=2)
     # Count!
-    for idx, state in _.SENSOR_MOTOR_STATES:
+    for idx, state in ind.sensor_motor_states:
         contingency[idx] = (sensor_motor == state).all(axis=2).sum()
     # Calculate mutual information in nats.
     mi_nats = mutual_info_score(None, None, contingency=contingency)
     # Convert from nats to bits and return.
-    return mi_nats * _.NAT_TO_BIT_CONVERSION_FACTOR
-
-
-def mi(ind):
-    """Mutual information: Animats are evaluated based on the mutual
-    information between their sensors and motor over the course of a game."""
-    game = ind.play_game()
-    return mutual_information(game.animat_states)
-_register(data_function=mutual_information)(mi)
+    return mi_nats * constants.NAT_TO_BIT_CONVERSION_FACTOR
+_register()(mi)
 
 
 def mi_wvn(ind):
@@ -237,8 +232,8 @@ def extrinsic_causes(ind, state):
     # TODO generate powerset once (change PyPhi to use indices in find_mice
     # purview restriction)?
     subsystem = ind.as_subsystem(state)
-    mechanisms = tuple(pyphi.utils.powerset(_.HIDDEN_MOTOR_INDICES))
-    purviews = tuple(pyphi.utils.powerset(_.SENSOR_INDICES))
+    mechanisms = tuple(pyphi.utils.powerset(ind.hidden_motor_indices))
+    purviews = tuple(pyphi.utils.powerset(ind.sensor_indices))
     mice = [subsystem.core_cause(mechanism, purviews=purviews)
             for mechanism in mechanisms]
     return list(filter(lambda m: m.phi > 0, mice))
@@ -271,9 +266,9 @@ def all_concepts(ind, state):
     subsystem = ind.as_subsystem(state)
     return pyphi.compute.constellation(
         subsystem,
-        mechanisms=_.HIDDEN_POWERSET,
-        past_purviews=_.SENSORS_AND_HIDDEN_POWERSET,
-        future_purviews=_.HIDDEN_AND_MOTOR_POWERSET)
+        mechanisms=ind.hidden_powerset,
+        past_purviews=ind.sensors_and_hidden_powerset,
+        future_purviews=ind.hidden_and_motor_powerset)
 
 
 # The states only need to be considered unique up to the hidden units because
@@ -444,8 +439,8 @@ def mat(ind):
     noise = ind.play_game(scrambled=True).animat_states
     # Since the motor states can't influence φ or ϕ, we set them to zero to
     # make uniqifying the states simpler.
-    world[_.MOTOR_INDICES] = 0
-    noise[_.MOTOR_INDICES] = 0
+    world[ind.motor_indices] = 0
+    noise[ind.motor_indices] = 0
     # Get a flat list of all the the states.
     combined = np.concatenate([world, noise])
     combined = combined.reshape(-1, combined.shape[-1])
