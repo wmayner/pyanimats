@@ -11,7 +11,7 @@ snapshot_frequency: 120
 # Generational interval at which to print evolution status to the screen. 
 # Note: printing to the screen is a slow operation; setting a short interval
 # can significantly impact performance if simulating a generation is fast.
-status_frequency: 1
+status_interval : 1
 # Minimum number of snapshots.
 min_snapshots: 0
 # Number of CPU cores to use.
@@ -20,7 +20,7 @@ num_cores: 1
 # Data
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Generational interval at which to record fitness data into the logbook.
-log_frequency: 1
+log_interval: 1
 # Number of genomes to save over the course of the evolution.
 num_samples: 100
 
