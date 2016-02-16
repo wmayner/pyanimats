@@ -106,6 +106,7 @@ def main(arguments):
     # Handle arguments
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+    # TODO make this an option for -h?
     # Print available fitness functions and their descriptions.
     if arguments['--list-fitness-funcs']:
         fitness_functions.print_functions()
