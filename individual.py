@@ -93,6 +93,14 @@ class Individual:
             The animat's 2-D transition probability matrix.
         network (pyphi.Network):
             The animat as a PyPhi network.
+        correct (int):
+            The number of trials correctly completed by the animat during a
+            single game. Updated every time a game is played; ``False`` if no
+            game has been played yet.
+        incorrect (int):
+            The number of trials incorrectly completed by the animat during a
+            single game. Updated every time a game is played; ``False`` if no
+            game has been played yet.
     """
 
     def __init__(self, experiment, genome, parent=None, gen=0):
@@ -104,8 +112,8 @@ class Individual:
                                experiment.deterministic)
         self.parent = parent
         self.gen = gen
-        self.correct = False
-        self.incorrect = False
+        self._correct = False
+        self._incorrect = False
         self.fitness = ExponentialFitness()
         self._network = False
         # Mark whether the animat's phenotype and network need updating.
@@ -148,6 +156,16 @@ class Individual:
                                           connectivity_matrix=self.cm)
             self._dirty_network = False
         return self._network
+
+    @property
+    def correct(self):
+        """The number of correct trials in the most recently played game."""
+        return self._correct
+
+    @property
+    def incorrect(self):
+        """The number of incorrect trials in the most recently played game."""
+        return self._incorrect
 
     def __deepcopy__(self, memo):
         # Don't copy the underlying animat, parent, or PyPhi network.
@@ -216,8 +234,8 @@ class Individual:
                                                      self.world_height),
                     trial_results=game[3], correct=game[4], incorrect=game[5])
         assert game.correct + game.incorrect == self.num_trials
-        self.correct = game.correct
-        self.incorrect = game.incorrect
+        self._correct = game.correct
+        self._incorrect = game.incorrect
         return game
 
     def lineage(self):
