@@ -4,49 +4,42 @@
 
 """
 PyAnimats
----------
+~~~~~~~~~
 Evolve animats.
 
+Command-line options override the parameters given in the experiment file.
+
 Usage:
-    pyanimats.py <output_dir> <tasks.yml> [options]
+    pyanimats.py <path/to/output_dir> <path/to/experiment.yml> [options]
     pyanimats.py -h | --help
     pyanimats.py -v | --version
-    pyanimats.py --list-fitness-funcs
-    pyanimats.py --num-sensors
+    pyanimats.py list
 
 Options:
-    -h, --help                  Show this
-    -v, --version               Show version
-        --list-fitness-funcs    List available fitness functions
-        --num-sensors           Print the number of sensors
-    -n, --num-gen=NGEN          Number of generations to simulate
-    -s, --seed=SEED             Random number generator seed
-    -f, --fitness=FUNC          Fitness function
-    -m, --mut-prob=PROB         Nucleotide mutation probability
-    -p, --pop-size=SIZE         Population size
-    -d, --log-interval=FREQ     Logbook recording interval (generations)
-    -i, --num-samples=NUM       Number of individuals to sample from evolution
-                                  (0 saves entire lineage)
-    -t, --snapshot=FREQ         Snapshot interval (seconds)
-    -o, --min-snapshots=NUM     Minimum number of snapshots to take
-    -l, --stdout-interval=FREQ  Status-printing interval (generations)
-    -j, --jumpstart=NUM         Begin with this many start codons
-    -g, --init-genome=PATH      Path to a lineage file for an intial genome
-    -a, --all-lineages          Save lineages of entire final population
-    -c, --config=PATH           Path to a configuration file to load
-        --scramble              Randomly rearrange the world in each trial
-        --dup-prob=PROB         Duplication probability
-        --del-prob=PROB         Deletion probability
-        --max-length=LENGTH     Maximum genome length
-        --min-length=LENGTH     Minimum genome length
-        --min-dup-del=LENGTH    Minimum length of duplicated/deleted genome
-                                  part
-        --fit-base=FLOAT        Base used in the fitness function (see
-                                  --list-fitness-funcs)
-        --fit-exp-add=FLOAT     Add this term to the fitness exponent
-        --fit-exp-scale=FLOAT   Scale raw fitness values before they're used as
-                                  an exponent
-        --profile=PATH          Profile performance and store results at PATH
+    -h --help                  Show this
+    -v --version               Show version
+       --list-fitness          List available fitness functions
+    -n --num-gen=NGEN          Number of generations to simulate
+    -s --seed=SEED             Random number generator seed
+    -f --fitness=FUNC          Fitness function
+    -p --pop-size=SIZE         Population size
+    -d --log-interval=FREQ     Logbook recording interval (generations)
+    -i --num-samples=NUM       Number of individuals to sample from evolution
+                                 (0 saves entire lineage)
+    -t --snapshot=FREQ         Snapshot interval (seconds)
+    -o --min-snapshots=NUM     Minimum number of snapshots to take
+    -l --status-interval=FREQ  Status-printing interval (generations)
+    -j --jumpstart=NUM         Begin with this many start codons
+    -g --init-genome=PATH      Path to a lineage file for an intial genome
+    -a --all-lineages          Save lineages of entire final population
+    -m --mut-prob=PROB         Point mutation probability
+       --dup-prob=PROB         Duplication probability
+       --del-prob=PROB         Deletion probability
+       --min-length=LENGTH     Minimum genome length
+       --max-length=LENGTH     Maximum genome length
+       --min-dup-del=LENGTH    Minimum length of duplicated/deleted genome part
+       --max-dup-del=LENGTH    Maximum length of duplicated/deleted genome part
+       --profile=PATH          Profile performance and store results at PATH
 """
 
 __version__ = '0.0.23'
@@ -65,13 +58,10 @@ from deap import base, tools
 from docopt import docopt
 
 import configure
-import constants as _
 import fitness_functions
 import utils
+from experiment import Experiment
 from individual import Individual
-
-PROFILING = False
-
 
 def select(individuals, k):
     """Select *k* individuals from the given list of individuals using the
@@ -108,63 +98,62 @@ def main(arguments):
 
     # TODO make this an option for -h?
     # Print available fitness functions and their descriptions.
-    if arguments['--list-fitness-funcs']:
+    if arguments['--list-fitness']:
         fitness_functions.print_functions()
         return
 
-    # Print the number of sensors currently set in the C++.
-    if arguments['--num-sensors']:
-        print(config.NUM_SENSORS)
-        return
-
     # Final output and snapshots will be written here.
-    OUTPUT_DIR = arguments['<output_dir>']
-    del arguments['<output_dir>']
+    OUTPUT_DIR = arguments['<path/to/output_dir>']
 
     # Ensure profile directory exists and set profile flag.
+    PROFILING = False
     profile_filepath = arguments['--profile']
     if profile_filepath:
         PROFILING = True
         utils.ensure_exists(os.path.dirname(profile_filepath))
-    del arguments['--profile']
 
-    # Logbooks will be updated at this interval.
-    LOGBOOK_RECORDING_INTERVAL = int(arguments['--log-interval'])
-    del arguments['--log-interval']
+    # Map CLI options to experiment parameter names and types.
+    cli_opt_to_param = {
+        '--fitness': ('fitness_function', str),
+        '--seed': ('seed', int),
+        '--num-gen': ('ngen', int),
+        '--pop-size': ('popsize', int),
+        '--jumpstart': ('init_start_codons', int),
+        '--init-genome': ('init_genome', str),
+        '--dup-prob': ('duplication_prob', float),
+        '--del-prob': ('deletion_prob', float),
+        '--min-length': ('min_genome_length', int),
+        '--max-length': ('max_genome_length', int),
+        '--min-dup-del': ('min_dup_del_width', int),
+        '--max-dup-del': ('min_dup_del_width', int),
+    }
 
-    # Individuals will be recorded in the lineage at this interval.
-    NUM_INDIVIDUAL_SAMPLES = int(arguments['--num-samples'])
-    del arguments['--num-samples']
-
-    # Status will be printed at this interval.
-    STATUS_PRINTING_INTERVAL = int(arguments['--stdout-interval'])
-    del arguments['--stdout-interval']
+    # Load the experiment object, overriding if necessary with CLI options.
+    cli_overrides = {param[0]: param[1](arguments[opt])
+                     for opt, param in cli_opt_to_param.items()
+                     if arguments[opt] is not None}
+    experiment = Experiment(filepath=arguments['<path/to/experiment.yml>'],
+                            override=cli_overrides)
 
     # Get the minimum number of snapshots to be taken.
-    MIN_SNAPSHOTS = int(arguments['--min-snapshots'])
-    del arguments['--min-snapshots']
+    MIN_SNAPSHOTS = experiment.min_snapshots
 
     # Get the interval at which to take snapshots.
-    SNAPSHOT_TIME_INTERVAL = float(arguments['--snapshot'])
+    SNAPSHOT_TIME_INTERVAL = experiment.snapshot_frequency
     if SNAPSHOT_TIME_INTERVAL <= 0:
         SNAPSHOT_TIME_INTERVAL = float('inf')
-    del arguments['--snapshot']
-
-    # Whether or not to save every individual in the population, or just the
-    # best one.
-    SAVE_ALL_LINEAGES = arguments['--all-lineages']
-    del arguments['--all-lineages']
-
-    # Load and print configuration.
-    configure.from_args(arguments)
-    print('Configuration:')
-    pprint(configure.get_dict())
 
     # Snapshots will be written to disk at this interval.
-    if MIN_SNAPSHOTS <= 0:
+    if experiment.min_snapshots <= 0:
         SNAPSHOT_GENERATION_INTERVAL = float('inf')
     else:
-        SNAPSHOT_GENERATION_INTERVAL = config.NGEN // MIN_SNAPSHOTS
+        SNAPSHOT_GENERATION_INTERVAL = (experiment.ngen //
+                                        experiment.min_snapshots)
+
+    # Whether or not to save every individual in the population, or just the
+    # fittest one.
+    SAVE_ALL_LINEAGES = arguments['--all-lineages']
+
 
     # Helper functions
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -177,8 +166,8 @@ def main(arguments):
             to_save = pop
         else:
             to_save = [max(pop, key=lambda ind: ind.fitness.value)]
-        step = (1 if NUM_INDIVIDUAL_SAMPLES <= 0
-                else max(gen // NUM_INDIVIDUAL_SAMPLES, 1))
+        step = (1 if experiment.num_samples <= 0
+                else max(gen // experiment.num_samples, 1))
         lineages = tuple(tuple(ind.lineage())[::step] for ind in to_save)
         # Save config and metadata as JSON.
         data_json = {
@@ -207,10 +196,11 @@ def main(arguments):
     toolbox = base.Toolbox()
 
     # Register the various genetic algorithm components to the toolbox.
-    toolbox.register('individual', Individual, _.INIT_GENOME)
+    toolbox.register('individual', Individual, experiment,
+                     experiment.init_genome)
     toolbox.register('population', tools.initRepeat, list, toolbox.individual)
     toolbox.register('evaluate',
-                     fitness_functions.__dict__[config.FITNESS_FUNCTION])
+                     fitness_functions.__dict__[experiment.fitness_function])
     toolbox.register('select', select)
     toolbox.register('mutate', mutate)
 
@@ -221,8 +211,8 @@ def main(arguments):
     real_fitness_stats = tools.Statistics(key=lambda ind: ind.fitness.value)
     real_fitness_stats.register('max', np.max)
 
-    correct_stats = tools.Statistics(key=lambda ind: (ind.animat.correct,
-                                                      ind.animat.incorrect))
+    correct_stats = tools.Statistics(key=lambda ind: (ind.correct,
+                                                      ind.incorrect))
     correct_stats.register('correct', lambda x: np.max(x, 0)[0])
     correct_stats.register('incorrect', lambda x: np.max(x, 0)[1])
 
@@ -233,7 +223,7 @@ def main(arguments):
 
     # Initialize a MultiStatistics object for convenience that allows for only
     # one call to `compile`.
-    if config.FITNESS_FUNCTION == 'mat':
+    if experiment.fitness_function == 'mat':
         mstats = tools.MultiStatistics(correct=correct_stats,
                                        fitness=fitness_stats,
                                        real_fitness=real_fitness_stats,
@@ -245,13 +235,13 @@ def main(arguments):
 
     # Initialize logbooks and hall of fame.
     logbook = tools.Logbook()
-    hall_of_fame = tools.HallOfFame(maxsize=config.POPSIZE)
+    hall_of_fame = tools.HallOfFame(maxsize=experiment.popsize)
 
     def print_status(line, time):
-        print('[Seed {}] '.format(config.SEED), end='')
+        print('[Seed {}] '.format(experiment.seed), end='')
         print(line, utils.compress(time))
 
-    print('\nSimulating {} generations...\n'.format(config.NGEN))
+    print('\nSimulating {} generations...\n'.format(experiment.ngen))
 
     if PROFILING:
         pr = cProfile.Profile()
@@ -272,12 +262,12 @@ def main(arguments):
         for ind, fitness in zip(pop, fitnesses):
             ind.fitness.value = fitness
 
-    evaluate = (multi_fit_evaluate if config.FITNESS_FUNCTION == 'mat'
+    evaluate = (multi_fit_evaluate if experiment.fitness_function == 'mat'
                 else single_fit_evaluate)
 
     def record(pop, gen):
         hall_of_fame.update(pop)
-        if gen % LOGBOOK_RECORDING_INTERVAL == 0:
+        if gen % experiment.log_interval == 0:
             record = mstats.compile(pop)
             logbook.record(gen=gen, **record)
 
@@ -300,7 +290,7 @@ def main(arguments):
         return offspring
 
     # Create initial population.
-    population = toolbox.population(n=config.POPSIZE)
+    population = toolbox.population(n=experiment.popsize)
 
     log_duration_start = time()
     # Evaluate the initial population.
@@ -309,7 +299,7 @@ def main(arguments):
     record(population, 0)
     # Print first lines of logbook.
     first_lines = str(logbook).split('\n')
-    header_lines = ['[Seed {}] '.format(config.SEED) + l
+    header_lines = ['[Seed {}] '.format(experiment.seed) + l
                     for l in first_lines[:-1]]
     print('\n'.join(header_lines))
     print_status(first_lines[-1], time() - log_duration_start)
@@ -317,11 +307,11 @@ def main(arguments):
     log_duration_start = time()
     snap_duration_start = time()
     snapshot = 1
-    for gen in range(1, config.NGEN + 1):
+    for gen in range(1, experiment.ngen + 1):
         # Evolution.
         population = process_gen(population, gen)
         # Reporting.
-        if gen % STATUS_PRINTING_INTERVAL == 0:
+        if gen % experiment.status_interval == 0:
             # Get time since last report was printed.
             log_duration_end = time()
             print_status(logbook.__str__(startindex=gen),
@@ -331,8 +321,8 @@ def main(arguments):
         current_time = time()
         if (current_time - snap_duration_start >= SNAPSHOT_TIME_INTERVAL
                 or gen % SNAPSHOT_GENERATION_INTERVAL == 0):
-            print('[Seed {}] –\tRecording snapshot {}... '.format(config.SEED,
-                                                               snapshot), end='')
+            print('[Seed {}] –\tRecording snapshot {}... '.format(
+                experiment.seed, snapshot), end='')
             dirname = os.path.join(OUTPUT_DIR,
                                    'snapshot-{}-gen-{}'.format(snapshot, gen))
             save_data(dirname, gen, config=configure.get_dict(),
@@ -351,7 +341,7 @@ def main(arguments):
         pr.dump_stats(profile_filepath)
 
     print('\nSimulated {} generations in {}.'.format(
-        config.NGEN, utils.compress(sim_end - sim_start)))
+        experiment.ngen, utils.compress(sim_end - sim_start)))
 
     # Write final results to disk.
     save_data(OUTPUT_DIR, gen, config=configure.get_dict(), pop=population,
