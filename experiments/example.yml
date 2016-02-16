@@ -33,9 +33,13 @@ init_start_codons: 0
 popsize: 100
 # Raw fitness values are scaled exponentially according to the formula
 #   F(R) = B^(S*R + A)
-fitness_base: 1.02         # B
-fitness_exponent_add: 0    # A
-fitness_exponent_scale: 1  # S
+# If no `fitness_transform` is set, then the default fitness transform for the
+# given fitness function is used.
+# Otherwise, the constants in the formula above are specified as follows:
+fitness_transform:
+    base: 1.02  # B
+    scale: 1    # A
+    add: 0      # S
 
 # Animat
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
