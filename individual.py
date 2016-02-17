@@ -42,7 +42,7 @@ class ExponentialFitness:
         self.base = transform['base']
         self.scale = transform['scale']
         self.add = transform['add']
-        self.raw = value
+        self.set(value)
 
     def __eq__(self, other):
         return self.value == other.value
@@ -61,8 +61,7 @@ class ExponentialFitness:
     def value(self):
         return self.exponential
 
-    @value.setter
-    def value(self, v):
+    def set(self, v):
         self.raw = v
         self.exponential = self.base**(self.scale * v + self.add)
 

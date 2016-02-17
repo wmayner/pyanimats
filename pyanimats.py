@@ -273,13 +273,13 @@ def main(arguments):
     def multi_fit_evaluate(pop, gen):
         fitnesses = toolbox.map(toolbox.evaluate, pop)
         for ind, fitness in zip(pop, fitnesses):
-            ind.fitness.value = fitness[0]
+            ind.fitness.set(fitness[0])
             ind.alt_fitness = fitness[1:]
 
     def single_fit_evaluate(pop, gen):
         fitnesses = toolbox.map(toolbox.evaluate, pop)
         for ind, fitness in zip(pop, fitnesses):
-            ind.fitness.value = fitness
+            ind.fitness.set(fitness)
 
     evaluate = (multi_fit_evaluate if experiment.fitness_function == 'mat'
                 else single_fit_evaluate)
