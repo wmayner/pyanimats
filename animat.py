@@ -247,7 +247,7 @@ class Animat:
         units."""
         if state is None:
             state = [0] * self.num_nodes
-        return pyphi.Subsystem(self.network, state, _.HIDDEN_INDICES)
+        return pyphi.Subsystem(self.network, state, self.hidden_indices)
 
     def brain_and_sensors(self, state=None):
         """Return the PyPhi subsystem consisting of the animat's hidden
@@ -255,7 +255,7 @@ class Animat:
         if state is None:
             state = [0] * self.num_nodes
         return pyphi.Subsystem(
-            self.network, state, _.HIDDEN_INDICES + _.SENSOR_INDICES)
+            self.network, state, self.hidden_indices + self.sensor_indices)
 
     def brain_and_motors(self, state=None):
         """Return the PyPhi subsystem consisting of the animat's hidden
@@ -263,7 +263,7 @@ class Animat:
         if state is None:
             state = [0] * self.num_nodes
         return pyphi.Subsystem(
-            self.network, state, _.HIDDEN_INDICES + _.MOTOR_INDICES)
+            self.network, state, self.hidden_indices + self.motor_indices)
 
     def mechanism(self, node_index, separate_on_off=False):
         """Return the TPM of a single animat node."""
