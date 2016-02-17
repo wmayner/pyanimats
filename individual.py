@@ -78,6 +78,7 @@ class Individual:
     Represents an individual in the evolution.
 
     Args:
+        experiment (Experiment): The experiment this individual is a part of.
         genome (Iterable(int)): See attribute.
 
     Keyword Args:
