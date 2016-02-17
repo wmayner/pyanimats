@@ -49,7 +49,6 @@ Options:
 
 __version__ = '0.0.23'
 
-import config
 import cProfile
 import json
 import os
