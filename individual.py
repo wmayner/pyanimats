@@ -10,7 +10,6 @@ animat properties (connectivity, associated PyPhi objects, etc.).
 """
 
 import numpy as np
-from copy import deepcopy
 from collections import namedtuple
 import functools
 import pyphi
@@ -175,10 +174,11 @@ class Individual:
 
     def __deepcopy__(self, memo):
         # Don't copy the underlying animat, parent, or PyPhi network.
-        copy = Individual(self._experiment, genome=self._animat.genome, parent=self.parent)
-        for key, val in self.__dict__.items():
-            if key not in ('_animat', 'parent', '_network', '_dirty_network'):
-                copy.__dict__[key] = deepcopy(val, memo)
+        copy = Individual(self._experiment, genome=self._animat.genome,
+                          parent=self.parent, gen=self.gen)
+        copy._incorrect = self._incorrect
+        copy._correct = self._incorrect
+        copy.fitness = self.fitness
         return copy
 
     def start_codons(self):
