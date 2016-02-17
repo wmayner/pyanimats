@@ -155,6 +155,15 @@ class Animat:
         self._network = False
         self._dirty_network = True
 
+    def __deepcopy__(self, memo):
+        # Don't copy the underlying animat, parent, or PyPhi network.
+        copy = Animat(self._experiment, genome=self._c_animat.genome,
+                      parent=self.parent, gen=self.gen)
+        copy._incorrect = deepcopy(self._incorrect)
+        copy._correct = deepcopy(self._incorrect)
+        copy.fitness = deepcopy(self.fitness)
+        return copy
+
     @property
     def cm(self):
         """The animat's connectivity matrix."""
@@ -186,14 +195,39 @@ class Animat:
         """The number of incorrect trials in the most recently played game."""
         return self._incorrect
 
-    def __deepcopy__(self, memo):
-        # Don't copy the underlying animat, parent, or PyPhi network.
-        copy = Animat(self._experiment, genome=self._c_animat.genome,
-                      parent=self.parent, gen=self.gen)
-        copy._incorrect = deepcopy(self._incorrect)
-        copy._correct = deepcopy(self._incorrect)
-        copy.fitness = deepcopy(self.fitness)
-        return copy
+    def lineage(self):
+        """Return a generator for the lineage of this animat."""
+        ancestor = self
+        while ancestor is not None:
+            yield ancestor
+            ancestor = ancestor.parent
+
+    def mutate(self):
+        """Mutate the animat's genome in-place."""
+        self._c_animat.mutate(self.mutation_prob, self.duplication_prob,
+                              self.deletion_prob, self.min_genome_length,
+                              self.max_genome_length, self.min_dup_del_width,
+                              self.max_dup_del_width)
+        self._dirty_network = True
+
+    def play_game(self, scrambled=False):
+        """Return the list of state transitions the animat goes through when
+        playing the game."""
+        game = self._c_animat.play_game(
+            self.hit_multipliers, self.block_patterns, self.world_width,
+            self.world_height, scramble_world=scrambled)
+        game = Game(animat_states=game[0].reshape(self.num_trials,
+                                                  self.world_height,
+                                                  self.num_nodes),
+                    world_states=game[1].reshape(self.num_trials,
+                                                 self.world_height),
+                    animat_positions=game[2].reshape(self.num_trials,
+                                                     self.world_height),
+                    trial_results=game[3], correct=game[4], incorrect=game[5])
+        assert game.correct + game.incorrect == self.num_trials
+        self._correct = game.correct
+        self._incorrect = game.incorrect
+        return game
 
     def start_codons(self):
         """Return the locations of start codons in the genome, if any."""
@@ -230,40 +264,6 @@ class Animat:
             state = [0] * self.num_nodes
         return pyphi.Subsystem(
             self.network, state, _.HIDDEN_INDICES + _.MOTOR_INDICES)
-
-    def mutate(self):
-        """Mutate the animat's genome in-place."""
-        self._c_animat.mutate(self.mutation_prob, self.duplication_prob,
-                              self.deletion_prob, self.min_genome_length,
-                              self.max_genome_length, self.min_dup_del_width,
-                              self.max_dup_del_width)
-        self._dirty_network = True
-
-    def play_game(self, scrambled=False):
-        """Return the list of state transitions the animat goes through when
-        playing the game."""
-        game = self._c_animat.play_game(
-            self.hit_multipliers, self.block_patterns, self.world_width,
-            self.world_height, scramble_world=scrambled)
-        game = Game(animat_states=game[0].reshape(self.num_trials,
-                                                  self.world_height,
-                                                  self.num_nodes),
-                    world_states=game[1].reshape(self.num_trials,
-                                                 self.world_height),
-                    animat_positions=game[2].reshape(self.num_trials,
-                                                     self.world_height),
-                    trial_results=game[3], correct=game[4], incorrect=game[5])
-        assert game.correct + game.incorrect == self.num_trials
-        self._correct = game.correct
-        self._incorrect = game.incorrect
-        return game
-
-    def lineage(self):
-        """Return a generator for the lineage of this animat."""
-        ancestor = self
-        while ancestor is not None:
-            yield ancestor
-            ancestor = ancestor.parent
 
     def mechanism(self, node_index, separate_on_off=False):
         """Return the TPM of a single animat node."""
