@@ -77,11 +77,15 @@ class Experiment(Munch):
 
         This does not include derived parameters.
         """
-        # Exclude derived parameters.
-        printable = {k: v for k, v in self.items() if k != '_derived'}
         # Format with pretty print, and indent.
-        return ('Experiment({\n ' + pprint.pformat(printable, indent=1)[1:-1] +
+        return ('Experiment({\n ' +
+                pprint.pformat(self.to_json(), indent=1)[1:-1] +
                 '\n})')
+
+    def to_json(self):
+        """Return a JSON-serializable representation of the experiment."""
+        # Exclude `_derived` parameters when serializing to JSON
+        return {k: v for k, v in self.items() if k != '_derived'}
 
 
 def _derive_params(d):
