@@ -4,8 +4,8 @@
 ---
 # Simulation
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# The RNG seed to use.
-seed: 0
+# The random number generator seed to use.
+rng_seed: 0
 # Length of snapshots interval in minutes.
 snapshot_frequency: 120
 # Generational interval at which to print evolution status to the screen. 

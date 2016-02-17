@@ -19,11 +19,11 @@ Options:
     -h --help                 Show this
     -v --version              Show version
        --list-fitness         List available fitness functions
-    -s --seed=INT             Random number generator seed
+    -r --rng-seed=INT         Random number generator seed
     -t --snapshot=INT         Snapshot interval (minutes)
-    -l --status-interval=INT  Status-printing interval (generations)
+    -s --status-interval=INT  Status-printing interval (generations)
     -o --min-snapshots=INT    Minimum number of snapshots to take
-    -d --log-interval=INT     Logbook recording interval (generations)
+    -l --log-interval=INT     Logbook recording interval (generations)
     -i --num-samples=INT      Number of individuals to sample from evolution
     -f --fitness=FUNC         Fitness function
     -n --num-gen=NGEN         Number of generations to simulate
@@ -123,7 +123,7 @@ def main(arguments):
 
     # Map CLI options to experiment parameter names and types.
     cli_opt_to_param = {
-        '--seed':            ('seed', int),
+        '--rng-seed':        ('rng_seed', int),
         '--snapshot':        ('snapshot_frequency', int),
         '--status-interval': ('status_interval', int),
         '--min-snapshots':   ('min_snapshots', int),
@@ -257,7 +257,7 @@ def main(arguments):
     hall_of_fame = tools.HallOfFame(maxsize=experiment.popsize)
 
     def print_status(line, time):
-        print('[Seed {}] '.format(experiment.seed), end='')
+        print('[Seed {}] '.format(experiment.rng_seed), end='')
         print(line, utils.compress(time))
 
     print('\nSimulating {} generations...\n'.format(experiment.ngen))
@@ -318,7 +318,7 @@ def main(arguments):
     record(population, 0)
     # Print first lines of logbook.
     first_lines = str(logbook).split('\n')
-    header_lines = ['[Seed {}] '.format(experiment.seed) + l
+    header_lines = ['[Seed {}] '.format(experiment.rng_seed) + l
                     for l in first_lines[:-1]]
     print('\n'.join(header_lines))
     print_status(first_lines[-1], time() - log_duration_start)
@@ -341,7 +341,7 @@ def main(arguments):
         if (current_time - snap_duration_start >= SNAPSHOT_TIME_INTERVAL
                 or gen % SNAPSHOT_GENERATION_INTERVAL == 0):
             print('[Seed {}] –\tRecording snapshot {}... '.format(
-                experiment.seed, snapshot), end='')
+                experiment.rng_seed, snapshot), end='')
             dirname = os.path.join(OUTPUT_DIR,
                                    'snapshot-{}-gen-{}'.format(snapshot, gen))
             save_data(dirname, gen, config=configure.get_dict(),
