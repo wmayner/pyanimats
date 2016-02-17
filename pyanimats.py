@@ -24,7 +24,7 @@ Options:
     -s --status-interval=INT  Status-printing interval (generations)
     -o --min-snapshots=INT    Minimum number of snapshots to take
     -l --log-interval=INT     Logbook recording interval (generations)
-    -i --num-samples=INT      Number of individuals to sample from evolution
+    -i --num-samples=INT      Number of animats to sample from evolution
     -f --fitness=FUNC         Fitness function
     -n --num-gen=NGEN         Number of generations to simulate
     -p --pop-size=INT         Population size
@@ -66,38 +66,38 @@ import configure
 import fitness_functions
 import utils
 from experiment import Experiment
-from individual import Individual
+from animat import Animat
 
 
 MINUTES = 60
 
 
-def select(individuals, k):
-    """Select *k* individuals from the given list of individuals using the
+def select(animats, k):
+    """Select *k* animats from the given list of animats using the
     variant of roulette-wheel selection used in the old C++ code.
 
-    :param individuals: A list of individuals to select from.
-    :param k: The number of individuals to select.
-    :returns: A list of selected individuals.
+    :param animats: A list of animats to select from.
+    :param k: The number of animats to select.
+    :returns: A list of selected animats.
 
     This function uses the :func:`~random.random` function from the built-in
     :mod:`random` module."""
-    max_fitness = max([ind.fitness.value for ind in individuals])
+    max_fitness = max([animat.fitness.value for animat in animats])
     chosen = []
     for i in range(k):
         done = False
         while not done:
-            candidate = random.choice(individuals)
+            candidate = random.choice(animats)
             done = random.random() <= (candidate.fitness.value /
                                        max_fitness)
         chosen.append(candidate)
     return chosen
 
 
-def mutate(ind):
-    ind.mutate()
-    return (ind,)
-mutate.__doc__ = Individual.mutate.__doc__
+def mutate(animat):
+    animat.mutate()
+    return (animat,)
+mutate.__doc__ = Animat.mutate.__doc__
 
 
 def main(arguments):
@@ -169,7 +169,7 @@ def main(arguments):
         SNAPSHOT_GENERATION_INTERVAL = (experiment.ngen //
                                         experiment.min_snapshots)
 
-    # Whether or not to save every individual in the population, or just the
+    # Whether or not to save every animat in the population, or just the
     # fittest one.
     SAVE_ALL_LINEAGES = arguments['--all-lineages']
 
@@ -184,10 +184,10 @@ def main(arguments):
         if SAVE_ALL_LINEAGES:
             to_save = pop
         else:
-            to_save = [max(pop, key=lambda ind: ind.fitness.value)]
+            to_save = [max(pop, key=lambda animat: animat.fitness.value)]
         step = (1 if experiment.num_samples <= 0
                 else max(gen // experiment.num_samples, 1))
-        lineages = tuple(tuple(ind.lineage())[::step] for ind in to_save)
+        lineages = tuple(tuple(animat.lineage())[::step] for animat in to_save)
         # Save config and metadata as JSON.
         data_json = {
             'config': configure.get_dict(),
@@ -203,7 +203,7 @@ def main(arguments):
         data_pickle = {
             'lineages': lineages,
             'logbook': logbook,
-            'hof': [ind.animat for ind in hof],
+            'hof': [animat._c_animat for animat in hof],
         }
         for key in data_pickle:
             with open(os.path.join(output_dir, str(key) + '.pkl'), 'wb') as f:
@@ -215,28 +215,27 @@ def main(arguments):
     toolbox = base.Toolbox()
 
     # Register the various genetic algorithm components to the toolbox.
-    toolbox.register('individual', Individual, experiment,
-                     experiment.init_genome)
-    toolbox.register('population', tools.initRepeat, list, toolbox.individual)
+    toolbox.register('animat', Animat, experiment, experiment.init_genome)
+    toolbox.register('population', tools.initRepeat, list, toolbox.animat)
     toolbox.register('evaluate',
                      fitness_functions.__dict__[experiment.fitness_function])
     toolbox.register('select', select)
     toolbox.register('mutate', mutate)
 
     # Create statistics trackers.
-    fitness_stats = tools.Statistics(key=lambda ind: ind.fitness.raw)
+    fitness_stats = tools.Statistics(key=lambda animat: animat.fitness.raw)
     fitness_stats.register('max', np.max)
 
-    real_fitness_stats = tools.Statistics(key=lambda ind: ind.fitness.value)
+    real_fitness_stats = tools.Statistics(key=lambda animat: animat.fitness.value)
     real_fitness_stats.register('max', np.max)
 
-    correct_stats = tools.Statistics(key=lambda ind: (ind.correct,
-                                                      ind.incorrect))
+    correct_stats = tools.Statistics(key=lambda animat: (animat.correct,
+                                                         animat.incorrect))
     correct_stats.register('correct', lambda x: np.max(x, 0)[0])
     correct_stats.register('incorrect', lambda x: np.max(x, 0)[1])
 
     # Stats objects for alternate matching measures.
-    alt_fitness_stats = tools.Statistics(key=lambda ind: ind.alt_fitness)
+    alt_fitness_stats = tools.Statistics(key=lambda animat: animat.alt_fitness)
     alt_fitness_stats.register('weighted', lambda x: np.max(x, 0)[0])
     alt_fitness_stats.register('unweighted', lambda x: np.max(x, 0)[1])
 
@@ -272,14 +271,14 @@ def main(arguments):
 
     def multi_fit_evaluate(pop, gen):
         fitnesses = toolbox.map(toolbox.evaluate, pop)
-        for ind, fitness in zip(pop, fitnesses):
-            ind.fitness.set(fitness[0])
-            ind.alt_fitness = fitness[1:]
+        for animat, fitness in zip(pop, fitnesses):
+            animat.fitness.set(fitness[0])
+            animat.alt_fitness = fitness[1:]
 
     def single_fit_evaluate(pop, gen):
         fitnesses = toolbox.map(toolbox.evaluate, pop)
-        for ind, fitness in zip(pop, fitnesses):
-            ind.fitness.set(fitness)
+        for animat, fitness in zip(pop, fitnesses):
+            animat.fitness.set(fitness)
 
     evaluate = (multi_fit_evaluate if experiment.fitness_function == 'mat'
                 else single_fit_evaluate)
@@ -294,10 +293,10 @@ def main(arguments):
         # Selection.
         pop = toolbox.select(pop, len(pop))
         # Cloning.
-        offspring = [toolbox.clone(ind) for ind in pop]
-        for ind in offspring:
+        offspring = [toolbox.clone(animat) for animat in pop]
+        for animat in offspring:
             # Tag offspring with new generation number.
-            ind.gen = gen
+            animat.gen = gen
         # Variation.
         for i in range(len(offspring)):
             toolbox.mutate(offspring[i])

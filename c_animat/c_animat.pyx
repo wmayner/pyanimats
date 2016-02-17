@@ -4,7 +4,7 @@
 # cython: boundscheck=False
 # cython: wraparound=False
 
-# animat.pyx
+# c_animat.pyx
 
 
 from libcpp.vector cimport vector
@@ -146,6 +146,11 @@ cdef class Int32Wrapper:
         return np.asarray(base) 
 
 
+def seed(s):
+    """Initialize the C++ random number generator with the given seed."""
+    srand(s)
+
+
 # TODO(wmayner) does this help?
 @cython.freelist(60000)
 cdef class cAnimat:
@@ -163,7 +168,7 @@ cdef class cAnimat:
 
     def __deepcopy__(self, memo):
         return cAnimat(self.genome, self.mNumSensors, self.mNumHidden,
-                      self.mNumMotors, self.mDeterministic)
+                       self.mNumMotors, self.mDeterministic)
 
     def __copy__(self):
         return self.__deepcopy__()
@@ -242,8 +247,3 @@ cdef class cAnimat:
         return (animat_states.asarray(), world_states.asarray(),
                 animat_positions.asarray(), trial_results.asarray(), correct,
                 incorrect)
-
-         
-def seed(s):
-    """Initialize the C++ random number generator with the given seed."""
-    srand(s)

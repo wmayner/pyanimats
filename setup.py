@@ -18,12 +18,12 @@ class build_ext(_build_ext):
 
 
 extensions = [
-    Extension('animat',
+    Extension('c_animat',
               sources=[
-                  'animat/animat.pyx',
-                  'animat/Agent.cpp',
-                  'animat/HMM.cpp',
-                  'animat/Game.cpp'
+                  'c_animat/c_animat.pyx',
+                  'c_animat/Agent.cpp',
+                  'c_animat/HMM.cpp',
+                  'c_animat/Game.cpp'
               ],
               language='c++')
 ]
@@ -40,7 +40,7 @@ install_requires = setup_requires + [
 ]
 
 setup(
-    name="animat",
+    name="pyanimats",
     ext_modules=cythonize(extensions),
     cmdclass={'build_ext': build_ext},
     setup_requires=setup_requires,

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# individual.py
+# animat.py
 
 """
 Class representing an individual organism in the evolution.
@@ -18,7 +18,7 @@ import pyphi
 
 import constants
 import utils
-from animat import cAnimat
+from c_animat import cAnimat
 
 
 class ExponentialFitness:
@@ -73,24 +73,24 @@ Game = namedtuple('Game', ['animat_states', 'world_states', 'animat_positions',
 Mechanism = namedtuple('Mechanism', ['inputs', 'tpm'])
 
 
-class Individual:
+class Animat:
 
     """
-    Represents an individual in the evolution.
+    Represents an animat.
 
     Args:
-        experiment (Experiment): The experiment this individual is a part of.
+        experiment (Experiment): The experiment this animat is a part of.
         genome (Iterable(int)): See attribute.
 
     Keyword Args:
-        parent (Individual): See attribute.
+        parent (Animat): See attribute.
         gen (int): See attribute.
 
     Attributes:
         genome (Iterable(int)):
             A sequence of integers in the range 0–255 that will determine the
             animat's phenotype.
-        parent (Individual):
+        parent (Animat):
             The animat's parent. Must be explicitly set upon cloning.
         gen (int):
         edges (list(tuple(int, int))):
@@ -113,7 +113,7 @@ class Individual:
 
     def __init__(self, experiment, genome, parent=None, gen=0):
         self._experiment = experiment
-        self._animat = cAnimat(genome,
+        self._c_animat = cAnimat(genome,
                                experiment.num_sensors,
                                experiment.num_hidden,
                                experiment.num_motors,
@@ -128,7 +128,7 @@ class Individual:
         self._dirty_network = True
 
     def __str__(self):
-        string = ('Individual(gen={}, genome={}, '
+        string = ('Animat(gen={}, genome={}, '
                   'connectivity_matrix=\n{})'.format(
                       self.gen, np.array(self.genome), self.cm))
         return string.replace('\n', '\n' + ' ' * 11)
@@ -153,7 +153,7 @@ class Individual:
     @property
     def tpm(self):
         """The animats's TPM."""
-        return np.array(self._animat.tpm).astype(float)
+        return np.array(self._c_animat.tpm).astype(float)
 
     @property
     def network(self):
@@ -176,8 +176,8 @@ class Individual:
 
     def __deepcopy__(self, memo):
         # Don't copy the underlying animat, parent, or PyPhi network.
-        copy = Individual(self._experiment, genome=self._animat.genome,
-                          parent=self.parent, gen=self.gen)
+        copy = Animat(self._experiment, genome=self._c_animat.genome,
+                      parent=self.parent, gen=self.gen)
         copy._incorrect = deepcopy(self._incorrect)
         copy._correct = deepcopy(self._incorrect)
         copy.fitness = deepcopy(self.fitness)
@@ -221,16 +221,16 @@ class Individual:
 
     def mutate(self):
         """Mutate the animat's genome in-place."""
-        self._animat.mutate(self.mutation_prob, self.duplication_prob,
-                            self.deletion_prob, self.min_genome_length,
-                            self.max_genome_length, self.min_dup_del_width,
-                            self.max_dup_del_width)
+        self._c_animat.mutate(self.mutation_prob, self.duplication_prob,
+                              self.deletion_prob, self.min_genome_length,
+                              self.max_genome_length, self.min_dup_del_width,
+                              self.max_dup_del_width)
         self._dirty_network = True
 
     def play_game(self, scrambled=False):
         """Return the list of state transitions the animat goes through when
         playing the game."""
-        game = self._animat.play_game(
+        game = self._c_animat.play_game(
             self.hit_multipliers, self.block_patterns, self.world_width,
             self.world_height, scramble_world=scrambled)
         game = Game(animat_states=game[0].reshape(self.num_trials,
@@ -247,11 +247,11 @@ class Individual:
         return game
 
     def lineage(self):
-        """Return a generator for the lineage of this individual."""
-        yield self._animat
+        """Return a generator for the lineage of this animat."""
+        yield self._c_animat
         ancestor = self.parent
         while ancestor is not None:
-            yield ancestor._animat
+            yield ancestor._c_animat
             ancestor = ancestor.parent
 
     def mechanism(self, node_index, separate_on_off=False):
@@ -273,17 +273,17 @@ class Individual:
         return mechanism
 
 
-def _animat_getter(name):
+def _c_animat_getter(name):
     """Returns a function that gets ``name`` from the underlying animat."""
     def getter(self):
-        return getattr(self._animat, name)
+        return getattr(self._c_animat, name)
     return getter
 
 # A list of animat attributes to expose as read-only properties
-_animat_properties = ['genome', 'num_sensors', 'num_hidden', 'num_motors',
-                      'num_nodes', 'num_states', 'deterministic',
-                      'body_length', 'edges', 'tpm']
+_c_animat_properties = ['genome', 'num_sensors', 'num_hidden', 'num_motors',
+                        'num_nodes', 'num_states', 'deterministic',
+                        'body_length', 'edges', 'tpm']
 
-# Add underlying animat properties to the Individual class
-for name in _animat_properties:
-    setattr(Individual, name, property(_animat_getter(name)))
+# Add underlying animat properties to the Animat class
+for name in _c_animat_properties:
+    setattr(Animat, name, property(_c_animat_getter(name)))

@@ -8,16 +8,16 @@ Container for package-level constants.
 
 import math
 
-import animat
-from animat import MIN_BODY_LENGTH
+import c_animat
+from c_animat import MIN_BODY_LENGTH
 
 NAT_TO_BIT_CONVERSION_FACTOR = 1 / math.log(2)
-START_CODON = [animat.START_CODON_NUCLEOTIDE_ONE,
-               animat.START_CODON_NUCLEOTIDE_TWO]
-HIT_TYPE = {animat.CORRECT_CATCH: 'CORRECT_CATCH',
-            animat.WRONG_CATCH: 'WRONG_CATCH',
-            animat.CORRECT_AVOID: 'CORRECT_AVOID',
-            animat.WRONG_AVOID: 'WRONG_AVOID'}
+START_CODON = [c_animat.START_CODON_NUCLEOTIDE_ONE,
+               c_animat.START_CODON_NUCLEOTIDE_TWO]
+HIT_TYPE = {c_animat.CORRECT_CATCH: 'CORRECT_CATCH',
+            c_animat.WRONG_CATCH: 'WRONG_CATCH',
+            c_animat.CORRECT_AVOID: 'CORRECT_AVOID',
+            c_animat.WRONG_AVOID: 'WRONG_AVOID'}
 # Scale raw fitness values so they're mostly in the range 64–128 before using
 # them as an exponent (this depends on which fitness function is used).
 FITNESS_TRANSFORMS = {
