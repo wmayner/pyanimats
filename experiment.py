@@ -57,6 +57,7 @@ class Experiment(Munch):
         # Put everything in the Munch.
         self.update(dictionary)
         # Validate.
+        # TODO: check that all necessary params are present
         if self.num_nodes <= 0:
             raise ValueError('invalid experiment: animats must have at least '
                              'one node.')

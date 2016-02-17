@@ -20,7 +20,7 @@ Options:
     -v --version              Show version
        --list-fitness         List available fitness functions
     -s --seed=INT             Random number generator seed
-    -t --snapshot=INT         Snapshot interval (seconds)
+    -t --snapshot=INT         Snapshot interval (minutes)
     -l --status-interval=INT  Status-printing interval (generations)
     -o --min-snapshots=INT    Minimum number of snapshots to take
     -d --log-interval=INT     Logbook recording interval (generations)
@@ -67,6 +67,10 @@ import fitness_functions
 import utils
 from experiment import Experiment
 from individual import Individual
+
+
+MINUTES = 60
+
 
 def select(individuals, k):
     """Select *k* individuals from the given list of individuals using the
@@ -154,7 +158,7 @@ def main(arguments):
     MIN_SNAPSHOTS = experiment.min_snapshots
 
     # Get the interval at which to take snapshots.
-    SNAPSHOT_TIME_INTERVAL = experiment.snapshot_frequency
+    SNAPSHOT_TIME_INTERVAL = experiment.snapshot_frequency * MINUTES
     if SNAPSHOT_TIME_INTERVAL <= 0:
         SNAPSHOT_TIME_INTERVAL = float('inf')
 
