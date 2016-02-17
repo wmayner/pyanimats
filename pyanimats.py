@@ -16,35 +16,35 @@ Usage:
     pyanimats.py list
 
 Options:
-    -h --help                  Show this
-    -v --version               Show version
-       --list-fitness          List available fitness functions
-    -s --seed=SEED             Random number generator seed
-    -t --snapshot=FREQ         Snapshot interval (seconds)
-    -l --status-interval=FREQ  Status-printing interval (generations)
-    -o --min-snapshots=NUM     Minimum number of snapshots to take
-    -d --log-interval=FREQ     Logbook recording interval (generations)
-    -i --num-samples=NUM       Number of individuals to sample from evolution
-    -f --fitness=FUNC          Fitness function
-    -n --num-gen=NGEN          Number of generations to simulate
-    -p --pop-size=SIZE         Population size
-                                 (0 saves entire lineage)
-    -g --init-genome=PATH      Path to a lineage file for an intial genome
-    -j --jumpstart=NUM         Begin with this many start codons
-    -a --all-lineages          Save lineages of entire final population
-       --num-sensors           The number of sensors in an animat
-       --num-hidden            The number of hidden units in an animat
-       --num-motors            The number of motors in an animat
-       --world-width           The width of the animats' environment
-       --world-height          The height of the animats' environment
-    -m --mut-prob=PROB         Point mutation probability
-       --dup-prob=PROB         Duplication probability
-       --del-prob=PROB         Deletion probability
-       --min-dup-del=LENGTH    Minimum length of duplicated/deleted genome part
-       --max-dup-del=LENGTH    Maximum length of duplicated/deleted genome part
-       --min-length=LENGTH     Minimum genome length
-       --max-length=LENGTH     Maximum genome length
-       --profile=PATH          Profile performance and store results at PATH
+    -h --help                 Show this
+    -v --version              Show version
+       --list-fitness         List available fitness functions
+    -s --seed=INT             Random number generator seed
+    -t --snapshot=INT         Snapshot interval (seconds)
+    -l --status-interval=INT  Status-printing interval (generations)
+    -o --min-snapshots=INT    Minimum number of snapshots to take
+    -d --log-interval=INT     Logbook recording interval (generations)
+    -i --num-samples=INT      Number of individuals to sample from evolution
+    -f --fitness=FUNC         Fitness function
+    -n --num-gen=NGEN         Number of generations to simulate
+    -p --pop-size=INT         Population size
+                                (0 saves entire lineage)
+    -g --init-genome=PATH     Path to a lineage file for an intial genome
+    -j --jumpstart=INT        Begin with this many start codons
+    -a --all-lineages         Save lineages of entire final population
+       --num-sensors=INT      The number of sensors in an animat
+       --num-hidden=INT       The number of hidden units in an animat
+       --num-motors=INT       The number of motors in an animat
+       --world-width=INT      The width of the animats' environment
+       --world-height=INT     The height of the animats' environment
+    -m --mut-prob=FLOAT       Point mutation probability
+       --dup-prob=FLOAT       Duplication probability
+       --del-prob=FLOAT       Deletion probability
+       --min-dup-del=INT      Minimum length of duplicated/deleted genome part
+       --max-dup-del=INT      Maximum length of duplicated/deleted genome part
+       --min-length=INT       Minimum genome length
+       --max-length=INT       Maximum genome length
+       --profile=PATH         Profile performance and store results at PATH
 """
 
 __version__ = '0.0.23'
