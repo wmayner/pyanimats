@@ -143,6 +143,16 @@ class Animat:
         # overriden).
         return getattr(self._experiment, name)
 
+    def __getstate__(self):
+        # Exclude the PyPhi network and dirty flag from the pickled object.
+        return {k: v for k, v in self.__dict__.items()
+                if k not in ['_network', '_dirty_network']}
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        self._network = False
+        self._dirty_network = True
+
     @property
     def cm(self):
         """The animat's connectivity matrix."""
