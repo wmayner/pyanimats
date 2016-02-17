@@ -56,6 +56,10 @@ class Experiment(Munch):
         dictionary['_derived'] = _derive_params(dictionary)
         # Put everything in the Munch.
         self.update(dictionary)
+        # Validate.
+        if self.num_nodes <= 0:
+            raise ValueError('invalid experiment: animats must have at least '
+                             'one node.')
 
     def __getattr__(self, k):
         """Fall back on derived parameters if ``k`` is not an attribute."""
