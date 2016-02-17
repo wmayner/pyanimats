@@ -293,7 +293,7 @@ def _c_animat_getter(name):
 # A list of animat attributes to expose as read-only properties
 _c_animat_properties = ['genome', 'num_sensors', 'num_hidden', 'num_motors',
                         'num_nodes', 'num_states', 'deterministic',
-                        'body_length', 'edges', 'tpm']
+                        'body_length', 'edges']
 
 # Add underlying animat properties to the Animat class
 for name in _c_animat_properties:
