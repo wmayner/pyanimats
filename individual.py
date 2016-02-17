@@ -9,9 +9,11 @@ Wraps the C++ Animat extension, providing convenience methods for accessing
 animat properties (connectivity, associated PyPhi objects, etc.).
 """
 
-import numpy as np
-from collections import namedtuple
 import functools
+from collections import namedtuple
+from copy import deepcopy
+
+import numpy as np
 import pyphi
 
 import constants
@@ -176,9 +178,9 @@ class Individual:
         # Don't copy the underlying animat, parent, or PyPhi network.
         copy = Individual(self._experiment, genome=self._animat.genome,
                           parent=self.parent, gen=self.gen)
-        copy._incorrect = self._incorrect
-        copy._correct = self._incorrect
-        copy.fitness = self.fitness
+        copy._incorrect = deepcopy(self._incorrect)
+        copy._correct = deepcopy(self._incorrect)
+        copy.fitness = deepcopy(self.fitness)
         return copy
 
     def start_codons(self):
