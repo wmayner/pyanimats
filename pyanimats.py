@@ -19,26 +19,31 @@ Options:
     -h --help                  Show this
     -v --version               Show version
        --list-fitness          List available fitness functions
-    -n --num-gen=NGEN          Number of generations to simulate
     -s --seed=SEED             Random number generator seed
-    -f --fitness=FUNC          Fitness function
-    -p --pop-size=SIZE         Population size
+    -t --snapshot=FREQ         Snapshot interval (seconds)
+    -l --status-interval=FREQ  Status-printing interval (generations)
+    -o --min-snapshots=NUM     Minimum number of snapshots to take
     -d --log-interval=FREQ     Logbook recording interval (generations)
     -i --num-samples=NUM       Number of individuals to sample from evolution
+    -f --fitness=FUNC          Fitness function
+    -n --num-gen=NGEN          Number of generations to simulate
+    -p --pop-size=SIZE         Population size
                                  (0 saves entire lineage)
-    -t --snapshot=FREQ         Snapshot interval (seconds)
-    -o --min-snapshots=NUM     Minimum number of snapshots to take
-    -l --status-interval=FREQ  Status-printing interval (generations)
-    -j --jumpstart=NUM         Begin with this many start codons
     -g --init-genome=PATH      Path to a lineage file for an intial genome
+    -j --jumpstart=NUM         Begin with this many start codons
     -a --all-lineages          Save lineages of entire final population
+       --num-sensors           The number of sensors in an animat
+       --num-hidden            The number of hidden units in an animat
+       --num-motors            The number of motors in an animat
+       --world-width           The width of the animats' environment
+       --world-height          The height of the animats' environment
     -m --mut-prob=PROB         Point mutation probability
        --dup-prob=PROB         Duplication probability
        --del-prob=PROB         Deletion probability
-       --min-length=LENGTH     Minimum genome length
-       --max-length=LENGTH     Maximum genome length
        --min-dup-del=LENGTH    Minimum length of duplicated/deleted genome part
        --max-dup-del=LENGTH    Maximum length of duplicated/deleted genome part
+       --min-length=LENGTH     Minimum genome length
+       --max-length=LENGTH     Maximum genome length
        --profile=PATH          Profile performance and store results at PATH
 """
 
@@ -114,20 +119,30 @@ def main(arguments):
 
     # Map CLI options to experiment parameter names and types.
     cli_opt_to_param = {
-        '--fitness': ('fitness_function', str),
-        '--seed': ('seed', int),
-        '--num-gen': ('ngen', int),
-        '--pop-size': ('popsize', int),
-        '--jumpstart': ('init_start_codons', int),
-        '--init-genome': ('init_genome', str),
-        '--dup-prob': ('duplication_prob', float),
-        '--del-prob': ('deletion_prob', float),
-        '--min-length': ('min_genome_length', int),
-        '--max-length': ('max_genome_length', int),
-        '--min-dup-del': ('min_dup_del_width', int),
-        '--max-dup-del': ('min_dup_del_width', int),
+        '--seed':            ('seed', int),
+        '--snapshot':        ('snapshot_frequency', int),
+        '--status-interval': ('status_interval', int),
+        '--min-snapshots':   ('min_snapshots', int),
+        '--log-interval':    ('log_interval', int),
+        '--num-samples':     ('num_samples', int),
+        '--fitness':         ('fitness_function', str),
+        '--num-gen':         ('ngen', int),
+        '--pop-size':        ('popsize', int),
+        '--init-genome':     ('init_genome', str),
+        '--jumpstart':       ('init_start_codons', int),
+        '--num-sensors':     ('num_sensors', int),
+        '--num-hidden':      ('num_hidden', int),
+        '--num-motors':      ('num_motors', int),
+        '--world-width':     ('world_width', int),
+        '--world-height':    ('world_height', int),
+        '--mut-prob':        ('mutation_prob', float),
+        '--dup-prob':        ('duplication_prob', float),
+        '--del-prob':        ('deletion_prob', float),
+        '--min-dup-del':     ('min_dup_del_width', int),
+        '--max-dup-del':     ('min_dup_del_width', int),
+        '--min-length':      ('min_genome_length', int),
+        '--max-length':      ('max_genome_length', int),
     }
-
     # Load the experiment object, overriding if necessary with CLI options.
     cli_overrides = {param[0]: param[1](arguments[opt])
                      for opt, param in cli_opt_to_param.items()
