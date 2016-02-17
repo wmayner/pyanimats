@@ -260,10 +260,9 @@ class Animat:
 
     def lineage(self):
         """Return a generator for the lineage of this animat."""
-        yield self._c_animat
-        ancestor = self.parent
+        ancestor = self
         while ancestor is not None:
-            yield ancestor._c_animat
+            yield ancestor
             ancestor = ancestor.parent
 
     def mechanism(self, node_index, separate_on_off=False):
