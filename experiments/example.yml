@@ -9,7 +9,7 @@ rng_seed: 0
 # Length of snapshots interval in minutes.
 snapshot_frequency: 120
 # Generational interval at which to print evolution status to the screen. 
-# Note: printing to the screen is a slow operation; setting a short interval
+# NOTE: printing to the screen is a slow operation; setting a short interval
 # can significantly impact performance if simulating a generation is fast.
 status_interval : 1
 # Minimum number of snapshots.
@@ -35,7 +35,7 @@ popsize: 100
 # Must be a path to a `lineages.pkl` file, or `false`.
 init_genome_path: false
 # Number of start codons to inject into the initial genome.
-# Note: this has no effect if loading from a snapshot.
+# NOTE: this has no effect if loading from a snapshot.
 init_start_codons: 0
 # Raw fitness values are scaled exponentially according to the formula
 #   F(R) = B^(S*R + A)
@@ -54,10 +54,10 @@ num_sensors: 3
 # The number of hidden units in an animat.
 num_hidden: 3
 # The number of motors in an animat.
-# Note: changing this has not been tested and probably won't work!
+# NOTE: changing this has not been tested and probably won't work!
 num_motors: 2
 # The length of the animat's body.
-# Note: cannot be less than 3.
+# NOTE: cannot be less than 3.
 body_length: 3
 
 # Environment

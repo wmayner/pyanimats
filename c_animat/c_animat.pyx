@@ -174,6 +174,10 @@ cdef class cAnimat:
         return self.__deepcopy__()
 
     def __reduce__(self):
+        # When pickling, simply regenerate an instance.
+        # NOTE: This means that changes in the implementation of cAnimat that
+        # occur between pickling and unpickling can cause a SILENT change in
+        # behavior!
         return (cAnimat, (self.thisptr.genome, self.thisptr.mNumSensors,
                           self.thisptr.mNumHidden, self.thisptr.mNumMotors,
                           self.thisptr.mDeterministic))

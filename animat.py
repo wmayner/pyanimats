@@ -114,15 +114,17 @@ class Animat:
     def __init__(self, experiment, genome, parent=None, gen=0):
         self._experiment = experiment
         self._c_animat = cAnimat(genome,
-                               experiment.num_sensors,
-                               experiment.num_hidden,
-                               experiment.num_motors,
-                               experiment.deterministic)
+                                 experiment.num_sensors,
+                                 experiment.num_hidden,
+                                 experiment.num_motors,
+                                 experiment.deterministic)
         self.parent = parent
         self.gen = gen
         self._correct = False
         self._incorrect = False
         self.fitness = ExponentialFitness(experiment.fitness_transform)
+        # We don't initialize the animat's PyPhi network until we need to,
+        # because it may be expensive.
         self._network = False
         # Mark whether the animat's network need updating.
         self._dirty_network = True
@@ -138,7 +140,7 @@ class Animat:
 
     def __getattr__(self, name):
         """Fall back to experiment attributes."""
-        # Note: this works as expected because `__getattr__` is only called as
+        # NOTE: this works as expected because `__getattr__` is only called as
         # a last resort (unlike `__getattribute__`, which should rarely be
         # overriden).
         return getattr(self._experiment, name)
