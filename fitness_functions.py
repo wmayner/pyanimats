@@ -79,7 +79,7 @@ def avg_over_visited_states(shortcircuit=True, upto_attr=False,
             # Short-circuit if the animat has no connections.
             if shortcircuit and ind.cm.sum() == 0:
                 return 0.0
-            upto = getattr(_, upto_attr) if upto_attr else False
+            upto = getattr(ind, upto_attr) if upto_attr else False
             game = ind.play_game(scrambled=scrambled)
             sort = n is not None
             unique_states = unique_rows(game.animat_states, upto=upto,
@@ -271,7 +271,7 @@ def all_concepts(ind, state):
 # the subsystem is always the entire network (not the main complex), so there
 # are no background conditions.
 sp = avg_over_visited_states(transform=phi_sum,
-                             upto_attr='HIDDEN_INDICES')(all_concepts)
+                             upto_attr='hidden_indices')(all_concepts)
 sp.__name__ = 'sp'
 sp.__doc__ = \
     """Sum of φ: Animats are evaluated based on the sum of φ for all the
@@ -306,7 +306,7 @@ def main_complex(ind, state):
 NUM_BIG_PHI_STATES_TO_COMPUTE = None
 
 bp = avg_over_visited_states(transform=lambda x: x.phi,
-                             upto_attr='SENSOR_HIDDEN_INDICES',
+                             upto_attr='sensor_hidden_indices',
                              n=NUM_BIG_PHI_STATES_TO_COMPUTE)(main_complex)
 bp.__name__ = 'bp'
 bp.__doc__ = \
