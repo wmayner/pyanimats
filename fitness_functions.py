@@ -194,10 +194,11 @@ _register()(nat)
 # Mutual information
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def mi(ind):
+def mi(ind, scrambled=False):
     """Mutual information: Animats are evaluated based on the mutual
-    information between their sensors and motor over the course of a game."""
-    states = ind.play_game().animat_states
+    information between their sensors and motor over the course of a game.
+    """
+    states = ind.play_game(scrambled=scrambled).animat_states
     # The contingency matrix has a row for every sensors state and a column for
     # every motor state.
     contingency = np.zeros([ind.num_sensor_states, ind.num_motor_states])
@@ -216,11 +217,8 @@ _register()(mi)
 
 def mi_wvn(ind):
     """Same as `mi` but counting the difference between world and noise."""
-    # Play the game and a scrambled version of it.
-    world = ind.play_game().animat_states
-    noise = ind.play_game(scrambled=True).animat_states
-    return mutual_information(world) - mutual_information(noise)
-_register(data_function=mutual_information)(mi_wvn)
+    return mi(ind, scrambled=False) - mi(ind, scrambled=True)
+_register(data_function=mi)(mi_wvn)
 
 
 # Extrinsic cause information
