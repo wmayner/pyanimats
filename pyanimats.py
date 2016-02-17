@@ -62,7 +62,6 @@ import numpy as np
 from deap import base, tools
 from docopt import docopt
 
-import configure
 import fitness_functions
 import utils
 from experiment import Experiment
@@ -190,7 +189,7 @@ def main(arguments):
         lineages = tuple(tuple(animat.lineage())[::step] for animat in to_save)
         # Save config and metadata as JSON.
         data_json = {
-            'config': configure.get_dict(),
+            'config': experiment.to_json(),
             'metadata': {
                 'elapsed': round(elapsed, 2),
                 'version': __version__
@@ -343,7 +342,7 @@ def main(arguments):
                 experiment.rng_seed, snapshot), end='')
             dirname = os.path.join(OUTPUT_DIR,
                                    'snapshot-{}-gen-{}'.format(snapshot, gen))
-            save_data(dirname, gen, config=configure.get_dict(),
+            save_data(dirname, gen, config=experiment.to_json(),
                       pop=population, logbook=logbook, hof=hall_of_fame,
                       elapsed=(current_time - sim_start))
             print('done.')
@@ -362,7 +361,7 @@ def main(arguments):
         experiment.ngen, utils.compress(sim_end - sim_start)))
 
     # Write final results to disk.
-    save_data(OUTPUT_DIR, gen, config=configure.get_dict(), pop=population,
+    save_data(OUTPUT_DIR, gen, config=experiment.to_json(), pop=population,
               logbook=logbook, hof=hall_of_fame, elapsed=(sim_end - sim_start))
 
 
