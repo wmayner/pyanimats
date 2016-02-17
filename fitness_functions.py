@@ -185,8 +185,7 @@ def nat(ind):
     successfully complete. For each task given in the ``TASKS`` parameter,
     there is one trial per direction (left or right) of block descent, per
     initial animat position (given by ``config.WORLD_WIDTH``)."""
-    ind.play_game()
-    return ind.correct
+    return ind.play_game().correct
 _register()(nat)
 
 
@@ -327,7 +326,6 @@ _register(data_function=main_complex)(bp_wvn)
 
 # World vs. noise state differentiation
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 
 def state_wvn(ind, upto=[3, 4, 5]):
     """State differentiation (world vs. noise): Measures the number of
