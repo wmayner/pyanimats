@@ -6,7 +6,6 @@
 Fitness functions for driving animat evolution.
 """
 
-import config
 import textwrap
 from collections import Counter, OrderedDict
 from functools import wraps
