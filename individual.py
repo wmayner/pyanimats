@@ -123,8 +123,7 @@ class Individual:
         self._incorrect = False
         self.fitness = ExponentialFitness(experiment.fitness_transform)
         self._network = False
-        # Mark whether the animat's phenotype and network need updating.
-        self._dirty_phenotype = True
+        # Mark whether the animat's network need updating.
         self._dirty_network = True
 
     def __str__(self):
