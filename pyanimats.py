@@ -28,7 +28,6 @@ Options:
     -f --fitness=FUNC         Fitness function
     -n --num-gen=NGEN         Number of generations to simulate
     -p --pop-size=INT         Population size
-                                (0 saves entire lineage)
     -g --init-genome=PATH     Path to a lineage file for an intial genome
     -j --jumpstart=INT        Begin with this many start codons
     -a --all-lineages         Save lineages of entire final population
@@ -169,22 +168,13 @@ def main(arguments):
         SNAPSHOT_GENERATION_INTERVAL = (experiment.ngen //
                                         experiment.min_snapshots)
 
-    # Whether or not to save every animat in the population, or just the
-    # fittest one.
-    SAVE_ALL_LINEAGES = arguments['--all-lineages']
-
-
     # Helper functions
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def save_data(output_dir, gen, config, pop, logbook, hof, elapsed):
         # Ensure output directory exists.
         utils.ensure_exists(output_dir)
-        # Collect lineages.
-        if SAVE_ALL_LINEAGES:
-            to_save = pop
-        else:
-            to_save = [max(pop, key=lambda animat: animat.fitness.value)]
+        to_save = [max(pop, key=lambda animat: animat.fitness.value)]
         step = (1 if experiment.num_samples <= 0
                 else max(gen // experiment.num_samples, 1))
         lineages = tuple(tuple(animat.lineage())[::step] for animat in to_save)
