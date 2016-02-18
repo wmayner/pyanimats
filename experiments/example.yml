@@ -11,7 +11,7 @@ snapshot_frequency: 120
 # Generational interval at which to print evolution status to the screen. 
 # NOTE: printing to the screen is a slow operation; setting a short interval
 # can significantly impact performance if simulating a generation is fast.
-status_interval : 1
+status_interval: 0
 # Minimum number of snapshots.
 min_snapshots: 0
 # Number of CPU cores to use.
@@ -62,6 +62,10 @@ body_length: 3
 
 # Environment
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# The width of the animats' environment.
+world_width: 16
+# The height of the animats' environment.
+world_height: 36
 # The task the animats will be presented width.
 # - Each item in the list specifies a hit multiplier and a block
 #   pattern. 
@@ -81,10 +85,6 @@ task:
   - [-1, '1111000000000000']
   - [ 1, '1111110000000000']
   - [-1, '1111100000000000']
-# The width of the animats' environment.
-world_width: 16
-# The height of the animats' environment.
-world_height: 36
 
 # Mutation
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -94,14 +94,14 @@ mutation_prob: 0.005
 duplication_prob: 0.05
 # Probability of a deletion.
 deletion_prob: 0.02
-# Minimum duplication or deletion section width.
-min_dup_del_width: 15
-# Maximum duplication or deletion section width.
-max_dup_del_width: 511
 # Deletions will not occur if the genome is shorter than this.
 min_genome_length: 1000
 # Duplications will not occur if the genome is longer than this.
 max_genome_length: 10000
+# Minimum duplication or deletion section width.
+min_dup_del_width: 15
+# Maximum duplication or deletion section width.
+max_dup_del_width: 511
 
 # Genetics
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
