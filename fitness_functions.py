@@ -6,7 +6,6 @@
 Fitness functions for driving animat evolution.
 """
 
-import config
 import textwrap
 from collections import Counter, OrderedDict
 from functools import wraps
@@ -15,7 +14,7 @@ import numpy as np
 import pyphi
 from sklearn.metrics import mutual_info_score
 
-import constants as _
+import constants
 from utils import unique_rows
 
 
@@ -94,7 +93,7 @@ def avg_over_visited_states(shortcircuit=True, upto_attr=False,
             # Short-circuit if the animat has no connections.
             if shortcircuit and ind.cm.sum() == 0:
                 return 0.0
-            upto = getattr(_, upto_attr) if upto_attr else False
+            upto = getattr(ind, upto_attr) if upto_attr else False
             game = ind.play_game(scrambled=scrambled)
             sort = n is not None
             unique_states = unique_rows(game.animat_states, upto=upto,
@@ -200,46 +199,38 @@ def nat(ind):
     successfully complete. For each task given in the ``TASKS`` parameter,
     there is one trial per direction (left or right) of block descent, per
     initial animat position (given by ``config.WORLD_WIDTH``)."""
-    ind.play_game()
-    return ind.correct
+    return ind.play_game().correct
 _register()(nat)
 
 
 # Mutual information
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def mutual_information(states):
-    """Get the sensor-motor mutual information for a group of trials."""
+def mi(ind, scrambled=False):
+    """Mutual information: Animats are evaluated based on the mutual
+    information between their sensors and motor over the course of a game.
+    """
+    states = ind.play_game(scrambled=scrambled).animat_states
     # The contingency matrix has a row for every sensors state and a column for
     # every motor state.
-    contingency = np.zeros([_.NUM_SENSOR_STATES, _.NUM_MOTOR_STATES])
+    contingency = np.zeros([ind.num_sensor_states, ind.num_motor_states])
     # Get only the sensor and motor states.
-    sensor_motor = np.concatenate([states[:, :, :config.NUM_SENSORS],
-                                   states[:, :, -config.NUM_MOTORS:]], axis=2)
+    sensor_motor = np.concatenate([states[:, :, :ind.num_sensors],
+                                   states[:, :, -ind.num_motors:]], axis=2)
     # Count!
-    for idx, state in _.SENSOR_MOTOR_STATES:
+    for idx, state in ind.sensor_motor_states:
         contingency[idx] = (sensor_motor == state).all(axis=2).sum()
     # Calculate mutual information in nats.
     mi_nats = mutual_info_score(None, None, contingency=contingency)
     # Convert from nats to bits and return.
-    return mi_nats * _.NAT_TO_BIT_CONVERSION_FACTOR
-
-
-def mi(ind):
-    """Mutual information: Animats are evaluated based on the mutual
-    information between their sensors and motor over the course of a game."""
-    game = ind.play_game()
-    return mutual_information(game.animat_states)
-_register(data_function=mutual_information)(mi)
+    return mi_nats * constants.NAT_TO_BIT_CONVERSION_FACTOR
+_register()(mi)
 
 
 def mi_wvn(ind):
     """Same as `mi` but counting the difference between world and noise."""
-    # Play the game and a scrambled version of it.
-    world = ind.play_game().animat_states
-    noise = ind.play_game(scrambled=True).animat_states
-    return mutual_information(world) - mutual_information(noise)
-_register(data_function=mutual_information)(mi_wvn)
+    return mi(ind, scrambled=False) - mi(ind, scrambled=True)
+_register(data_function=mi)(mi_wvn)
 
 
 # Extrinsic cause information
@@ -251,8 +242,8 @@ def extrinsic_causes(ind, state):
     # TODO generate powerset once (change PyPhi to use indices in find_mice
     # purview restriction)?
     subsystem = ind.as_subsystem(state)
-    mechanisms = tuple(pyphi.utils.powerset(_.HIDDEN_MOTOR_INDICES))
-    purviews = tuple(pyphi.utils.powerset(_.SENSOR_INDICES))
+    mechanisms = tuple(pyphi.utils.powerset(ind.hidden_motor_indices))
+    purviews = tuple(pyphi.utils.powerset(ind.sensor_indices))
     mice = [subsystem.core_cause(mechanism, purviews=purviews)
             for mechanism in mechanisms]
     return list(filter(lambda m: m.phi > 0, mice))
@@ -284,16 +275,16 @@ def all_concepts(ind, state):
     subsystem = ind.as_subsystem(state)
     return pyphi.compute.constellation(
         subsystem,
-        mechanisms=_.HIDDEN_POWERSET,
-        past_purviews=_.SENSORS_AND_HIDDEN_POWERSET,
-        future_purviews=_.HIDDEN_AND_MOTOR_POWERSET)
+        mechanisms=ind.hidden_powerset,
+        past_purviews=ind.sensors_and_hidden_powerset,
+        future_purviews=ind.hidden_and_motor_powerset)
 
 
 # The states only need to be considered unique up to the hidden units because
 # the subsystem is always the entire network (not the main complex), so there
 # are no background conditions.
 sp = avg_over_visited_states(transform=phi_sum,
-                             upto_attr='HIDDEN_INDICES')(all_concepts)
+                             upto_attr='hidden_indices')(all_concepts)
 sp.__name__ = 'sp'
 sp.__doc__ = """Sum of φ: Animats are evaluated based on the sum of φ for all
     the concepts of the animat's hidden units, or “brain”, averaged over the
@@ -327,7 +318,7 @@ def main_complex(ind, state):
 NUM_BIG_PHI_STATES_TO_COMPUTE = 5
 
 bp = avg_over_visited_states(transform=lambda x: x.phi,
-                             upto_attr='SENSOR_HIDDEN_INDICES',
+                             upto_attr='sensor_hidden_indices',
                              n=NUM_BIG_PHI_STATES_TO_COMPUTE)(main_complex)
 bp.__name__ = 'bp'
 bp.__doc__ = """Animats are evaluated based on the ϕ-value of their brains,
@@ -455,8 +446,8 @@ def mat(ind):
     noise = ind.play_game(scrambled=True).animat_states
     # Since the motor states can't influence φ or ϕ, we set them to zero to
     # make uniqifying the states simpler.
-    world[_.MOTOR_INDICES] = 0
-    noise[_.MOTOR_INDICES] = 0
+    world[ind.motor_indices] = 0
+    noise[ind.motor_indices] = 0
     # Get a flat list of all the the states.
     combined = np.concatenate([world, noise])
     combined = combined.reshape(-1, combined.shape[-1])

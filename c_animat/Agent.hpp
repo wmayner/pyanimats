@@ -13,23 +13,32 @@ using std::vector;
 
 class Agent {
  public:
-    Agent(vector<unsigned char> genome);
+    Agent(vector<unsigned char> genome, int numSensors, int numHidden,
+        int numMotors, bool deterministic);
     ~Agent();
+
+    // Note on naming: the `m` prefix indicates a member variable
+    int mNumSensors;
+    int mNumHidden;
+    int mNumMotors;
+    int mNumNodes;
+    int mNumStates;
+    int mBodyLength;
+    bool mDeterministic;
 
     vector<HMM*> hmms;
     vector<unsigned char> genome;
-    int gen;
-    int correct;
-    int incorrect;
     // TODO(wmayner) change these to bool?
-    unsigned char states[NUM_NODES], newStates[NUM_NODES];
+    vector<unsigned char> states;
+    vector<unsigned char> newStates;
 
     void injectStartCodons(int n);
     void resetState();
     void updateStates();
     void generatePhenotype();
     void mutateGenome(double mutProb, double dupProb, double delProb, int
-            minGenomeLength, int maxGenomeLength);
+        minGenomeLength, int maxGenomeLength, int minDupDelLength,
+        int maxDupDelLength);
     vector< vector<int> > getEdges();
     vector< vector<bool> > getTransitions();
 };

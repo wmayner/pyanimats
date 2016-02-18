@@ -5,9 +5,16 @@
 #include "./HMM.hpp"
 
 
-HMM::HMM(vector<unsigned char> &genome, int start) {
+HMM::HMM(vector<unsigned char> &genome, int start, const int numSensors,
+        const int numHidden, const int numMotors, const bool deterministic) {
     ins.clear();
     outs.clear();
+
+    mNumSensors = numSensors;
+    mNumHidden = numHidden;
+    mNumMotors = numMotors;
+    mNumNodes = numSensors + numHidden + numMotors;
+    mDeterministic = deterministic;
 
     // This keeps track of where we are in the genome.
     int scan = (start + 2) % (int)genome.size();
@@ -20,14 +27,14 @@ HMM::HMM(vector<unsigned char> &genome, int start) {
     for (int i = 0; i < numInputs; i++)
         // Exclude motors from possible inputs.
         ins[i] = genome[(scan + i) % (int)genome.size()]
-                % (NUM_NODES - NUM_MOTORS);
+                % (mNumNodes - mNumMotors);
     for (int i = 0; i < numOutputs; i++)
         // Exclude sensors from possible outputs.
         outs[i] = (genome[(scan + 4 + i) % (int)genome.size()]
-                % (NUM_NODES - NUM_SENSORS)) + NUM_SENSORS;
+                % (mNumNodes - mNumSensors)) + mNumSensors;
 
     // Probabilities begin after the input and output codons, which are
-    // NUM_NODES long each
+    // `mNumNodes` long each
     scan += 16;
 
     // Number of rows
@@ -38,7 +45,7 @@ HMM::HMM(vector<unsigned char> &genome, int start) {
     hmm.resize(M);
     sums.resize(M);
 
-    if (DETERMINISTIC) {
+    if (mDeterministic) {
         for (int i = 0; i < M; i++) {
             hmm[i].resize(N);
             int largestValueInRow = 0;
@@ -75,7 +82,7 @@ void HMM::update(unsigned char *currentStates, unsigned char *nextStates) {
         pastStateIndex = (pastStateIndex << 1) + ((currentStates[ins[i]]) & 1);
     // Get the next state
     int nextStateIndex = 0;
-    if (DETERMINISTIC) {
+    if (mDeterministic) {
         // Find the index of the 1 in this row
         while (1 > hmm[pastStateIndex][nextStateIndex]) {
             nextStateIndex++;

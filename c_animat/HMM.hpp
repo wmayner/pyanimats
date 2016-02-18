@@ -10,14 +10,20 @@
 #include <deque>
 #include <iostream>
 
-#include "./constants.hpp"
-
 using std::vector;
 
 class HMM {
  public:
-    HMM(vector<unsigned char> &genome, int start);
+    HMM(vector<unsigned char> &genome, int start, const int numSensors,
+            const int numHidden, const int numMotors,
+            const bool deterministic);
     ~HMM();
+
+    int mNumHidden;
+    int mNumMotors;
+    int mNumSensors;
+    int mNumNodes;
+    bool mDeterministic;
 
     vector< vector<unsigned char> > hmm;
     vector<unsigned int> sums;

@@ -4,29 +4,29 @@
 
 """Animat analysis functions and data management."""
 
+import config
+import json
 import os
 import pickle
-import json
 import re
-from glob import glob
 from collections import Counter
 from functools import wraps
+from glob import glob
+
 import numpy as np
-import config
-import constants
-import configure
-import scipy.stats
-from sklearn.utils.extmath import cartesian
 import pyphi
 from pyphi.convert import loli_index2state as i2s
 from pyphi.convert import state2loli_index as s2i
 from pyphi.jsonify import jsonify
-from semantic_version import Version
 
-from utils import ensure_exists, unique_rows
-from individual import Individual
+import configure
+import constants
 import fitness_functions
-
+import scipy.stats
+from individual import Individual
+from semantic_version import Version
+from sklearn.utils.extmath import cartesian
+from utils import ensure_exists, unique_rows
 
 VERSION = Version('0.0.20')
 CASE_NAME = os.path.join(
