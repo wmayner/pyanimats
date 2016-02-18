@@ -60,6 +60,7 @@ import numpy as np
 from deap import base, tools
 from docopt import docopt
 
+import c_animat
 import fitness_functions
 import utils
 from animat import Animat
@@ -259,8 +260,8 @@ def main(arguments):
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     # Seed the C++ and Python RNGs
-    animat.seed(config.SEED)
-    random.seed(config.SEED)
+    c_animat.seed(experiment.rng_seed)
+    random.seed(experiment.rng_seed)
 
     def multi_fit_evaluate(pop, gen):
         fitnesses = toolbox.map(toolbox.evaluate, pop)
