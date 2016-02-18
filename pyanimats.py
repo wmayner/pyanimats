@@ -31,9 +31,9 @@ Options:
     -g --init-genome=PATH     Path to a lineage file for an intial genome
     -j --jumpstart=INT        Begin with this many start codons
     -a --all-lineages         Save lineages of entire final population
-       --num-sensors=INT      The number of sensors in an animat
-       --num-hidden=INT       The number of hidden units in an animat
-       --num-motors=INT       The number of motors in an animat
+    -e --num-sensors=INT      The number of sensors in an animat
+    -d --num-hidden=INT       The number of hidden units in an animat
+    -t --num-motors=INT       The number of motors in an animat
        --world-width=INT      The width of the animats' environment
        --world-height=INT     The height of the animats' environment
     -m --mut-prob=FLOAT       Point mutation probability
