@@ -152,15 +152,17 @@ def main(arguments):
     experiment = Experiment(filepath=arguments['<path/to/experiment.yml>'],
                             override=cli_overrides)
 
-    # Get the minimum number of snapshots to be taken.
-    MIN_SNAPSHOTS = experiment.min_snapshots
+    # Get the generational interval at which to print the evolution status.
+    STATUS_INTERVAL = experiment.status_interval
+    if STATUS_INTERVAL <= 0:
+        STATUS_INTERVAL = float('inf')
 
-    # Get the interval at which to take snapshots.
+    # Get the time interval at which to take snapshots.
     SNAPSHOT_TIME_INTERVAL = experiment.snapshot_frequency * MINUTES
     if SNAPSHOT_TIME_INTERVAL <= 0:
         SNAPSHOT_TIME_INTERVAL = float('inf')
 
-    # Snapshots will be written to disk at this interval.
+    # Get the generational interval at which to take snapshots.
     if experiment.min_snapshots <= 0:
         SNAPSHOT_GENERATION_INTERVAL = float('inf')
     else:
@@ -327,7 +329,7 @@ def main(arguments):
         # Evolution.
         population = process_gen(population, gen)
         # Reporting.
-        if gen % experiment.status_interval == 0:
+        if gen % STATUS_INTERVAL == 0:
             # Get time since last report was printed.
             log_duration_end = time()
             print_status(logbook.__str__(startindex=gen),
