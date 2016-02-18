@@ -11,6 +11,7 @@ import yaml
 from munch import Munch
 
 import constants
+import validate
 
 
 class Experiment(Munch):
@@ -52,15 +53,12 @@ class Experiment(Munch):
         # Update from the dictionary if provided.
         if override is not None:
             dictionary.update(override)
+        # Validate.
+        validate.experiment_dict(dictionary)
         # Derive parameters from the user-set ones.
         dictionary['_derived'] = _derive_params(dictionary)
         # Put everything in the Munch.
         self.update(dictionary)
-        # Validate.
-        # TODO: check that all necessary params are present
-        if self.num_nodes <= 0:
-            raise ValueError('invalid experiment: animats must have at least '
-                             'one node.')
 
     def __getattr__(self, k):
         """Fall back on derived parameters if ``k`` is not an attribute."""
