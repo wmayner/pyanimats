@@ -14,8 +14,6 @@ snapshot_frequency: 120
 status_interval: 0
 # Minimum number of snapshots.
 min_snapshots: 0
-# Number of CPU cores to use.
-num_cores: 1
     
 # Data
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
