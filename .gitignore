@@ -8,7 +8,7 @@ build
 dist
 pyemd.egg-info
 profiling
-animat/animat.cpp
+c_animat/c_animat.cpp
 raw_results
 __pyphi_cache__
 pyphi.log
