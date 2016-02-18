@@ -62,9 +62,8 @@ from docopt import docopt
 
 import fitness_functions
 import utils
-from experiment import Experiment
 from animat import Animat
-
+from experiment import Experiment
 
 MINUTES = 60
 

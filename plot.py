@@ -2,17 +2,17 @@
 # -*- coding: utf-8 -*-
 # plot.py
 
-import os
-import numpy as np
-import matplotlib.pyplot as plt
-
 import config
-import constants
+import os
+
+import matplotlib.pyplot as plt
+import numpy as np
+
 import analyze
+import constants
+from analyze import (ANALYSIS_DIR, ANALYSIS_PATH, CASE_NAME, RESULT_DIR,
+                     RESULT_PATH)
 from fitness_functions import LaTeX_NAMES as fit_funcnames
-
-from analyze import CASE_NAME, RESULT_DIR, ANALYSIS_DIR, ANALYSIS_PATH, RESULT_PATH
-
 
 FILENAMES = {
     'config': 'config.pkl',

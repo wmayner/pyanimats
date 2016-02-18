@@ -17,7 +17,6 @@ from sklearn.metrics import mutual_info_score
 import constants
 from utils import unique_rows
 
-
 WRAPPER = textwrap.TextWrapper(width=80)
 # Metadata associated with the available fitness functions.
 metadata = OrderedDict()

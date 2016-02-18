@@ -6,7 +6,9 @@
 Utility functions.
 """
 
+import datetime
 import os
+
 import numpy as np
 
 
@@ -106,7 +108,6 @@ def rolling_window(a, size):
     return np.lib.stride_tricks.as_strided(a, shape=shape, strides=strides)
 
 
-import datetime
 
 TIME_MINUTE = 60
 TIME_HOUR = 3600
