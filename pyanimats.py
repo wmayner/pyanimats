@@ -65,8 +65,7 @@ import fitness_functions
 import utils
 from animat import Animat
 from experiment import Experiment
-
-MINUTES = 60
+from constants import MINUTES
 
 
 def select(animats, k):

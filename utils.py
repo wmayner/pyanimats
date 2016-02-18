@@ -11,6 +11,8 @@ import os
 
 import numpy as np
 
+from constants import (MINUTES, HOURS, DAYS, WEEKS)
+
 
 def ensure_exists(path):
     """Makes a path if it doesn't exist and returns it."""
@@ -23,7 +25,6 @@ def contains_row(array, row):
     return (array == row).all(axis=1)
 
 
-# TODO test
 def unique_rows(array, upto=[], indices=False, counts=False, sort=False):
     """Return the unique rows of the last dimension of an array.
 
@@ -108,13 +109,6 @@ def rolling_window(a, size):
     return np.lib.stride_tricks.as_strided(a, shape=shape, strides=strides)
 
 
-
-TIME_MINUTE = 60
-TIME_HOUR = 3600
-TIME_DAY = 86400
-TIME_WEEK = 604800
-
-
 # From natural.date (https://github.com/tehmaze/natural)
 def compress(t, sign=False, pad=u''):
     """Convert the input to compressed format.
@@ -146,7 +140,7 @@ def compress(t, sign=False, pad=u''):
     """
 
     if isinstance(t, datetime.timedelta):
-        seconds = t.seconds + (t.days * TIME_DAY)
+        seconds = t.seconds + (t.days * DAYS)
     elif isinstance(t, (float, int)):
         return compress(datetime.timedelta(seconds=t), sign, pad)
 
@@ -154,10 +148,10 @@ def compress(t, sign=False, pad=u''):
     if sign:
         parts.append('-' if t.days < 0 else '+')
 
-    weeks, seconds = divmod(seconds, TIME_WEEK)
-    days, seconds = divmod(seconds, TIME_DAY)
-    hours, seconds = divmod(seconds, TIME_HOUR)
-    minutes, seconds = divmod(seconds, TIME_MINUTE)
+    weeks, seconds = divmod(seconds, WEEKS)
+    days, seconds = divmod(seconds, DAYS)
+    hours, seconds = divmod(seconds, HOURS)
+    minutes, seconds = divmod(seconds, MINUTES)
 
     if weeks:
         parts.append('{}w'.format(weeks))

@@ -33,3 +33,7 @@ FITNESS_TRANSFORMS = {
     'state_wvn': {'base': 1.02, 'scale': 64 / 8, 'add': 64},
     'mat':       {'base': 1.02, 'scale': 64 / 1, 'add': 64},
 }
+MINUTES = 60
+HOURS = 60 * MINUTES
+DAYS = 24 * HOURS
+WEEKS = 7 * DAYS
