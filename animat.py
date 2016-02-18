@@ -148,7 +148,7 @@ class Animat:
     def __getstate__(self):
         # Exclude the PyPhi network and dirty flag from the pickled object.
         return {k: v for k, v in self.__dict__.items()
-                if k not in ['_network', '_dirty_network']}
+                if k not in ['parent', '_network', '_dirty_network']}
 
     def __setstate__(self, state):
         self.__dict__.update(state)
