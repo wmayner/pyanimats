@@ -11,7 +11,7 @@ snapshot_frequency: 120
 # Generational interval at which to print evolution status to the screen. 
 # NOTE: printing to the screen is a slow operation; setting a short interval
 # can significantly impact performance if simulating a generation is fast.
-status_interval: 0
+status_interval: 1
 # Minimum number of snapshots.
 min_snapshots: 0
     
