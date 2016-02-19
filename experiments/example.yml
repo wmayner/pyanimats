@@ -25,7 +25,7 @@ num_samples: 100
 # Evolution
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # The fitness function to evolve to.
-fitness_function: 'mi'
+fitness_function: 'nat'
 # Number of generations to evolve.
 ngen: 100
 # Size of the population.
