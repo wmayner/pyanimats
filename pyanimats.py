@@ -10,15 +10,15 @@ Evolve animats.
 Command-line options override the parameters given in the experiment file.
 
 Usage:
-    pyanimats.py <path/to/output_dir> <path/to/experiment.yml> [options]
+    pyanimats.py <path/to/experiment.yml> <path/to/output_dir> [options]
     pyanimats.py -h | --help
     pyanimats.py -v | --version
-    pyanimats.py list
+    pyanimats.py --list
 
 Options:
+    --list                    List available fitness functions
     -h --help                 Show this
     -v --version              Show version
-       --list-fitness         List available fitness functions
     -r --rng-seed=INT         Random number generator seed
     -t --snapshot=INT         Snapshot interval (minutes)
     -s --status-interval=INT  Status-printing interval (generations)
@@ -34,8 +34,8 @@ Options:
     -e --num-sensors=INT      The number of sensors in an animat
     -d --num-hidden=INT       The number of hidden units in an animat
     -t --num-motors=INT       The number of motors in an animat
-       --world-width=INT      The width of the animats' environment
-       --world-height=INT     The height of the animats' environment
+    -W --world-width=INT      The width of the animats' environment
+    -H --world-height=INT     The height of the animats' environment
     -m --mut-prob=FLOAT       Point mutation probability
        --dup-prob=FLOAT       Duplication probability
        --del-prob=FLOAT       Deletion probability
@@ -103,7 +103,7 @@ def main(arguments):
 
     # TODO make this an option for -h?
     # Print available fitness functions and their descriptions.
-    if arguments['--list-fitness']:
+    if arguments['--list']:
         fitness_functions.print_functions()
         return
 
