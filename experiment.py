@@ -42,8 +42,8 @@ class Experiment(Munch):
         (0, 1, 2)
     """
 
-    def __init__(self, filepath=None, override=None):
-        dictionary = {}
+    def __init__(self, override=None, filepath=None):
+        dictionary = dict()
         # Store the filepath in case the user needs to remember it later.
         self.filepath = filepath
         # Load the given YAML file if provided.
