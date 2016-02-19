@@ -49,7 +49,6 @@ def test_unique_rows_no_secondary(a):
     assert np.array_equal(result, answer)
 
 
-# TODO implement unique_rows tests
 def test_unique_rows_subset_columns(a):
     result = unique_rows(a, upto=[0, 2, 3])
     answer = np.array([
@@ -70,7 +69,6 @@ def test_unique_rows_one_column(a):
     assert np.array_equal(result, answer)
 
 
-# TODO implement unique_rows tests
 def test_unique_rows_with_counts(a):
     result = unique_rows(a, counts=True)
     answer = (np.array([[1, 1, 0, 0, 0],
