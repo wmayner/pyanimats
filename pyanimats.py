@@ -78,7 +78,7 @@ def select(animats, k):
 
     This function uses the :func:`~random.random` function from the built-in
     :mod:`random` module."""
-    max_fitness = max([animat.fitness.value for animat in animats])
+    max_fitness = max(animat.fitness.value for animat in animats)
     chosen = []
     for i in range(k):
         done = False
