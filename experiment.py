@@ -77,12 +77,12 @@ class Experiment(Munch):
         """
         # Format with pretty print, and indent.
         return ('Experiment({\n ' +
-                pprint.pformat(self.to_json(), indent=1)[1:-1] +
+                pprint.pformat(self.serializable(), indent=1)[1:-1] +
                 '\n})')
 
-    def to_json(self):
-        """Return a JSON-serializable representation of the experiment."""
-        # Exclude `_derived` parameters when serializing to JSON
+    def serializable(self):
+        """Return a serializable representation of the experiment."""
+        # Exclude `_derived` parameters when serializing to JSON.
         return {k: v for k, v in self.items() if k != '_derived'}
 
 
