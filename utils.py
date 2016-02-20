@@ -7,11 +7,32 @@ Utility functions.
 """
 
 import datetime
+import json
 import os
 
 import numpy as np
 
 from constants import (MINUTES, HOURS, DAYS, WEEKS)
+
+
+def dumps(obj):
+    """Serialize ``obj`` to a JSON formatted ``str``.
+
+    Uses the custom JSON encoder.
+    """
+    return json.dumps(obj, cls=JSONEncoder, default=JSONEncoder.encode)
+
+
+class JSONEncoder(json.JSONEncoder):
+    """Custom JSON encoder that attempts to call ``serializable``."""
+    def encode(self, obj):
+        try:
+            # Use `getattribute` to ensure that the function truly belongs to
+            # the object.
+            return obj.__getattribute__('serializable')()
+        except AttributeError:
+            # Let the base class default method raise the TypeError.
+            return json.JSONEncoder.encode(self, obj)
 
 
 def ensure_exists(path):
