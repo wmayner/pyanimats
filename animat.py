@@ -164,6 +164,21 @@ class Animat:
         copy.fitness = deepcopy(self.fitness)
         return copy
 
+    def serializable(self):
+        """Return a serializable representation of the animat."""
+        return {
+            'experiment': self._experiment.serializable(),
+            'genome': self.genome,
+            'gen': self.gen,
+            'correct': self._correct,
+            'incorrect': self._incorrect,
+            'fitness': {'raw': self.fitness.raw,
+                        'exponential': self.fitness.value},
+            'tpm': (self.tpm.astype(int).tolist() if self.deterministic
+                    else self.tpm.tolist()),
+            'cm': self.cm.tolist(),
+        }
+
     @property
     def cm(self):
         """The animat's connectivity matrix."""
