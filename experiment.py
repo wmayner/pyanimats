@@ -28,8 +28,7 @@ class Experiment(Munch):
     provided upon initialization; these can also be accessed directly as
     attributes on this object, though they're stored under the ``_derived`` key
     and are not printed. See ``experiment._derived.keys()`` for a list of
-    these (the key ``_derived`` will be overwritten upon initialization; don't
-    use it).
+    these.
 
     Keyword Args:
         filepath (string): A file path pointing to a YAML file containing

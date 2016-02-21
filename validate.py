@@ -45,6 +45,9 @@ _assert_ge = _assert_ordering(lambda a, b: a >= b, 'greater than or equal to')
 
 
 def experiment_dict(d):
+    if '_derived' in d:
+        raise ValueError("the key '_derived' is reserved; please use another "
+                         "key.")
     # TODO: check that all necessary params are present
     # Data
     _assert_ge(d, 'log_interval', 1)
