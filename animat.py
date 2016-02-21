@@ -164,10 +164,9 @@ class Animat:
         copy.fitness = deepcopy(self.fitness)
         return copy
 
-    def serializable(self):
+    def serializable(self, include_experiment=True):
         """Return a serializable representation of the animat."""
-        return {
-            'experiment': self._experiment.serializable(),
+        d = {
             'genome': self.genome,
             'gen': self.gen,
             'correct': self._correct,
@@ -178,6 +177,9 @@ class Animat:
                     else self.tpm.tolist()),
             'cm': self.cm.tolist(),
         }
+        if include_experiment:
+            d['experiment'] = self._experiment.serializable()
+        return d
 
     @property
     def cm(self):
