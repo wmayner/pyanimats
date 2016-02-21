@@ -2,7 +2,35 @@
 # -*- coding: utf-8 -*-
 # validate.py
 
+import numpy as np
+
 import fitness_functions
+
+
+GENERIC_MISMATCH_MSG = """
+cannot load animat: stored {attr} does not match the {attr} encoded by the
+stored genome with the given experiment parameters.
+""".strip().replace('\n', ' ')
+CM_MISTMATCH_MSG = GENERIC_MISMATCH_MSG.format(attr='connectivity matrix')
+TPM_MISTMATCH_MSG = GENERIC_MISMATCH_MSG.format(attr='TPM')
+CHECK_VERSION_AND_PARAMS_MSG = """
+Check that you are using the same version as when the animat was stored and
+that you've provided the same experiment parameters.
+""".strip().replace('\n', ' ')
+
+
+def json_animat(animat, dictionary):
+    """Validate an animat loaded from JSON data.
+
+    Ensures that the TPM and connectivity matrix stored with the animat match
+    those encoded by the stored genome with the given experiment parameters.
+    """
+    if not np.array_equal(animat.cm, np.array(dictionary['cm'])):
+        raise ValueError(' '.join([CM_MISTMATCH_MSG,
+                                   CHECK_VERSION_AND_PARAMS_MSG]))
+    if not np.array_equal(animat.tpm, np.array(dictionary['tpm'])):
+        raise ValueError(' '.join([TPM_MISTMATCH_MSG,
+                                   CHECK_VERSION_AND_PARAMS_MSG]))
 
 
 def _assert_ordering(ordering, name):

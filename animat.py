@@ -17,8 +17,10 @@ import numpy as np
 import pyphi
 
 import constants
-import utils
 from c_animat import cAnimat
+from experiment import Experiment
+import utils
+import validate
 
 
 class ExponentialFitness:
@@ -71,6 +73,24 @@ class ExponentialFitness:
 Game = namedtuple('Game', ['animat_states', 'world_states', 'animat_positions',
                            'trial_results', 'correct', 'incorrect'])
 Mechanism = namedtuple('Mechanism', ['inputs', 'tpm'])
+
+
+def from_json(dictionary, experiment=None, parent=None):
+    """Initialize an animat object from a JSON dictionary.
+
+    Checks that the stored TPM and connectivity matrix match those encoded by
+    the stored genome.
+    """
+    if experiment is None:
+        try:
+            experiment = Experiment(override=dictionary['experiment'])
+        except KeyError:
+            raise ValueError('cannot load animat: no experiment was provided '
+                             'and no experiment was found in the JSON data.')
+    animat = Animat(experiment, dictionary['genome'], gen=dictionary['gen'],
+                    parent=parent)
+    validate.json_animat(animat, dictionary)
+    return animat
 
 
 class Animat:
