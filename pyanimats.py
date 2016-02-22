@@ -10,7 +10,7 @@ Evolve animats.
 Command-line options override the parameters given in the experiment file.
 
 Usage:
-    pyanimats.py <path/to/experiment.yml> <path/to/output_dir> [options]
+    pyanimats.py <path/to/experiment.yml> <path/to/output_file> [options]
     pyanimats.py -h | --help
     pyanimats.py -v | --version
     pyanimats.py --list
@@ -44,6 +44,7 @@ Options:
        --min-length=INT       Minimum genome length
        --max-length=INT       Maximum genome length
        --profile=PATH         Profile performance and store results at PATH
+    -F --force                Overwrite the output file.
 """
 
 __version__ = '0.0.23'
@@ -108,7 +109,12 @@ def main(arguments):
         return
 
     # Final output and snapshots will be written here.
-    OUTPUT_DIR = arguments['<path/to/output_dir>']
+    OUTPUT_FILE = arguments['<path/to/output_file>']
+
+    if not arguments['--force'] and os.path.exists(OUTPUT_FILE):
+        raise FileExistsError(
+            'a file named `{}` already exists. Not continuing without the '
+            '`--force` option.'.format(OUTPUT_FILE))
 
     # Ensure profile directory exists and set profile flag.
     PROFILING = False
