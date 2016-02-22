@@ -54,6 +54,8 @@ import json
 import os
 import pickle
 import random
+import subprocess
+import sys
 from pprint import pprint
 from time import time
 
@@ -65,8 +67,8 @@ import c_animat
 import fitness_functions
 import utils
 from animat import Animat
-from experiment import Experiment
 from constants import MINUTES
+from experiment import Experiment
 
 
 def select(animats, k):
@@ -176,33 +178,45 @@ def main(arguments):
     # Helper functions
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def save_data(output_dir, gen, config, pop, logbook, hof, elapsed):
+    def save(output_file, experiment, population, logbook, elapsed,
+             only_fittest=True):
         # Ensure output directory exists.
-        utils.ensure_exists(output_dir)
-        to_save = [max(pop, key=lambda animat: animat.fitness.value)]
-        step = (1 if experiment.num_samples <= 0
-                else max(gen // experiment.num_samples, 1))
-        lineages = tuple(tuple(animat.lineage())[::step] for animat in to_save)
-        # Save config and metadata as JSON.
-        data_json = {
-            'config': experiment.to_json(),
+        utils.ensure_exists(os.path.dirname(output_file))
+        # Determine the generational interval.
+        gen_interval = max(gen // experiment.num_samples, 1)
+        # Get the lineage(s).
+        if only_fittest:
+            fittest = max(population, key=lambda a: a.fitness.value)
+            lineage = fittest.serializable_lineage(interval=gen_interval,
+                                                   include_experiment=False)
+        else:
+            lineage = [a.serializable_lineage(interval=gen_interval,
+                                              include_experiment=False)
+                       for a in population]
+        # Get repository description if available, otherwise just get the
+        # version number.
+        git_describe = subprocess.run(['git', 'describe'],
+                                      stdout=subprocess.PIPE)
+        version = (git_describe.stdout.decode(sys.stdout.encoding).strip()
+                   if git_describe.returncode == 0 else __version__)
+        # Set up the JSON object.
+        json_data = {
+            'experiment': experiment.serializable(),
+            'lineage': lineage,
+            'logbook': {
+                'gen': logbook.select('gen'),
+                'fitness': logbook.chapters['fitness'].select('max'),
+                'correct': logbook.chapters['correct'].select('correct'),
+                'incorrect': logbook.chapters['correct'].select('incorrect'),
+            },
             'metadata': {
                 'elapsed': round(elapsed, 2),
-                'version': __version__
-            }
+                'version': version,
+            },
         }
-        for key in data_json:
-            with open(os.path.join(output_dir, str(key) + '.json'), 'w') as f:
-                json.dump(data_json[key], f, indent=2, separators=(',', ': '))
-        # Pickle everything else.
-        data_pickle = {
-            'lineages': lineages,
-            'logbook': logbook,
-            'hof': [animat._c_animat for animat in hof],
-        }
-        for key in data_pickle:
-            with open(os.path.join(output_dir, str(key) + '.pkl'), 'wb') as f:
-                pickle.dump(data_pickle[key], f)
+        # Write the data.
+        with open(output_file, 'w') as f:
+            utils.dump(json_data, f)
 
     # Setup
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -220,7 +234,6 @@ def main(arguments):
     # Create statistics trackers.
     fitness_stats = tools.Statistics(key=lambda animat: animat.fitness.raw)
     fitness_stats.register('max', np.max)
-
     real_fitness_stats = tools.Statistics(key=lambda animat: animat.fitness.value)
     real_fitness_stats.register('max', np.max)
 
@@ -340,11 +353,8 @@ def main(arguments):
                 or gen % SNAPSHOT_GENERATION_INTERVAL == 0):
             print('[Seed {}] –\tRecording snapshot {}... '.format(
                 experiment.rng_seed, snapshot), end='')
-            dirname = os.path.join(OUTPUT_DIR,
-                                   'snapshot-{}-gen-{}'.format(snapshot, gen))
-            save_data(dirname, gen, config=experiment.to_json(),
-                      pop=population, logbook=logbook, hof=hall_of_fame,
-                      elapsed=(current_time - sim_start))
+            save(OUTPUT_FILE, experiment, population, logbook,
+                 (current_time - sim_start))
             print('done.')
             snapshot += 1
             snap_duration_start = time()
@@ -361,8 +371,8 @@ def main(arguments):
         experiment.ngen, utils.compress(sim_end - sim_start)))
 
     # Write final results to disk.
-    save_data(OUTPUT_DIR, gen, config=experiment.to_json(), pop=population,
-              logbook=logbook, hof=hall_of_fame, elapsed=(sim_end - sim_start))
+    save(OUTPUT_FILE, experiment, population, logbook,
+         (current_time - sim_start))
 
 
 if __name__ == '__main__':
