@@ -15,12 +15,20 @@ import numpy as np
 from constants import (MINUTES, HOURS, DAYS, WEEKS)
 
 
-def dumps(obj):
-    """Serialize ``obj`` to a JSON formatted ``str``.
+def dump(obj, fp, **kwargs):
+    """Serialize ``obj`` to JSON and write to a file ``fp``.
 
     Uses the custom JSON encoder.
     """
-    return json.dumps(obj, cls=JSONEncoder, default=JSONEncoder.encode)
+    return json.dump(obj, fp, cls=JSONEncoder, **kwargs)
+
+
+def dumps(obj, **kwargs):
+    """Serialize ``obj`` to a JSON-formatted ``str``.
+
+    Uses the custom JSON encoder.
+    """
+    return json.dumps(obj, cls=JSONEncoder, **kwargs)
 
 
 class JSONEncoder(json.JSONEncoder):
@@ -29,10 +37,15 @@ class JSONEncoder(json.JSONEncoder):
         try:
             # Use `getattribute` to ensure that the function truly belongs to
             # the object.
-            return obj.__getattribute__('serializable')()
+            obj = obj.__getattribute__('serializable')()
         except AttributeError:
-            # Let the base class default method raise the TypeError.
-            return json.JSONEncoder.encode(self, obj)
+            pass
+        return super().encode(obj)
+
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            obj = int(obj)
+        return obj
 
 
 def ensure_exists(path):
