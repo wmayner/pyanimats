@@ -25,10 +25,12 @@ def json_animat(animat, dictionary):
     Ensures that the TPM and connectivity matrix stored with the animat match
     those encoded by the stored genome with the given experiment parameters.
     """
-    if not np.array_equal(animat.cm, np.array(dictionary['cm'])):
+    if 'cm' in dictionary and not np.array_equal(animat.cm,
+                                                 np.array(dictionary['cm'])):
         raise ValueError(' '.join([CM_MISTMATCH_MSG,
                                    CHECK_VERSION_AND_PARAMS_MSG]))
-    if not np.array_equal(animat.tpm, np.array(dictionary['tpm'])):
+    if 'tpm' in dictionary and not np.array_equal(animat.tpm,
+                                                  np.array(dictionary['tpm'])):
         raise ValueError(' '.join([TPM_MISTMATCH_MSG,
                                    CHECK_VERSION_AND_PARAMS_MSG]))
 
