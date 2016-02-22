@@ -93,12 +93,6 @@ def select(animats, k):
     return chosen
 
 
-def mutate(animat):
-    animat.mutate()
-    return (animat,)
-mutate.__doc__ = Animat.mutate.__doc__
-
-
 def main(arguments):
 
     # Handle arguments
@@ -229,7 +223,6 @@ def main(arguments):
     toolbox.register('evaluate',
                      fitness_functions.__dict__[experiment.fitness_function])
     toolbox.register('select', select)
-    toolbox.register('mutate', mutate)
 
     # Create statistics trackers.
     fitness_stats = tools.Statistics(key=lambda animat: animat.fitness.raw)
@@ -301,18 +294,19 @@ def main(arguments):
             record = mstats.compile(pop)
             logbook.record(gen=gen, **record)
 
-    def process_gen(pop, gen):
+    def new_gen(population, gen):
         # Selection.
-        pop = toolbox.select(pop, len(pop))
+        population = toolbox.select(population, len(population))
         # Cloning.
-        offspring = [toolbox.clone(animat) for animat in pop]
-        for animat in offspring:
-            # Tag offspring with new generation number.
-            animat.gen = gen
+        offspring = toolbox.clone(population)
         # Variation.
-        for i in range(len(offspring)):
-            toolbox.mutate(offspring[i])
-            offspring[i].parent = pop[i]
+        for i, animat in enumerate(offspring):
+            # Update parent reference.
+            animat.parent = population[i]
+            # Update generation number.
+            animat.gen = gen
+            # Mutate.
+            animat.mutate()
         # Evaluation.
         evaluate(offspring, gen)
         # Recording.
@@ -339,7 +333,7 @@ def main(arguments):
     snapshot = 1
     for gen in range(1, experiment.ngen + 1):
         # Evolution.
-        population = process_gen(population, gen)
+        population = new_gen(population, gen)
         # Reporting.
         if gen % STATUS_INTERVAL == 0:
             # Get time since last report was printed.
