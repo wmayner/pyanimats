@@ -239,10 +239,10 @@ class Animat:
             yield ancestor
             ancestor = ancestor.parent
 
-    def serializable_lineage(self, interval=1, include_experiment=True):
+    def serializable_lineage(self, interval=1, experiment=True):
         """Return a serializable object for this animat's lineage."""
         return tuple(map(
-            lambda a: a.serializable(include_experiment=include_experiment),
+            lambda a: a.serializable(experiment=experiment),
             self.lineage())
         )[::interval]
 

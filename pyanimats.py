@@ -182,10 +182,10 @@ def main(arguments):
         if only_fittest:
             fittest = max(population, key=lambda a: a.fitness.value)
             lineage = fittest.serializable_lineage(interval=gen_interval,
-                                                   include_experiment=False)
+                                                   experiment=False)
         else:
             lineage = [a.serializable_lineage(interval=gen_interval,
-                                              include_experiment=False)
+                                              experiment=False)
                        for a in population]
         # Get repository description if available, otherwise just get the
         # version number.
