@@ -369,10 +369,13 @@ def main(arguments):
 
     print('\nSimulated {} generations in {}.'.format(
         experiment.ngen, utils.compress(sim_end - sim_start)))
+    print('\nSaving data to `{}`... '.format(OUTPUT_FILE), end='')
 
     # Write final results to disk.
     save(OUTPUT_FILE, experiment, population, logbook,
          (current_time - sim_start))
+
+    print('done.')
 
 
 if __name__ == '__main__':
