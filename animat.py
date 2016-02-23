@@ -183,7 +183,7 @@ class Animat:
         self._dirty_network = True
 
     def __deepcopy__(self, memo):
-        # Don't copy the underlying animat, parent, or PyPhi network.
+        # Make an entirely new instance and copy over some attributes.
         copy = Animat(self._experiment, genome=self._c_animat.genome,
                       parent=self.parent, gen=self.gen)
         copy._incorrect = deepcopy(self._incorrect)
@@ -242,7 +242,7 @@ class Animat:
         return self._incorrect
 
     def lineage(self):
-        """Return a generator for the lineage of this animat."""
+        """Return the lineage of this animat as a generator."""
         ancestor = self
         while ancestor is not None:
             yield ancestor
