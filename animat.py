@@ -12,15 +12,16 @@ animat properties (connectivity, associated PyPhi objects, etc.).
 import functools
 from collections import namedtuple
 from copy import deepcopy
+from uuid import uuid4
 
 import numpy as np
 import pyphi
 
 import constants
-from c_animat import cAnimat
-from experiment import Experiment
 import utils
 import validate
+from c_animat import cAnimat
+from experiment import Experiment
 
 
 class ExponentialFitness:
@@ -151,6 +152,8 @@ class Animat:
         self._network = False
         # Mark whether the animat's network need updating.
         self._dirty_network = True
+        # Get a random unique ID.
+        self._id = uuid4()
 
     def __str__(self):
         string = ('Animat(gen={}, genome={}, '
@@ -173,9 +176,13 @@ class Animat:
         return getattr(self._experiment, name)
 
     def __getstate__(self):
-        # Exclude the PyPhi network and dirty flag from the pickled object.
-        return {k: v for k, v in self.__dict__.items()
-                if k not in ['parent', '_network', '_dirty_network']}
+        # Exclude the parent pointer, PyPhi network, and dirty flag from the
+        # pickled object.
+        state = {k: v for k, v in self.__dict__.items()
+                 if k not in ['parent', '_network', '_dirty_network']}
+        # Record the ID of the parent to reconstruct phylogeny later.
+        state['parent'] = self.parent._id if self.parent is not None else None
+        return state
 
     def __setstate__(self, state):
         self.__dict__.update(state)
