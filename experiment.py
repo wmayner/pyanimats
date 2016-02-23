@@ -14,10 +14,6 @@ import constants
 import validate
 
 
-IMMUTABLE_MSG = ('cannot modify experiment; make a new experiment object '
-                 'instead.')
-
-
 class Experiment(Munch):
 
     """Parameters specifying an evolutionary simulation.
@@ -46,8 +42,9 @@ class Experiment(Munch):
     """
 
     def __init__(self, override=None, filepath=None):
+        dictionary = dict()
         # Store the filepath in case the user needs to remember it later.
-        dictionary = {'filepath': filepath}
+        self.filepath = filepath
         # Load the given YAML file if provided.
         if filepath is not None:
             with open(filepath) as f:
@@ -59,19 +56,8 @@ class Experiment(Munch):
         validate.experiment_dict(dictionary)
         # Derive parameters from the user-set ones.
         dictionary['_derived'] = _derive_params(dictionary)
-        # Put everything in the object.
-        for key, value in dictionary.items():
-            super().__setitem__(key, value)
-
-    def __repr__(self):
-        """Return a readable representation of the experiment.
-
-        This does not include derived parameters.
-        """
-        # Format with pretty print, and indent.
-        return ('Experiment({\n ' +
-                pprint.pformat(self.serializable(), indent=1)[1:-1] +
-                '\n})')
+        # Put everything in the Munch.
+        self.update(dictionary)
 
     def __getattr__(self, k):
         """Fall back on derived parameters if ``k`` is not an attribute."""
@@ -83,17 +69,15 @@ class Experiment(Munch):
             except KeyError:
                 return getattr(self._derived, k)
 
-    def __setattr__(self, name, value):
-        """Don't allow modifying parameters."""
-        raise AttributeError(IMMUTABLE_MSG)
+    def __repr__(self):
+        """Return a readable representation of the experiment.
 
-    def __setitem__(self, name, value):
-        """Don't allow modifying parameters."""
-        raise AttributeError(IMMUTABLE_MSG)
-
-    def update(self, dictionary):
-        """Don't allow modifying parameters."""
-        raise AttributeError(IMMUTABLE_MSG)
+        This does not include derived parameters.
+        """
+        # Format with pretty print, and indent.
+        return ('Experiment({\n ' +
+                pprint.pformat(self.serializable(), indent=1)[1:-1] +
+                '\n})')
 
     def serializable(self):
         """Return a serializable representation of the experiment."""
