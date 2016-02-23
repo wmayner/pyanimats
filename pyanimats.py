@@ -56,6 +56,7 @@ import pickle
 import random
 import subprocess
 import sys
+from copy import deepcopy
 from pprint import pprint
 from time import time
 
@@ -223,7 +224,6 @@ def main(arguments):
     toolbox.register('population', tools.initRepeat, list, toolbox.animat)
     toolbox.register('evaluate',
                      fitness_functions.__dict__[experiment.fitness_function])
-    toolbox.register('select', select)
 
     # Create statistics trackers.
     fitness_stats = tools.Statistics(key=lambda animat: animat.fitness.raw)
@@ -297,9 +297,10 @@ def main(arguments):
 
     def new_gen(population, gen):
         # Selection.
-        population = toolbox.select(population, len(population))
+        population = select(population, len(population))
         # Cloning.
-        offspring = toolbox.clone(population)
+        # TODO: why does directly cloning the population prevent evolution?!
+        offspring = [deepcopy(x) for x in population]
         # Variation.
         for i, animat in enumerate(offspring):
             # Update parent reference.
