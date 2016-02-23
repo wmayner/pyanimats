@@ -187,7 +187,7 @@ class Animat:
         copy.fitness = deepcopy(self.fitness)
         return copy
 
-    def serializable(self, include_experiment=True):
+    def serializable(self, compact=False, experiment=True):
         """Return a serializable representation of the animat."""
         d = {
             'genome': self.genome,
@@ -196,14 +196,16 @@ class Animat:
             'incorrect': self._incorrect,
             'fitness': {'raw': self.fitness.raw,
                         'exponential': self.fitness.value},
-            'tpm': (self.tpm.astype(int).tolist() if self.deterministic
-                    else self.tpm.tolist()),
-            'cm': self.cm.tolist(),
         }
-        if include_experiment:
-            d['experiment'] = self._experiment.serializable()
+        if not compact:
+            d['tpm'] = (self.tpm.astype(int).tolist() if self.deterministic
+                        else self.tpm.tolist())
+            d['cm'] = self.cm.tolist()
+            if experiment:
+                d['experiment'] = self._experiment.serializable()
         return d
 
+    # TODO compute once
     @property
     def cm(self):
         """The animat's connectivity matrix."""
