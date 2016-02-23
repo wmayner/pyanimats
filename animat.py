@@ -89,6 +89,9 @@ def from_json(dictionary, experiment=None, parent=None):
                              'and no experiment was found in the JSON data.')
     animat = Animat(experiment, dictionary['genome'], gen=dictionary['gen'],
                     parent=parent)
+    animat.fitness.set(dictionary['fitness']['raw'])
+    animat._correct = dictionary['correct']
+    animat._incorrect = dictionary['incorrect']
     validate.json_animat(animat, dictionary)
     return animat
 
