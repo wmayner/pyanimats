@@ -80,7 +80,8 @@ def select(animats, k):
     :returns: A list of selected animats.
 
     This function uses the :func:`~random.random` function from the built-in
-    :mod:`random` module."""
+    :mod:`random` module.
+    """
     max_fitness = max(animat.fitness.value for animat in animats)
     chosen = []
     for i in range(k):
@@ -260,7 +261,7 @@ def main(arguments):
         print('[Seed {}] '.format(experiment.rng_seed), end='')
         print(line, utils.compress(time))
 
-    print('\nSimulating {} generations...\n'.format(experiment.ngen))
+    print('\nSimulating {} generations...'.format(experiment.ngen))
 
     if PROFILING:
         pr = cProfile.Profile()
@@ -322,11 +323,12 @@ def main(arguments):
     # Record stats for initial population.
     record(population, 0)
     # Print first lines of logbook.
-    first_lines = str(logbook).split('\n')
-    header_lines = ['[Seed {}] '.format(experiment.rng_seed) + l
-                    for l in first_lines[:-1]]
-    print('\n'.join(header_lines))
-    print_status(first_lines[-1], time() - log_duration_start)
+    if 0 < STATUS_INTERVAL < float('inf'):
+        first_lines = str(logbook).split('\n')
+        header_lines = ['[Seed {}] '.format(experiment.rng_seed) + l
+                        for l in first_lines[:-1]]
+        print('\n' + '\n'.join(header_lines))
+        print_status(first_lines[-1], time() - log_duration_start)
 
     log_duration_start = time()
     snap_duration_start = time()
