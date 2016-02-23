@@ -161,6 +161,10 @@ class Animat:
     def __repr__(self):
         return str(self)
 
+    def __eq__(self, other):
+        return (self.genome == other.genome and
+                self._experiment == other._experiment)
+
     def __getattr__(self, name):
         """Fall back to experiment attributes."""
         # NOTE: this works as expected because `__getattr__` is only called as
