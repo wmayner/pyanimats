@@ -1,13 +1,14 @@
 // Agent.h
 
-#ifndef SRC_AGENT_H_
-#define SRC_AGENT_H_
+#ifndef ANIMAT_AGENT_H_
+#define ANIMAT_AGENT_H_
 
 #include <stdlib.h>  // srand, rand
 #include <vector>
 
 #include "./constants.hpp"
 #include "./HMM.hpp"
+#include "./rng.hpp"
 
 using std::vector;
 
@@ -43,4 +44,4 @@ class Agent {
     vector< vector<bool> > getTransitions();
 };
 
-#endif  // SRC_AGENT_H_
+#endif  // ANIMAT_AGENT_H_

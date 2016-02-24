@@ -23,9 +23,11 @@ extensions = [
                   'c_animat/c_animat.pyx',
                   'c_animat/Agent.cpp',
                   'c_animat/HMM.cpp',
-                  'c_animat/Game.cpp'
+                  'c_animat/Game.cpp',
+                  'c_animat/rng.cpp',
               ],
-              language='c++')
+              language='c++',
+              extra_compile_args=['-std=c++11', '-stdlib=libc++'])
 ]
 
 setup_requires = [

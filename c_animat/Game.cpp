@@ -1,15 +1,10 @@
 // Game.cpp
 
-#include <algorithm>
-#include <vector>
-
 #include "./Game.hpp"
 
-int randInt(int i) {
-    return rand() % i;
-}
 
 int wrap(int i, int width) {
+    // TODO This requires that width is a power of 2
     return i & (width - 1);
 }
 
@@ -75,10 +70,10 @@ vector<int> executeGame(vector<unsigned char> &allAnimatStates, vector<int>
 
                 if (scrambleWorld) {
                     // Scramble time
-                    std::random_shuffle(world.begin(), world.end(), randInt);
+                    std::shuffle(world.begin(), world.end(), mersenne);
                     // Scramble space
-                    std::random_shuffle(worldTransform.begin(),
-                            worldTransform.end(), randInt);
+                    std::shuffle(worldTransform.begin(), worldTransform.end(),
+                            mersenne);
                     int scrambledWorldState;
                     for (timestep = 0; timestep < worldHeight; timestep++) {
                         worldState = world[timestep];

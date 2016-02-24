@@ -1,14 +1,11 @@
 // HMM.h
 
-#ifndef SRC_HMM_H_
-#define SRC_HMM_H_
-
-#include <stdio.h>
-#include <stdlib.h>
+#ifndef ANIMAT_HMM_H_
+#define ANIMAT_HMM_H_
 
 #include <vector>
-#include <deque>
-#include <iostream>
+
+#include "./rng.hpp"
 
 using std::vector;
 
@@ -33,4 +30,4 @@ class HMM {
     void update(unsigned char *currentStates, unsigned char *nextStates);
 };
 
-#endif  // SRC_HMM_H_
+#endif  // ANIMAT_HMM_H_

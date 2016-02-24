@@ -1,12 +1,10 @@
 // constants.h
 
-#ifndef SRC_CONSTANTS_H_
-#define SRC_CONSTANTS_H_
+#ifndef ANIMAT_CONSTANTS_H_
+#define ANIMAT_CONSTANTS_H_
 
 // Debug flag (comment-out to disable debugging output)
 /* #define _DEBUG */
-
-#include <algorithm>
 
 // Agent parameters
 #define MIN_BODY_LENGTH 3
@@ -24,4 +22,4 @@
 #define CORRECT_CATCH 3
 
 
-#endif  // SRC_CONSTANTS_H_
+#endif  // ANIMAT_CONSTANTS_H_

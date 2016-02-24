@@ -1,12 +1,6 @@
 // Agent.cpp
 
-#include <math.h>
-#include <vector>
-
 #include "./Agent.hpp"
-
-#define randDouble ((double)rand() / (double)RAND_MAX)
-
 
 Agent::Agent(vector<unsigned char> genome, int numSensors, int numHidden,
         int numMotors, bool deterministic) : genome(genome) {
@@ -72,15 +66,15 @@ void Agent::mutateGenome(double mutProb, double dupProb, double delProb,
         int maxDupDelLength) {
     // Mutation
     for (int i = 0; i < (int)genome.size(); i++) {
-        if (randDouble < mutProb) {
-            genome[i] = rand() & 255;
+        if (randDouble() < mutProb) {
+            genome[i] = randCharInt();
         }
     }
     // Duplication
-    if ((randDouble < dupProb) && ((int)genome.size() < maxGenomeLength)) {
-        int width = (minDupDelLength + rand()) & maxDupDelLength;
-        int start = rand() % ((int)genome.size() - width);
-        int insert = rand() % (int)genome.size();
+    if ((randDouble() < dupProb) && ((int)genome.size() < maxGenomeLength)) {
+        int width = (minDupDelLength + randInt()) & maxDupDelLength;
+        int start = randInt() % ((int)genome.size() - width);
+        int insert = randInt() % (int)genome.size();
         vector<unsigned char> buffer;
         buffer.clear();
         buffer.insert(buffer.begin(), genome.begin() + start, genome.begin() +
@@ -88,25 +82,25 @@ void Agent::mutateGenome(double mutProb, double dupProb, double delProb,
         genome.insert(genome.begin() + insert, buffer.begin(), buffer.end());
     }
     // Deletion
-    if ((randDouble < delProb) && ((int)genome.size() > minGenomeLength)) {
-        int width = (minDupDelLength + rand()) & maxDupDelLength;
-        int start = rand() % ((int)genome.size() - width);
+    if ((randDouble() < delProb) && ((int)genome.size() > minGenomeLength)) {
+        int width = (minDupDelLength + randInt()) & maxDupDelLength;
+        int start = randInt() % ((int)genome.size() - width);
         genome.erase(genome.begin() + start, genome.begin() + start + width);
     }
 }
 
 void Agent::injectStartCodons(int n) {
     for (int i = 0; i < (int)genome.size(); i++)
-        genome[i] = rand() & 255;
+        genome[i] = randCharInt();
     for (int i = 0; i < n; i++) {
-        int j = rand() % ((int)genome.size() - 100);
+        int j = randInt() % ((int)genome.size() - 100);
 
         // Start codon
         genome[j] = START_CODON_NUCLEOTIDE_ONE;
-        genome[j + 1]= START_CODON_NUCLEOTIDE_TWO;
+        genome[j + 1] = START_CODON_NUCLEOTIDE_TWO;
 
         for (int k = 2; k < 20; k++)
-            genome[j + k] = rand() & 255;
+            genome[j + k] = randCharInt();
     }
 }
 

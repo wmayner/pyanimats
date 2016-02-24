@@ -1,7 +1,5 @@
 // HMM.cpp
 
-#include <vector>
-
 #include "./HMM.hpp"
 
 
@@ -90,7 +88,8 @@ void HMM::update(unsigned char *currentStates, unsigned char *nextStates) {
     } else {
         // Randomly pick a column index with probabilities weighted by the entries
         // in the column.
-        int r = 1 + (rand() % (sums[pastStateIndex] - 1));
+        // TODO this is [1, sums[pastStateIndex] - 1]; is that what we want?
+        int r = 1 + (randInt() % (sums[pastStateIndex] - 1));
         while (r > hmm[pastStateIndex][nextStateIndex]) {
             // Decrease the random threshold because it's given that we didn't
             // pick column nextStateIndex, which we would have with probability
