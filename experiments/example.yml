@@ -12,8 +12,6 @@ snapshot_frequency: 120
 # NOTE: printing to the screen is a slow operation; setting a short interval
 # can significantly impact performance if simulating a generation is fast.
 status_interval: 1
-# Minimum number of snapshots.
-min_snapshots: 0
     
 # Data
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
