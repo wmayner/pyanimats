@@ -7,13 +7,14 @@ PyAnimats
 ~~~~~~~~~
 Evolve animats.
 
-Command-line options override the parameters given in the experiment file.
-
 Usage:
-    pyanimats.py <path/to/experiment.yml> <path/to/output_file> [options]
+    pyanimats.py run <path/to/experiment.yml> <path/to/output_file> [options]
+    pyanimats.py resume <path/to/checkpoint.pkl> <path/to/output_file>
     pyanimats.py -h | --help
     pyanimats.py -v | --version
     pyanimats.py --list
+
+Command-line options override the parameters given in the experiment file.
 
 Options:
     --list                    List available fitness functions
@@ -45,54 +46,51 @@ Options:
        --max-length=INT       Maximum genome length
        --profile=PATH         Profile performance and store results at PATH
     -F --force                Overwrite the output file.
+    -c --checkpoint=PATH      Save to this checkpoint file (defaults to
+                              `checkpoint.pkl` in the output directory).
 """
 
-__version__ = '0.0.23'
-
 import cProfile
-import json
 import os
-import pickle
 import random
-import subprocess
-import sys
-from copy import deepcopy
-from pprint import pprint
-from time import time
 
-import numpy as np
 from deap import base, tools
 from docopt import docopt
 
 import c_animat
 import fitness_functions
 import utils
+from __about__ import __version__
 from animat import Animat
-from constants import MINUTES
+from evolve import Evolution, load_checkpoint
 from experiment import Experiment
 
-
-def select(animats, k):
-    """Select *k* animats from the given list of animats using the
-    variant of roulette-wheel selection used in the old C++ code.
-
-    :param animats: A list of animats to select from.
-    :param k: The number of animats to select.
-    :returns: A list of selected animats.
-
-    This function uses the :func:`~random.random` function from the built-in
-    :mod:`random` module.
-    """
-    max_fitness = max(animat.fitness.value for animat in animats)
-    chosen = []
-    for i in range(k):
-        done = False
-        while not done:
-            candidate = random.choice(animats)
-            done = random.random() <= (candidate.fitness.value /
-                                       max_fitness)
-        chosen.append(candidate)
-    return chosen
+# Map CLI options to experiment parameter names and types.
+cli_opt_to_param = {
+    '--rng-seed':        ('rng_seed', int),
+    '--snapshot':        ('snapshot_frequency', int),
+    '--status-interval': ('status_interval', int),
+    '--min-snapshots':   ('min_snapshots', int),
+    '--log-interval':    ('log_interval', int),
+    '--num-samples':     ('num_samples', int),
+    '--fitness':         ('fitness_function', str),
+    '--num-gen':         ('ngen', int),
+    '--pop-size':        ('popsize', int),
+    '--init-genome':     ('init_genome', str),
+    '--jumpstart':       ('init_start_codons', int),
+    '--num-sensors':     ('num_sensors', int),
+    '--num-hidden':      ('num_hidden', int),
+    '--num-motors':      ('num_motors', int),
+    '--world-width':     ('world_width', int),
+    '--world-height':    ('world_height', int),
+    '--mut-prob':        ('mutation_prob', float),
+    '--dup-prob':        ('duplication_prob', float),
+    '--del-prob':        ('deletion_prob', float),
+    '--min-dup-del':     ('min_dup_del_width', int),
+    '--max-dup-del':     ('min_dup_del_width', int),
+    '--min-length':      ('min_genome_length', int),
+    '--max-length':      ('max_genome_length', int),
+}
 
 
 def main(arguments):
@@ -104,273 +102,92 @@ def main(arguments):
     # Print available fitness functions and their descriptions.
     if arguments['--list']:
         fitness_functions.print_functions()
-        return
+        return 0
 
-    # Final output and snapshots will be written here.
+    # Final output will be written here.
     OUTPUT_FILE = arguments['<path/to/output_file>']
-
+    # Don't overwrite the output file or pwithout permission.
     if not arguments['--force'] and os.path.exists(OUTPUT_FILE):
         raise FileExistsError(
-            'a file named `{}` already exists. Not continuing without the '
+            'a file named `{}` already exists; not overwriting without the '
             '`--force` option.'.format(OUTPUT_FILE))
-
-    # Ensure profile directory exists and set profile flag.
-    PROFILING = False
-    profile_filepath = arguments['--profile']
-    if profile_filepath:
-        PROFILING = True
-        utils.ensure_exists(os.path.dirname(profile_filepath))
-
-    # Map CLI options to experiment parameter names and types.
-    cli_opt_to_param = {
-        '--rng-seed':        ('rng_seed', int),
-        '--snapshot':        ('snapshot_frequency', int),
-        '--status-interval': ('status_interval', int),
-        '--min-snapshots':   ('min_snapshots', int),
-        '--log-interval':    ('log_interval', int),
-        '--num-samples':     ('num_samples', int),
-        '--fitness':         ('fitness_function', str),
-        '--num-gen':         ('ngen', int),
-        '--pop-size':        ('popsize', int),
-        '--init-genome':     ('init_genome', str),
-        '--jumpstart':       ('init_start_codons', int),
-        '--num-sensors':     ('num_sensors', int),
-        '--num-hidden':      ('num_hidden', int),
-        '--num-motors':      ('num_motors', int),
-        '--world-width':     ('world_width', int),
-        '--world-height':    ('world_height', int),
-        '--mut-prob':        ('mutation_prob', float),
-        '--dup-prob':        ('duplication_prob', float),
-        '--del-prob':        ('deletion_prob', float),
-        '--min-dup-del':     ('min_dup_del_width', int),
-        '--max-dup-del':     ('min_dup_del_width', int),
-        '--min-length':      ('min_genome_length', int),
-        '--max-length':      ('max_genome_length', int),
-    }
-    # Load the experiment object, overriding if necessary with CLI options.
-    cli_overrides = {param[0]: param[1](arguments[opt])
-                     for opt, param in cli_opt_to_param.items()
-                     if arguments[opt] is not None}
-    experiment = Experiment(filepath=arguments['<path/to/experiment.yml>'],
-                            override=cli_overrides)
-
-    # Get the generational interval at which to print the evolution status.
-    STATUS_INTERVAL = experiment.status_interval
-    if STATUS_INTERVAL <= 0:
-        STATUS_INTERVAL = float('inf')
-
-    # Get the time interval at which to take snapshots.
-    SNAPSHOT_TIME_INTERVAL = experiment.snapshot_frequency * MINUTES
-    if SNAPSHOT_TIME_INTERVAL <= 0:
-        SNAPSHOT_TIME_INTERVAL = float('inf')
-
-    # Get the generational interval at which to take snapshots.
-    if experiment.min_snapshots <= 0:
-        SNAPSHOT_GENERATION_INTERVAL = float('inf')
-    else:
-        SNAPSHOT_GENERATION_INTERVAL = (experiment.ngen //
-                                        experiment.min_snapshots)
-
-    # Helper functions
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    def save(output_file, experiment, population, logbook, elapsed,
-             only_fittest=True):
-        # Ensure output directory exists.
-        utils.ensure_exists(os.path.dirname(output_file))
-        # Determine the generational interval.
-        gen_interval = max(gen // experiment.num_samples, 1)
-        # Get the lineage(s).
-        if only_fittest:
-            fittest = max(population, key=lambda a: a.fitness.value)
-            lineage = fittest.serializable_lineage(interval=gen_interval,
-                                                   experiment=False)
-        else:
-            lineage = [a.serializable_lineage(interval=gen_interval,
-                                              experiment=False)
-                       for a in population]
-        # Get repository description if available, otherwise just get the
-        # version number.
-        git_describe = subprocess.run(['git', 'describe'],
-                                      stdout=subprocess.PIPE)
-        version = (git_describe.stdout.decode(sys.stdout.encoding).strip()
-                   if git_describe.returncode == 0 else __version__)
-        # Set up the JSON object.
-        json_data = {
-            'experiment': experiment.serializable(),
-            'lineage': lineage,
-            'logbook': {
-                'gen': logbook.select('gen'),
-                'fitness': logbook.chapters['fitness'].select('max'),
-                'correct': logbook.chapters['correct'].select('correct'),
-                'incorrect': logbook.chapters['correct'].select('incorrect'),
-            },
-            'metadata': {
-                'elapsed': round(elapsed, 2),
-                'version': version,
-            },
-        }
-        # Write the data.
-        with open(output_file, 'w') as f:
-            utils.dump(json_data, f)
+    # Checkpoints will be written here.
+    CHECKPOINT_FILE = (arguments['--checkpoint'] or
+                       os.path.join(os.path.dirname(OUTPUT_FILE),
+                                    'checkpoint.pkl'))
 
     # Setup
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+    # Initialize the DEAP toolbox.
     toolbox = base.Toolbox()
 
-    # Register the various genetic algorithm components to the toolbox.
-    toolbox.register('animat', Animat, experiment, experiment.init_genome)
-    toolbox.register('population', tools.initRepeat, list, toolbox.animat)
-    toolbox.register('evaluate',
-                     fitness_functions.__dict__[experiment.fitness_function])
-
-    # Create statistics trackers.
-    fitness_stats = tools.Statistics(key=lambda animat: animat.fitness.raw)
-    fitness_stats.register('max', np.max)
-    real_fitness_stats = tools.Statistics(key=lambda animat: animat.fitness.value)
-    real_fitness_stats.register('max', np.max)
-
-    correct_stats = tools.Statistics(key=lambda animat: (animat.correct,
-                                                         animat.incorrect))
-    correct_stats.register('correct', lambda x: np.max(x, 0)[0])
-    correct_stats.register('incorrect', lambda x: np.max(x, 0)[1])
-
-    # Stats objects for alternate matching measures.
-    alt_fitness_stats = tools.Statistics(key=lambda animat: animat.alt_fitness)
-    alt_fitness_stats.register('weighted', lambda x: np.max(x, 0)[0])
-    alt_fitness_stats.register('unweighted', lambda x: np.max(x, 0)[1])
-
-    # Initialize a MultiStatistics object for convenience that allows for only
-    # one call to `compile`.
-    if experiment.fitness_function == 'mat':
-        mstats = tools.MultiStatistics(correct=correct_stats,
-                                       fitness=fitness_stats,
-                                       real_fitness=real_fitness_stats,
-                                       alt_fitness=alt_fitness_stats)
+    # Either load from a checkpoint or start a new evolution.
+    if arguments['resume']:
+        # Load the checkpoint.
+        checkpoint = load_checkpoint(CHECKPOINT_FILE)
+        # Convert the loaded Phylogeny back to a normal list.
+        population = checkpoint['population']
+        experiment = checkpoint['experiment']
+        logbook = checkpoint['logbook']
+        python_rng_state = checkpoint['python_rng_state']
+        c_rng_state = checkpoint['c_rng_state']
+        start_generation = checkpoint['generation']
+        print('Loaded checkpoint from `{}`.'.format(CHECKPOINT_FILE))
+        print('Resuming evolution from generation '
+              '{}...'.format(start_generation))
     else:
-        mstats = tools.MultiStatistics(correct=correct_stats,
-                                       fitness=fitness_stats,
-                                       real_fitness=real_fitness_stats)
+        # Load the experiment object, overriding if necessary with CLI options.
+        cli_overrides = {param[0]: param[1](arguments[opt])
+                         for opt, param in cli_opt_to_param.items()
+                         if arguments[opt] is not None}
+        experiment = Experiment(filepath=arguments['<path/to/experiment.yml>'],
+                                override=cli_overrides)
+        # Register the various genetic algorithm components to the toolbox.
+        toolbox.register('animat', Animat, experiment, experiment.init_genome)
+        toolbox.register('population', tools.initRepeat, list, toolbox.animat)
+        # Initialize logbooks and hall of fame.
+        logbook = tools.Logbook()
+        # Create initial population.
+        population = toolbox.population(n=experiment.popsize)
+        # Seed the random number generators.
+        random.seed(experiment.rng_seed)
+        c_animat.seed(experiment.rng_seed)
+        # Get their states to pass to the evolution.
+        python_rng_state = random.getstate()
+        c_rng_state = c_animat.get_rng_state()
+        start_generation = 0
+        print('\nSimulating {} generations...'.format(experiment.ngen))
 
-    # Initialize logbooks and hall of fame.
-    logbook = tools.Logbook()
-    hall_of_fame = tools.HallOfFame(maxsize=experiment.popsize)
+    # Initialize the simulation.
+    evolution = Evolution(experiment, population, logbook, python_rng_state,
+                          c_rng_state, start_generation)
 
-    def print_status(line, time):
-        print('[Seed {}] '.format(experiment.rng_seed), end='')
-        print(line, utils.compress(time))
+    import pdb; pdb.set_trace()  # XXX BREAKPOINT
 
-    print('\nSimulating {} generations...'.format(experiment.ngen))
-
-    if PROFILING:
+    PROFILE_FILEPATH = arguments['--profile']
+    if PROFILE_FILEPATH:
+        utils.ensure_exists(os.path.dirname(PROFILE_FILEPATH))
         pr = cProfile.Profile()
         pr.enable()
-    sim_start = time()
 
-    # Simulation
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Run it!
+    evolution.run(CHECKPOINT_FILE)
 
-    # Seed the C++ and Python RNGs
-    c_animat.seed(experiment.rng_seed)
-    random.seed(experiment.rng_seed)
-
-    def multi_fit_evaluate(pop, gen):
-        fitnesses = toolbox.map(toolbox.evaluate, pop)
-        for animat, fitness in zip(pop, fitnesses):
-            animat.fitness.set(fitness[0])
-            animat.alt_fitness = fitness[1:]
-
-    def single_fit_evaluate(pop, gen):
-        fitnesses = toolbox.map(toolbox.evaluate, pop)
-        for animat, fitness in zip(pop, fitnesses):
-            animat.fitness.set(fitness)
-
-    evaluate = (multi_fit_evaluate if experiment.fitness_function == 'mat'
-                else single_fit_evaluate)
-
-    def record(pop, gen):
-        hall_of_fame.update(pop)
-        if gen % experiment.log_interval == 0:
-            record = mstats.compile(pop)
-            logbook.record(gen=gen, **record)
-
-    def new_gen(population, gen):
-        # Selection.
-        population = select(population, len(population))
-        # Cloning.
-        # TODO: why does directly cloning the population prevent evolution?!
-        offspring = [deepcopy(x) for x in population]
-        # Variation.
-        for i, animat in enumerate(offspring):
-            # Update parent reference.
-            animat.parent = population[i]
-            # Update generation number.
-            animat.gen = gen
-            # Mutate.
-            animat.mutate()
-        # Evaluation.
-        evaluate(offspring, gen)
-        # Recording.
-        record(offspring, gen)
-        return offspring
-
-    # Create initial population.
-    population = toolbox.population(n=experiment.popsize)
-
-    log_duration_start = time()
-    # Evaluate the initial population.
-    evaluate(population, 0)
-    # Record stats for initial population.
-    record(population, 0)
-    # Print first lines of logbook.
-    if 0 < STATUS_INTERVAL < float('inf'):
-        first_lines = str(logbook).split('\n')
-        header_lines = ['[Seed {}] '.format(experiment.rng_seed) + l
-                        for l in first_lines[:-1]]
-        print('\n' + '\n'.join(header_lines))
-        print_status(first_lines[-1], time() - log_duration_start)
-
-    log_duration_start = time()
-    snap_duration_start = time()
-    snapshot = 1
-    for gen in range(1, experiment.ngen + 1):
-        # Evolution.
-        population = new_gen(population, gen)
-        # Reporting.
-        if gen % STATUS_INTERVAL == 0:
-            # Get time since last report was printed.
-            log_duration_end = time()
-            print_status(logbook.__str__(startindex=gen),
-                         log_duration_end - log_duration_start)
-            log_duration_start = time()
-        # Snapshotting.
-        current_time = time()
-        if (current_time - snap_duration_start >= SNAPSHOT_TIME_INTERVAL
-                or gen % SNAPSHOT_GENERATION_INTERVAL == 0):
-            print('[Seed {}] –\tRecording snapshot {}... '.format(
-                experiment.rng_seed, snapshot), end='')
-            save(OUTPUT_FILE, experiment, population, logbook,
-                 (current_time - sim_start))
-            print('done.')
-            snapshot += 1
-            snap_duration_start = time()
-
-    # Finish
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    sim_end = time()
-    if PROFILING:
+    if PROFILE_FILEPATH:
         pr.disable()
-        pr.dump_stats(profile_filepath)
+        pr.dump_stats(PROFILE_FILEPATH)
 
     print('\nSimulated {} generations in {}.'.format(
-        experiment.ngen, utils.compress(sim_end - sim_start)))
+        evolution.generation, utils.compress(evolution.elapsed)))
     print('\nSaving data to `{}`... '.format(OUTPUT_FILE), end='')
 
-    # Write final results to disk.
-    save(OUTPUT_FILE, experiment, population, logbook,
-         (current_time - sim_start))
+    # Get the evolution results.
+    output = evolution.to_json(all_lineages=arguments['--all-lineages'])
+    # Ensure output directory exists and write to disk.
+    utils.ensure_exists(os.path.dirname(OUTPUT_FILE))
+    with open(OUTPUT_FILE, 'w') as f:
+        utils.dump(output, f)
 
     print('done.')
 
