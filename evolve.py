@@ -212,7 +212,8 @@ class Evolution:
             elapsed_since_last_checkpoint = time() - last_checkpoint
             if elapsed_since_last_checkpoint >= self.checkpoint_interval:
                 print('[Seed {}] Saving checkpoint to `{}`... '.format(
-                    self.experiment.rng_seed, checkpoint_file), end='')
+                    self.experiment.rng_seed, checkpoint_file),
+                    end='', flush=True)
                 self.elapsed += time() - last_checkpoint
                 with open(checkpoint_file, 'wb') as f:
                     pickle.dump(self, f)

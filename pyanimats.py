@@ -114,7 +114,7 @@ def main(arguments):
     if arguments['resume']:
         # Load the checkpoint.
         print('Loading checkpoint from `{}`... '.format(CHECKPOINT_FILE),
-              end='')
+              end='', flush=True)
         with open(arguments['<path/to/checkpoint.pkl>'], 'rb') as f:
             evolution = pickle.load(f)
         print('done.')
@@ -143,13 +143,15 @@ def main(arguments):
 
     if PROFILE_FILEPATH:
         pr.disable()
-        print('\nSaving profile to `{}`... '.format(PROFILE_FILEPATH), end='')
+        print('\nSaving profile to `{}`... '.format(PROFILE_FILEPATH),
+              end='', flush=True)
         pr.dump_stats(PROFILE_FILEPATH)
         print('done.')
 
     print('\nSimulated {} generations in {}.'.format(
         evolution.generation, utils.compress(evolution.elapsed)))
-    print('\nSaving output to `{}`... '.format(OUTPUT_FILE), end='')
+    print('\nSaving output to `{}`... '.format(OUTPUT_FILE),
+          end='', flush=True)
 
     # Get the evolution results.
     output = evolution.to_json(all_lineages=arguments['--all-lineages'])
