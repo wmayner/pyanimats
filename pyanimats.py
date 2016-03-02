@@ -17,37 +17,36 @@ Usage:
 Command-line options override the parameters given in the experiment file.
 
 Options:
-    --list                    List available fitness functions
-    -h --help                 Show this
-    -v --version              Show version
-    -r --rng-seed=INT         Random number generator seed
-    -t --snapshot=INT         Snapshot interval (minutes)
-    -s --status-interval=INT  Status-printing interval (generations)
-    -o --min-snapshots=INT    Minimum number of snapshots to take
-    -l --log-interval=INT     Logbook recording interval (generations)
-    -i --num-samples=INT      Number of animats to sample from evolution
-    -f --fitness=FUNC         Fitness function
-    -n --num-gen=NGEN         Number of generations to simulate
-    -p --pop-size=INT         Population size
-    -g --init-genome=PATH     Path to a lineage file for an intial genome
-    -j --jumpstart=INT        Begin with this many start codons
-    -a --all-lineages         Save lineages of entire final population
-    -e --num-sensors=INT      The number of sensors in an animat
-    -d --num-hidden=INT       The number of hidden units in an animat
-    -t --num-motors=INT       The number of motors in an animat
-    -W --world-width=INT      The width of the animats' environment
-    -H --world-height=INT     The height of the animats' environment
-    -m --mut-prob=FLOAT       Point mutation probability
-       --dup-prob=FLOAT       Duplication probability
-       --del-prob=FLOAT       Deletion probability
-       --min-dup-del=INT      Minimum length of duplicated/deleted genome part
-       --max-dup-del=INT      Maximum length of duplicated/deleted genome part
-       --min-length=INT       Minimum genome length
-       --max-length=INT       Maximum genome length
-       --profile=PATH         Profile performance and store results at PATH
-    -F --force                Overwrite the output file.
-    -c --checkpoint=PATH      Save to this checkpoint file (defaults to
-                              `checkpoint.pkl` in the output directory).
+    --list                     List available fitness functions
+    -h --help                  Show this
+    -v --version               Show version
+    -F --force                 Overwrite the output file.
+    -r --rng-seed=INT          Random number generator seed
+    -c --checkpoint=INT        Checkpoint interval (minutes)
+    -C --checkpoint-file=PATH  Save to this checkpoint file (defaults to
+                               `checkpoint.pkl` in the output directory)
+    -s --status-interval=INT   Status-printing interval (generations)
+    -b --logbook-interval=INT  Logbook recording interval (generations)
+    -o --output-samples=INT    Number of animats to sample from evolution
+    -f --fitness=FUNC          Fitness function
+    -n --num-gen=NGEN          Number of generations to simulate
+    -p --pop-size=INT          Population size
+    -g --init-genome=PATH      Path to a lineage file for an intial genome
+    -j --jumpstart=INT         Begin with this many start codons
+    -e --num-sensors=INT       The number of sensors in an animat
+    -i --num-hidden=INT        The number of hidden units in an animat
+    -t --num-motors=INT        The number of motors in an animat
+    -W --world-width=INT       The width of the animats' environment
+    -H --world-height=INT      The height of the animats' environment
+    -m --mut-prob=FLOAT        Point mutation probability
+    -U --dup-prob=FLOAT        Duplication probability
+    -E --del-prob=FLOAT        Deletion probability
+    -d --min-dup-del=INT       Minimum length of duplicated/deleted genome part
+    -D --max-dup-del=INT       Maximum length of duplicated/deleted genome part
+    -l --min-length=INT        Minimum genome length
+    -L --max-length=INT        Maximum genome length
+    -a --all-lineages          Save lineages of entire final population
+    -P --profile=PATH          Profile performance and store results at PATH
 """
 
 import cProfile
@@ -64,29 +63,28 @@ from experiment import Experiment
 
 # Map CLI options to experiment parameter names and types.
 cli_opt_to_param = {
-    '--rng-seed':        ('rng_seed', int),
-    '--snapshot':        ('snapshot_frequency', int),
-    '--status-interval': ('status_interval', int),
-    '--min-snapshots':   ('min_snapshots', int),
-    '--log-interval':    ('log_interval', int),
-    '--num-samples':     ('num_samples', int),
-    '--fitness':         ('fitness_function', str),
-    '--num-gen':         ('ngen', int),
-    '--pop-size':        ('popsize', int),
-    '--init-genome':     ('init_genome', str),
-    '--jumpstart':       ('init_start_codons', int),
-    '--num-sensors':     ('num_sensors', int),
-    '--num-hidden':      ('num_hidden', int),
-    '--num-motors':      ('num_motors', int),
-    '--world-width':     ('world_width', int),
-    '--world-height':    ('world_height', int),
-    '--mut-prob':        ('mutation_prob', float),
-    '--dup-prob':        ('duplication_prob', float),
-    '--del-prob':        ('deletion_prob', float),
-    '--min-dup-del':     ('min_dup_del_width', int),
-    '--max-dup-del':     ('min_dup_del_width', int),
-    '--min-length':      ('min_genome_length', int),
-    '--max-length':      ('max_genome_length', int),
+    '--rng-seed':         ('rng_seed', int),
+    '--checkpoint':       ('checkpoint_interval', int),
+    '--status-interval':  ('status_interval', int),
+    '--logbook-interval': ('logbook_interval', int),
+    '--output-samples':   ('output_samples', int),
+    '--fitness':          ('fitness_function', str),
+    '--num-gen':          ('ngen', int),
+    '--pop-size':         ('popsize', int),
+    '--init-genome':      ('init_genome', str),
+    '--jumpstart':        ('init_start_codons', int),
+    '--num-sensors':      ('num_sensors', int),
+    '--num-hidden':       ('num_hidden', int),
+    '--num-motors':       ('num_motors', int),
+    '--world-width':      ('world_width', int),
+    '--world-height':     ('world_height', int),
+    '--mut-prob':         ('mutation_prob', float),
+    '--dup-prob':         ('duplication_prob', float),
+    '--del-prob':         ('deletion_prob', float),
+    '--min-dup-del':      ('min_dup_del_width', int),
+    '--max-dup-del':      ('min_dup_del_width', int),
+    '--min-length':       ('min_genome_length', int),
+    '--max-length':       ('max_genome_length', int),
 }
 
 
@@ -105,7 +103,7 @@ def main(arguments):
             'a file named `{}` already exists; not overwriting without the '
             '`--force` option.'.format(OUTPUT_FILE))
     # Checkpoints will be written here.
-    CHECKPOINT_FILE = (arguments['--checkpoint'] or
+    CHECKPOINT_FILE = (arguments['--checkpoint-file'] or
                        arguments['<path/to/checkpoint.pkl>'] or
                        os.path.join(os.path.dirname(OUTPUT_FILE),
                                     'checkpoint.pkl'))

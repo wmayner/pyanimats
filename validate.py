@@ -51,8 +51,8 @@ def experiment_dict(d):
                          "key.")
     # TODO: check that all necessary params are present
     # Data
-    _assert_ge(d, 'log_interval', 1)
-    _assert_ge(d, 'num_samples', 1)
+    _assert_ge(d, 'logbook_interval', 1)
+    _assert_ge(d, 'output_samples', 1)
     # Evolution
     if d['fitness_function'] not in fitness_functions.metadata.keys():
         raise ValueError(

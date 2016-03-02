@@ -7,7 +7,7 @@
 # The random number generator seed to use.
 rng_seed: 0
 # Length of checkpoint interval in minutes.
-checkpoint_frequency: 1
+checkpoint_interval: 1
 # Generational interval at which to print evolution status to the screen. 
 # NOTE: printing to the screen is a slow operation; setting a short interval
 # can significantly impact performance if simulating a generation is fast.
@@ -16,9 +16,9 @@ status_interval: 1
 # Data
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Generational interval at which to record fitness data into the logbook.
-log_interval: 1
-# Number of genomes to save over the course of the evolution.
-num_samples: 100
+logbook_interval: 1
+# Number of genomes to sample from the lineage of the final animats.
+output_samples: 100
 
 # Evolution
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

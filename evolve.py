@@ -38,7 +38,7 @@ class Evolution:
         if self.status_interval <= 0:
             self.status_interval = float('inf')
         # Get the time interval at which to save checkpoints.
-        self.checkpoint_interval = (self.experiment.checkpoint_frequency *
+        self.checkpoint_interval = (self.experiment.checkpoint_interval *
                                     MINUTES)
         if self.checkpoint_interval <= 0:
             self.checkpoint_interval = float('inf')
@@ -151,7 +151,7 @@ class Evolution:
                                       utils.compress(elapsed)))
 
     def record(self, population, gen):
-        if gen % self.experiment.log_interval == 0:
+        if gen % self.experiment.logbook_interval == 0:
             record = self.mstats.compile(population)
             self.logbook.record(gen=gen, **record)
 
@@ -205,7 +205,7 @@ class Evolution:
             if gen % self.status_interval == 0:
                 # Get time since last report was printed.
                 elapsed_since_last_status = time() - last_status
-                self.print_status(self.logbook.__str__(startindex=gen),
+                self.print_status(self.logbook.__str__(startindex=-1),
                                   elapsed_since_last_status)
                 last_status = time()
             # Checkpointing.
@@ -217,7 +217,6 @@ class Evolution:
                 self.elapsed += time() - last_checkpoint
                 with open(checkpoint_file, 'wb') as f:
                     pickle.dump(self, f)
-                # self.save_checkpoint(checkpoint_file)
                 last_checkpoint = time()
                 print('done.')
 
@@ -228,7 +227,7 @@ class Evolution:
     def to_json(self, all_lineages=False):
         # Determine the generational interval.
         gen_interval = max(
-            self.experiment.ngen // self.experiment.num_samples, 1)
+            self.experiment.ngen // self.experiment.output_samples, 1)
         # Get the lineage(s).
         if not all_lineages:
             fittest = max(self.population, key=lambda a: a.fitness.value)
