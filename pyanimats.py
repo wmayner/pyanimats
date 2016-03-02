@@ -82,7 +82,7 @@ cli_opt_to_param = {
     '--dup-prob':         ('duplication_prob', float),
     '--del-prob':         ('deletion_prob', float),
     '--min-dup-del':      ('min_dup_del_width', int),
-    '--max-dup-del':      ('min_dup_del_width', int),
+    '--max-dup-del':      ('max_dup_del_width', int),
     '--min-length':       ('min_genome_length', int),
     '--max-length':       ('max_genome_length', int),
 }
