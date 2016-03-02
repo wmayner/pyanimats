@@ -63,7 +63,7 @@ class Experiment(Munch):
         return self.serializable()
 
     def __setstate__(self, state):
-        return Experiment(override=state)
+        self.__init__(override=state)
 
     def __getattr__(self, k):
         """Fall back on derived parameters if ``k`` is not an attribute."""
