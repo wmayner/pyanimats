@@ -73,7 +73,10 @@ class Experiment(Munch):
             try:
                 return self[k]
             except KeyError:
-                return self._derived[k]
+                try:
+                    return self._derived[k]
+                except KeyError:
+                    raise AttributeError(k)
 
     def __repr__(self):
         """Return a readable representation of the experiment.
