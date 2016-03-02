@@ -9,10 +9,20 @@ Utility functions.
 import datetime
 import json
 import os
+import subprocess
+import sys
 
 import numpy as np
 
-from constants import (MINUTES, HOURS, DAYS, WEEKS)
+from __about__ import __version__
+from constants import DAYS, HOURS, MINUTES, WEEKS
+
+
+def get_version():
+    """Return repo description if available, otherwise version number."""
+    git_describe = subprocess.run(['git', 'describe'], stdout=subprocess.PIPE)
+    return (git_describe.stdout.decode(sys.stdout.encoding).strip()
+            if git_describe.returncode == 0 else __version__)
 
 
 def dump(obj, fp, **kwargs):
@@ -20,7 +30,7 @@ def dump(obj, fp, **kwargs):
 
     Uses the custom JSON encoder.
     """
-    return json.dump(obj, fp, cls=JSONEncoder, **kwargs)
+    json.dump(obj, fp, cls=JSONEncoder, **kwargs)
 
 
 def dumps(obj, **kwargs):
@@ -28,7 +38,7 @@ def dumps(obj, **kwargs):
 
     Uses the custom JSON encoder.
     """
-    return json.dumps(obj, cls=JSONEncoder, **kwargs)
+    json.dumps(obj, cls=JSONEncoder, **kwargs)
 
 
 class JSONEncoder(json.JSONEncoder):
