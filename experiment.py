@@ -145,7 +145,7 @@ def _derive_params(d):
     else:
         sensor_locations = list(range(d['num_sensors']))
     # Fill and return the dictionary.
-    return Munch({
+    return {
         'num_nodes': num_nodes,
         'init_genome': init_genome,
         'fitness_transform': fitness_transform,
@@ -180,7 +180,7 @@ def _derive_params(d):
                             for i in range(2**num_nodes)],
         'sensor_motor_states': sensor_motor_states,
         'sensor_locations': sensor_locations,
-    })
+    }
 
 
 def _bitlist(i, padlength):
