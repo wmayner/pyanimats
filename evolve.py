@@ -222,6 +222,14 @@ class Evolution:
 
         self.elapsed += time() - last_checkpoint
 
+        # Save final checkpoint.
+        print('[Seed {}] Saving checkpoint to `{}`... '.format(
+            self.experiment.rng_seed, checkpoint_file),
+            end='', flush=True)
+        with open(checkpoint_file, 'wb') as f:
+            pickle.dump(self, f)
+        print('done.')
+
         return self.elapsed
 
     def to_json(self, all_lineages=False):
