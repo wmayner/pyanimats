@@ -6,7 +6,6 @@ import numpy as np
 
 import fitness_functions
 
-
 GENERIC_MISMATCH_MSG = """
 cannot load animat: stored {attr} does not match the {attr} encoded by the
 stored genome with the given experiment parameters.

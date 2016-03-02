@@ -17,7 +17,6 @@ from sklearn.metrics import mutual_info_score
 import constants
 from utils import unique_rows
 
-
 _WRAPPER_WIDTH = 72
 _base_wrapper = textwrap.TextWrapper(width=_WRAPPER_WIDTH)
 # Metadata associated with the available fitness functions.
