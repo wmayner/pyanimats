@@ -210,21 +210,13 @@ cdef class cAnimat:
     def __dealloc__(self):
         del self.thisptr
 
-    def __deepcopy__(self, memo):
-        return cAnimat(self.genome, self.mNumSensors, self.mNumHidden,
-                       self.mNumMotors, self.mDeterministic)
-
-    def __copy__(self):
-        return self.__deepcopy__()
-
     def __reduce__(self):
-        # When pickling, simply regenerate an instance.
+        # When pickling or copying, simply regenerate an instance.
         # NOTE: This means that changes in the implementation of cAnimat that
         # occur between pickling and unpickling can cause a SILENT change in
         # behavior!
-        return (cAnimat, (self.thisptr.genome, self.thisptr.mNumSensors,
-                          self.thisptr.mNumHidden, self.thisptr.mNumMotors,
-                          self.thisptr.mDeterministic))
+        return (cAnimat, (self.genome, self.num_sensors, self.num_hidden,
+                          self.num_motors, self.deterministic))
 
     property genome:
         def __get__(self):
