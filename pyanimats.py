@@ -102,11 +102,17 @@ def main(arguments):
         raise FileExistsError(
             'a file named `{}` already exists; not overwriting without the '
             '`--force` option.'.format(OUTPUT_FILE))
+    # Ensure output directory exists.
+    if os.path.dirname(OUTPUT_FILE):
+        utils.ensure_exists(os.path.dirname(OUTPUT_FILE))
     # Checkpoints will be written here.
     CHECKPOINT_FILE = (arguments['--checkpoint-file'] or
                        arguments['<path/to/checkpoint.pkl>'] or
                        os.path.join(os.path.dirname(OUTPUT_FILE),
                                     'checkpoint.pkl'))
+    # Ensure checkpoint directory exists.
+    if os.path.dirname(CHECKPOINT_FILE):
+        utils.ensure_exists(os.path.dirname(CHECKPOINT_FILE))
 
     # Either load from a checkpoint or start a new evolution.
     if arguments['resume']:
@@ -151,10 +157,8 @@ def main(arguments):
     print('\nSaving output to `{}`... '.format(OUTPUT_FILE),
           end='', flush=True)
 
-    # Get the evolution results.
+    # Get the evolution results and write to disk.
     output = evolution.to_json(all_lineages=arguments['--all-lineages'])
-    # Ensure output directory exists and write to disk.
-    utils.ensure_exists(os.path.dirname(OUTPUT_FILE))
     with open(OUTPUT_FILE, 'w') as f:
         utils.dump(output, f)
 
