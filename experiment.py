@@ -68,12 +68,12 @@ class Experiment(Munch):
     def __getattr__(self, k):
         """Fall back on derived parameters if ``k`` is not an attribute."""
         try:
-            object.__getattribute__(self, k)
+            return object.__getattribute__(self, k)
         except AttributeError:
             try:
                 return self[k]
             except KeyError:
-                return getattr(self._derived, k)
+                return self._derived[k]
 
     def __repr__(self):
         """Return a readable representation of the experiment.
