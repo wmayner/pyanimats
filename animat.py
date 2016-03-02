@@ -88,8 +88,9 @@ def from_json(dictionary, experiment=None, parent=None):
         except KeyError:
             raise ValueError('cannot load animat: no experiment was provided '
                              'and no experiment was found in the JSON data.')
-    animat = Animat(experiment, dictionary['genome'], gen=dictionary['gen'],
-                    parent=parent)
+    animat = Animat(experiment, dictionary['genome'])
+    animat.parent = parent
+    animat.gen = dictionary['gen']
     animat.fitness.set(dictionary['fitness']['raw'])
     animat._correct = dictionary['correct']
     animat._incorrect = dictionary['incorrect']
@@ -135,18 +136,18 @@ class Animat:
             game has been played yet.
     """
 
-    def __init__(self, experiment, genome, parent=None, gen=0):
+    def __init__(self, experiment, genome):
         self._experiment = experiment
         self._c_animat = cAnimat(genome,
                                  experiment.num_sensors,
                                  experiment.num_hidden,
                                  experiment.num_motors,
                                  experiment.deterministic)
-        self.parent = parent
-        self.gen = gen
+        self.parent = None
+        self.gen = None
+        self.fitness = ExponentialFitness(experiment.fitness_transform)
         self._correct = False
         self._incorrect = False
-        self.fitness = ExponentialFitness(experiment.fitness_transform)
         # We don't initialize the animat's PyPhi network until we need to,
         # because it may be expensive.
         self._network = False
@@ -191,11 +192,12 @@ class Animat:
 
     def __deepcopy__(self, memo):
         # Make an entirely new instance and copy over some attributes.
-        copy = Animat(self._experiment, genome=self._c_animat.genome,
-                      parent=self.parent, gen=self.gen)
+        copy = Animat(self._experiment, genome=self._c_animat.genome)
+        copy.parent = self.parent
+        copy.gen = deepcopy(self.gen)
+        copy.fitness = deepcopy(self.fitness)
         copy._incorrect = deepcopy(self._incorrect)
         copy._correct = deepcopy(self._incorrect)
-        copy.fitness = deepcopy(self.fitness)
         return copy
 
     def serializable(self, compact=False, experiment=True):
