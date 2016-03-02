@@ -9,7 +9,7 @@ Evolve animats.
 
 Usage:
     pyanimats.py run <path/to/experiment.yml> <path/to/output_file> [options]
-    pyanimats.py resume <path/to/checkpoint.pkl> <path/to/output_file>
+    pyanimats.py resume <path/to/checkpoint.pkl> <path/to/output_file> [options]
     pyanimats.py -h | --help
     pyanimats.py -v | --version
     pyanimats.py --list
@@ -52,17 +52,14 @@ Options:
 
 import cProfile
 import os
-import random
+import pickle
 
-from deap import base, tools
 from docopt import docopt
 
-import c_animat
 import fitness_functions
 import utils
 from __about__ import __version__
-from animat import Animat
-from evolve import Evolution, load_checkpoint
+from evolve import Evolution
 from experiment import Experiment
 
 # Map CLI options to experiment parameter names and types.
@@ -94,10 +91,6 @@ cli_opt_to_param = {
 
 
 def main(arguments):
-
-    # Handle arguments
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
     # TODO make this an option for -h?
     # Print available fitness functions and their descriptions.
     if arguments['--list']:
@@ -106,36 +99,27 @@ def main(arguments):
 
     # Final output will be written here.
     OUTPUT_FILE = arguments['<path/to/output_file>']
-    # Don't overwrite the output file or pwithout permission.
+    # Don't overwrite the output file or without permission.
     if not arguments['--force'] and os.path.exists(OUTPUT_FILE):
         raise FileExistsError(
             'a file named `{}` already exists; not overwriting without the '
             '`--force` option.'.format(OUTPUT_FILE))
     # Checkpoints will be written here.
     CHECKPOINT_FILE = (arguments['--checkpoint'] or
+                       arguments['<path/to/checkpoint.pkl>'] or
                        os.path.join(os.path.dirname(OUTPUT_FILE),
                                     'checkpoint.pkl'))
-
-    # Setup
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    # Initialize the DEAP toolbox.
-    toolbox = base.Toolbox()
 
     # Either load from a checkpoint or start a new evolution.
     if arguments['resume']:
         # Load the checkpoint.
-        checkpoint = load_checkpoint(CHECKPOINT_FILE)
-        # Convert the loaded Phylogeny back to a normal list.
-        population = checkpoint['population']
-        experiment = checkpoint['experiment']
-        logbook = checkpoint['logbook']
-        python_rng_state = checkpoint['python_rng_state']
-        c_rng_state = checkpoint['c_rng_state']
-        start_generation = checkpoint['generation']
-        print('Loaded checkpoint from `{}`.'.format(CHECKPOINT_FILE))
+        print('Loading checkpoint from `{}`... '.format(CHECKPOINT_FILE),
+              end='')
+        with open(arguments['<path/to/checkpoint.pkl>'], 'rb') as f:
+            evolution = pickle.load(f)
+        print('done.')
         print('Resuming evolution from generation '
-              '{}...'.format(start_generation))
+              '{}...\n'.format(evolution.generation))
     else:
         # Load the experiment object, overriding if necessary with CLI options.
         cli_overrides = {param[0]: param[1](arguments[opt])
@@ -143,31 +127,14 @@ def main(arguments):
                          if arguments[opt] is not None}
         experiment = Experiment(filepath=arguments['<path/to/experiment.yml>'],
                                 override=cli_overrides)
-        # Register the various genetic algorithm components to the toolbox.
-        toolbox.register('animat', Animat, experiment, experiment.init_genome)
-        toolbox.register('population', tools.initRepeat, list, toolbox.animat)
-        # Initialize logbooks and hall of fame.
-        logbook = tools.Logbook()
-        # Create initial population.
-        population = toolbox.population(n=experiment.popsize)
-        # Seed the random number generators.
-        random.seed(experiment.rng_seed)
-        c_animat.seed(experiment.rng_seed)
-        # Get their states to pass to the evolution.
-        python_rng_state = random.getstate()
-        c_rng_state = c_animat.get_rng_state()
-        start_generation = 0
-        print('\nSimulating {} generations...'.format(experiment.ngen))
-
-    # Initialize the simulation.
-    evolution = Evolution(experiment, population, logbook, python_rng_state,
-                          c_rng_state, start_generation)
-
-    import pdb; pdb.set_trace()  # XXX BREAKPOINT
+        # Initialize the simulation.
+        evolution = Evolution(experiment)
+        print('Simulating {} generations...'.format(experiment.ngen))
 
     PROFILE_FILEPATH = arguments['--profile']
     if PROFILE_FILEPATH:
         utils.ensure_exists(os.path.dirname(PROFILE_FILEPATH))
+        print('\nProfiling enabled.')
         pr = cProfile.Profile()
         pr.enable()
 
@@ -176,11 +143,13 @@ def main(arguments):
 
     if PROFILE_FILEPATH:
         pr.disable()
+        print('\nSaving profile to `{}`... '.format(PROFILE_FILEPATH), end='')
         pr.dump_stats(PROFILE_FILEPATH)
+        print('done.')
 
     print('\nSimulated {} generations in {}.'.format(
         evolution.generation, utils.compress(evolution.elapsed)))
-    print('\nSaving data to `{}`... '.format(OUTPUT_FILE), end='')
+    print('\nSaving output to `{}`... '.format(OUTPUT_FILE), end='')
 
     # Get the evolution results.
     output = evolution.to_json(all_lineages=arguments['--all-lineages'])

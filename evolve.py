@@ -4,7 +4,6 @@
 
 """Implements the genetic algorithm."""
 
-import os
 import pickle
 import random
 from copy import deepcopy
@@ -16,7 +15,7 @@ from deap import base, tools
 import c_animat
 import fitness_functions
 import utils
-from __about__ import __version__
+from animat import Animat
 from constants import MINUTES
 from phylogeny import Phylogeny
 
@@ -25,56 +24,71 @@ class Evolution:
 
     """An evolutionary simulation."""
 
-    def __init__(self, experiment, population, logbook, python_rng_state,
-                 c_rng_state, generation):
+    def __init__(self, experiment):
+        # if experiment is None and checkpoint is None:
+        #     raise ValueError('must provide either an experiment or a '
+        #                      'checkpoint to load.')
+        # if experiment is not None:
+        self.version = utils.get_version()
         self.experiment = experiment
-        self.population = population
-        self.logbook = logbook
-        self.python_rng_state = python_rng_state
-        self.c_rng_state = c_rng_state
+        self.generation = 0
         self.elapsed = 0
-        # Get our own RNG.
-        self.random = random.Random()
-        self.generation = generation
         # Get the generational interval at which to print the evolution status.
-        self.status_interval = experiment.status_interval
+        self.status_interval = self.experiment.status_interval
         if self.status_interval <= 0:
             self.status_interval = float('inf')
         # Get the time interval at which to save checkpoints.
-        self.checkpoint_time_interval = experiment.checkpoint_frequency * MINUTES
-        if self.checkpoint_time_interval <= 0:
-            self.checkpoint_time_interval = float('inf')
-        # Get the generational interval at which to save checkpoints.
-        if experiment.min_checkpoints <= 0:
-            self.checkpoint_generation_interval = float('inf')
-        else:
-            self.checkpoint_generation_interval = (
-                experiment.ngen // experiment.min_checkpoints)
+        self.checkpoint_interval = (self.experiment.checkpoint_frequency *
+                                    MINUTES)
+        if self.checkpoint_interval <= 0:
+            self.checkpoint_interval = float('inf')
+        # Get our own RNG.
+        self.random = random.Random()
+        # Seed the random number generators.
+        self.random.seed(experiment.rng_seed)
+        c_animat.seed(experiment.rng_seed)
+        # Get their states to pass to the evolution.
+        self.python_rng_state = random.getstate()
+        self.c_rng_state = c_animat.get_rng_state()
+        # Initialize the DEAP toolbox.
+        self.toolbox = base.Toolbox()
+        # Register the various genetic algorithm components to the toolbox.
+        self.toolbox.register('animat', Animat, self.experiment,
+                              self.experiment.init_genome)
+        self.toolbox.register('population', tools.initRepeat, list,
+                              self.toolbox.animat)
+        # Initialize logbooks and hall of fame.
+        self.logbook = tools.Logbook()
+        # Create initial population.
+        self.population = self.toolbox.population(n=experiment.popsize)
         # Create statistics trackers.
         fitness_stats = tools.Statistics(key=lambda animat: animat.fitness.raw)
         fitness_stats.register('max', np.max)
-        real_fitness_stats = tools.Statistics(key=lambda animat: animat.fitness.value)
+        real_fitness_stats = tools.Statistics(key=lambda animat:
+                                              animat.fitness.value)
         real_fitness_stats.register('max', np.max)
         correct_stats = tools.Statistics(key=lambda animat: (animat.correct,
-                                                                animat.incorrect))
+                                                             animat.incorrect))
         correct_stats.register('correct', lambda x: np.max(x, 0)[0])
         correct_stats.register('incorrect', lambda x: np.max(x, 0)[1])
         # Stats objects for alternate matching measures.
-        alt_fitness_stats = tools.Statistics(key=lambda animat: animat.alt_fitness)
+        alt_fitness_stats = tools.Statistics(key=lambda animat:
+                                             animat.alt_fitness)
         alt_fitness_stats.register('weighted', lambda x: np.max(x, 0)[0])
         alt_fitness_stats.register('unweighted', lambda x: np.max(x, 0)[1])
-        # Initialize a MultiStatistics object for convenience that allows for only
-        # one call to `compile`.
+        # Initialize a MultiStatistics object for convenience that allows for
+        # only one call to `compile`.
         if self.experiment.fitness_function == 'mat':
-            self.mstats = tools.MultiStatistics(correct=correct_stats,
-                                                fitness=fitness_stats,
-                                                real_fitness=real_fitness_stats,
-                                                alt_fitness=alt_fitness_stats)
+            self.mstats = tools.MultiStatistics(
+                correct=correct_stats, fitness=fitness_stats,
+                real_fitness=real_fitness_stats, alt_fitness=alt_fitness_stats)
         else:
-            self.mstats = tools.MultiStatistics(correct=correct_stats, fitness=fitness_stats,
-                                                real_fitness=real_fitness_stats)
+            self.mstats = tools.MultiStatistics(
+                correct=correct_stats, fitness=fitness_stats,
+                real_fitness=real_fitness_stats)
         # Initialize evaluate function.
-        fitness_function = fitness_functions.__dict__[experiment.fitness_function]
+        fitness_function = \
+            fitness_functions.__dict__[experiment.fitness_function]
 
         def multi_fit_evaluate(pop, gen):
             fitnesses = map(fitness_function, pop)
@@ -86,8 +100,27 @@ class Evolution:
             fitnesses = map(fitness_function, pop)
             for animat, fitness in zip(pop, fitnesses):
                 animat.fitness.set(fitness)
+
         self.evaluate = (multi_fit_evaluate if self.experiment.fitness_function
                          == 'mat' else single_fit_evaluate)
+
+    def __getstate__(self):
+        # Copy the instance attributes.
+        state = self.__dict__.copy()
+        # Remove unpicklable attributes.
+        del state['evaluate']
+        del state['mstats']
+        # Save the population as a Phylogeny to recover lineages later.
+        state['population'] = Phylogeny(state['population'])
+        return state
+
+    def __setstate__(self, state):
+        # Convert the Phylogeny back to a normal list.
+        state['population'] = list(state['population'])
+        # Initialize from the experiment.
+        self.__init__(state['experiment'])
+        # Update with the saved state.
+        self.__dict__.update(state)
 
     def select(self, animats, k):
         """Select *k* animats from a list of animats.
@@ -177,11 +210,13 @@ class Evolution:
                 last_status = time()
             # Checkpointing.
             elapsed_since_last_checkpoint = time() - last_checkpoint
-            if elapsed_since_last_checkpoint >= self.checkpoint_time_interval:
-                print('[Seed {}] Saving checkpoint... '.format(
-                    self.experiment.rng_seed), end='')
+            if elapsed_since_last_checkpoint >= self.checkpoint_interval:
+                print('[Seed {}] Saving checkpoint to `{}`... '.format(
+                    self.experiment.rng_seed, checkpoint_file), end='')
                 self.elapsed += time() - last_checkpoint
-                self.save_checkpoint(checkpoint_file)
+                with open(checkpoint_file, 'wb') as f:
+                    pickle.dump(self, f)
+                # self.save_checkpoint(checkpoint_file)
                 last_checkpoint = time()
                 print('done.')
 
@@ -240,16 +275,3 @@ class Evolution:
         }
         with open(filepath, 'wb') as f:
             pickle.dump(data, f)
-
-
-def load_checkpoint(filepath):
-    """Load an evolution from a checkpoint file.
-
-    Returns the checkpoint as a dictionary whose values are suitable for
-    initializing a new ``Evolution`` object.
-    """
-    with open(filepath, 'rb') as f:
-        checkpoint = pickle.load(f)
-    # Convert the loaded Phylogeny back to a normal list.
-    checkpoint['population'] = list(checkpoint['population'])
-    return checkpoint
