@@ -59,6 +59,12 @@ class Experiment(Munch):
         # Put everything in the Munch.
         self.update(dictionary)
 
+    def __getstate__(self):
+        return self.serializable()
+
+    def __setstate__(self, state):
+        return Experiment(override=state)
+
     def __getattr__(self, k):
         """Fall back on derived parameters if ``k`` is not an attribute."""
         try:
