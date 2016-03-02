@@ -6,8 +6,8 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # The random number generator seed to use.
 rng_seed: 0
-# Length of snapshots interval in minutes.
-snapshot_frequency: 120
+# Length of checkpoint interval in minutes.
+checkpoint_frequency: 1
 # Generational interval at which to print evolution status to the screen. 
 # NOTE: printing to the screen is a slow operation; setting a short interval
 # can significantly impact performance if simulating a generation is fast.
@@ -31,7 +31,7 @@ popsize: 100
 # Must be a path to a `lineages.pkl` file, or `false`.
 init_genome_path: false
 # Number of start codons to inject into the initial genome.
-# NOTE: this has no effect if loading from a snapshot.
+# NOTE: this has no effect if loading from a checkpoint.
 init_start_codons: 0
 # Raw fitness values are scaled exponentially according to the formula
 #   F(R) = B^(S*R + A)
@@ -77,10 +77,10 @@ world_height: 36
 # - The hit multiplier is added to the animat's score if there was a
 #   hit, and subtracted if there wasn't.
 task: 
-  - [ 1, '1110000000000000']
-  - [-1, '1111000000000000']
-  - [ 1, '1111110000000000']
-  - [-1, '1111100000000000']
+  - [ 1, '1000000000000000']
+  - [-1, '1110000000000000']
+  - [ 1, '1000000000000000']
+  - [-1, '1110000000000000']
 
 # Mutation
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
