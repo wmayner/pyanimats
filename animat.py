@@ -148,14 +148,16 @@ class Animat:
         self.fitness = ExponentialFitness(experiment.fitness_transform)
         self._correct = False
         self._incorrect = False
-        # We don't initialize the animat's PyPhi network or connectivity matrix
-        # until we need to, because it may be expensive.
-        self._network = False
+        # Don't initialize the animat's network attributes until we need to,
+        # because it may be expensive.
+        self._tpm = False
         self._cm = False
+        self._network = False
         # Mark whether the animat's network and connectivity matrix need
         # updating.
-        self._dirty_network = True
+        self._dirty_tpm = True
         self._dirty_cm = True
+        self._dirty_network = True
         # Same for the connectivity matrix.
         # Get a random unique ID.
         self._id = uuid4()
@@ -236,7 +238,10 @@ class Animat:
     @property
     def tpm(self):
         """The animats's TPM."""
-        return np.array(self._c_animat.tpm).astype(float)
+        if self._dirty_tpm:
+            self._tpm = np.array(self._c_animat.tpm).astype(float)
+            self._dirty_tpm = False
+        return self._tpm
 
     @property
     def network(self):
