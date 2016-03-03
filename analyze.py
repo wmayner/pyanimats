@@ -62,6 +62,10 @@ if VERSION < Version('0.0.20'):
 # Utilities
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+def rowset(array):
+    return set(map(tuple, fitness_functions.unique_rows(array)))
+
+
 def _extract_num(path, prefix):
     return int(re.split('-|/', path.split(prefix)[-1])[0])
 
@@ -366,6 +370,29 @@ def movements(ind, scrambled=False):
     return np.logical_xor(states[:, :, [LEFT]], states[:, :, [RIGHT]])
 
 
+def movements_direction(ind, direction, scrambled=False):
+    """Return a boolean array of whether the individual moved in the given
+    direction."""
+    states = ind.play_game(scrambled=scrambled).animat_states
+    LEFT = constants.MOTOR_INDICES[0]
+    RIGHT = constants.MOTOR_INDICES[1]
+    direction = LEFT if direction == 'left' else RIGHT
+    return np.logical_and(
+        np.logical_xor(states[:, :, [LEFT]], states[:, :, [RIGHT]]),
+        states[:, :, [direction]]
+    )
+
+
+def movements_left(ind, scrambled=False):
+    """Return a boolean array of whether the individual moved left."""
+    return movements_direction(ind, 'left', scrambled)
+
+
+def movements_right(ind, scrambled=False):
+    """Return a boolean array of whether the individual moved left."""
+    return movements_direction(ind, 'right', scrambled)
+
+
 def num_moves(ind, scrambled=False):
     "Return the number of moves the animat made in the game."
     m = movements(ind, scrambled=scrambled)
@@ -566,3 +593,4 @@ def export_network_to_json(case_name=CASE_NAME, seed=SEED, lineage=0,
 
 def lineage_to_json():
     pass
+    # pct_moves = [percentage_moved(i) for i in individuals]
