@@ -359,10 +359,12 @@ _register(data_function=main_complex)(state_wvn)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def matching(W, N, constellations):
+    # First uniqify states, since that's faster than concepts.
+    unq_W, unq_N = set(W), set(N)
     # Collect the constellations specified in the world.
-    world_constellations = [constellations[state] for state in W]
+    world_constellations = [constellations[state] for state in unq_W]
     # Collect those specified in noise.
-    noise_constellations = [constellations[state] for state in N]
+    noise_constellations = [constellations[state] for state in unq_N]
     # Join the constellations for every state visited in the world and uniquify
     # the resulting set of concepts. Concepts should be considered the same
     # when they have the same φ, same mechanism, same mechanism state, and the
@@ -391,10 +393,12 @@ def matching_weighted(W, N, constellations, complexes):
 
 
 def matching_average_weighted(W, N, constellations, complexes):
+    # First uniqify states, since that's faster than concepts.
+    unq_W, unq_N = set(W), set(N)
     # Collect the constellations specified in the world.
-    world_constellations = [constellations[state] for state in W]
+    world_constellations = [constellations[state] for state in unq_W]
     # Collect those specified in noise.
-    noise_constellations = [constellations[state] for state in N]
+    noise_constellations = [constellations[state] for state in unq_N]
     # Join the constellations for every state visited in the world and uniquify
     # the resulting set of concepts. Concepts should be considered the same
     # when they have the same φ, same mechanism, same mechanism state, and the
@@ -471,8 +475,8 @@ def mat(ind):
         for state, bm in complexes.items()
     }
     # Get the set of unique states in each trial for world and noise.
-    world = [set(tuple(state) for state in trial) for trial in world]
-    noise = [set(tuple(state) for state in trial) for trial in noise]
+    world = [[tuple(state) for state in trial] for trial in world]
+    noise = [[tuple(state) for state in trial] for trial in noise]
     # Now we calculate the matching terms for many stimulus sets (each trial)
     # which are later averaged to obtain the matching value for a “typical”
     # stimulus set.
