@@ -464,7 +464,6 @@ def mat(ind):
         state: pyphi.compute.main_complex(ind.network, state)
         for state in all_states
     }
-    # TODO weight by frequency?
     # Existence is the mean of the ϕ values.
     big_phis, counts = zip(*[(complexes[state].phi, count)
                              for state, count in all_states.items()])
@@ -492,7 +491,7 @@ def mat(ind):
         for W, N in zip(world, noise)
     ])
     # TODO don't double-weight last two by phi
-    return (existence * raw_matching_average_weighted,
-            existence * raw_matching_weighted,
+    return (raw_matching_average_weighted,
+            raw_matching_weighted,
             existence * raw_matching)
 _register(data_function=main_complex)(mat)
