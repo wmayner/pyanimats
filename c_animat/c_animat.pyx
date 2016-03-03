@@ -200,12 +200,13 @@ cdef class Int32Wrapper:
 cdef class cAnimat:
     # Hold the C++ instance that we're wrapping.
     cdef Agent *thisptr
+    cdef bool _dirty_phenotype
 
     def __cinit__(self, genome, numSensors, numHidden, numMotors,
                   deterministic):
         self.thisptr = new Agent(genome, numSensors, numHidden, numMotors,
                                  deterministic)
-        self.thisptr.generatePhenotype()
+        self._dirty_phenotype = True
 
     def __dealloc__(self):
         del self.thisptr
@@ -252,22 +253,33 @@ cdef class cAnimat:
 
     property edges:
         def __get__(self):
+            # Update the phenotype if necessary before getting the edge list.
+            self._update_phenotype()
             return self.thisptr.getEdges()
 
     property tpm:
         def __get__(self):
+            # Update the phenotype if necessary before getting the TPM.
+            self._update_phenotype()
             return self.thisptr.getTransitions()
+
+    def _update_phenotype(self):
+        if self._dirty_phenotype:
+            self.thisptr.generatePhenotype()
+            self._dirty_phenotype = False
 
     def mutate(self, mutProb, dupProb, delProb, minGenomeLength,
                maxGenomeLength, minDupDelLength, maxDupDelLength):
         self.thisptr.mutateGenome(mutProb, dupProb, delProb, minGenomeLength,
                                   maxGenomeLength, minDupDelLength,
-                                  maxDupDelLength);
-        # Update the animat's phenotype after changing the genome.
-        self.thisptr.generatePhenotype();
+                                  maxDupDelLength)
+        # The phenotype now needs to be updated.
+        self._dirty_phenotype = True
 
     def play_game(self, hit_multipliers, patterns, worldWidth, worldHeight,
                   scramble_world=False):
+        # Ensure the phenotype reflects the genome before playing the game.
+        self._update_phenotype()
         # Calculate the size of the state transition vector, which has an entry
         # for every node state of every timestep of every trial, and initialize.
         num_trials = len(patterns) * 2 * worldWidth
