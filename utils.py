@@ -82,6 +82,9 @@ def unique_rows(array, upto=[], indices=False, counts=False, sort=False):
         counts (bool): Also return the row counts (sorted).
         sort (bool): Return the unique rows in descending order by frequency.
     """
+    # Cast to np.array if necessary
+    if not isinstance(array, np.ndarray):
+        array = np.array(array)
     # Return immediately for empty arrays.
     if array.size == 0:
         return array
