@@ -152,6 +152,9 @@ def _derive_params(d):
         'num_nodes': num_nodes,
         'init_genome': init_genome,
         'fitness_transform': fitness_transform,
+        # Number of trials is given by
+        #   (number of tasks * two directions *
+        #    number of initial positions for the animat)
         'num_trials': len(d['task']) * 2 * d['world_width'],
         'hit_multipliers': [condition[0] for condition in d['task']],
         # Convert task-strings into integers. Note that in the C++
@@ -159,9 +162,6 @@ def _derive_params(d):
         # string.
         'block_patterns': [int(condition[1][::-1], 2)
                            for condition in d['task']],
-        # Number of trials is given by
-        #   (number of tasks * two directions *
-        #    number of initial positions for the animat)
         'sensor_indices': sensor_indices,
         'hidden_indices': hidden_indices,
         'motor_indices': motor_indices,
