@@ -7,7 +7,7 @@
 import pickle
 import random
 from copy import deepcopy
-from time import time
+from time import perf_counter as timer
 
 import numpy as np
 from deap import base, tools
@@ -195,7 +195,7 @@ class Evolution:
                     for l in first_lines[:-1]]
                 print('\n' + '\n'.join(header_lines))
 
-        last_status, last_checkpoint = time(), time()
+        last_status, last_checkpoint = [timer()] * 2
 
         for gen in range(self.generation + 1, self.experiment.ngen + 1):
             self.generation = gen
@@ -204,23 +204,23 @@ class Evolution:
             # Reporting.
             if gen % self.status_interval == 0:
                 # Get time since last report was printed.
-                elapsed_since_last_status = time() - last_status
+                elapsed_since_last_status = timer() - last_status
                 self.print_status(self.logbook.__str__(startindex=-1),
                                   elapsed_since_last_status)
-                last_status = time()
+                last_status = timer()
             # Checkpointing.
-            elapsed_since_last_checkpoint = time() - last_checkpoint
+            elapsed_since_last_checkpoint = timer() - last_checkpoint
             if elapsed_since_last_checkpoint >= self.checkpoint_interval:
                 print('[Seed {}] Saving checkpoint to `{}`... '.format(
                     self.experiment.rng_seed, checkpoint_file),
                     end='', flush=True)
-                self.elapsed += time() - last_checkpoint
+                self.elapsed += timer() - last_checkpoint
                 with open(checkpoint_file, 'wb') as f:
                     pickle.dump(self, f)
-                last_checkpoint = time()
+                last_checkpoint = timer()
                 print('done.')
 
-        self.elapsed += time() - last_checkpoint
+        self.elapsed += timer() - last_checkpoint
 
         # Save final checkpoint.
         print('[Seed {}] Saving checkpoint to `{}`... '.format(
