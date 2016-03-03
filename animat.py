@@ -151,12 +151,10 @@ class Animat:
         # Don't initialize the animat's network attributes until we need to,
         # because it may be expensive.
         self._tpm = False
-        self._cm = False
-        self._network = False
-        # Mark whether the animat's network and connectivity matrix need
-        # updating.
         self._dirty_tpm = True
+        self._cm = False
         self._dirty_cm = True
+        self._network = False
         self._dirty_network = True
         # Same for the connectivity matrix.
         # Get a random unique ID.
@@ -183,16 +181,21 @@ class Animat:
         return getattr(self._experiment, name)
 
     def __getstate__(self):
-        # Exclude the parent pointer, PyPhi network, and dirty flag from the
-        # pickled object.
+        # Exclude the parent pointer, network attributes, and dirty flags from
+        # the pickled object.
         state = {k: v for k, v in self.__dict__.items()
-                 if k not in ['parent', '_network', '_dirty_network']}
+                 if k not in ['parent', '_network', '_dirty_network', '_cm',
+                              '_dirty_cm', '_network', '_dirty_network']}
         # Record the ID of the parent to reconstruct phylogeny later.
         state['parent'] = self.parent._id if self.parent is not None else None
         return state
 
     def __setstate__(self, state):
         self.__dict__.update(state)
+        self._tpm = False
+        self._dirty_tpm = True
+        self._cm = False
+        self._dirty_cm = True
         self._network = False
         self._dirty_network = True
 
@@ -282,6 +285,9 @@ class Animat:
                               self.deletion_prob, self.min_genome_length,
                               self.max_genome_length, self.min_dup_del_width,
                               self.max_dup_del_width)
+        # Network attributes need updating.
+        self._dirty_tpm = True
+        self._dirty_cm = True
         self._dirty_network = True
 
     def play_game(self, scrambled=False):
