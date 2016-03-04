@@ -25,10 +25,6 @@ class Evolution:
     """An evolutionary simulation."""
 
     def __init__(self, experiment):
-        # if experiment is None and checkpoint is None:
-        #     raise ValueError('must provide either an experiment or a '
-        #                      'checkpoint to load.')
-        # if experiment is not None:
         self.version = utils.get_version()
         self.experiment = experiment
         self.generation = 0
@@ -101,8 +97,9 @@ class Evolution:
             for animat, fitness in zip(pop, fitnesses):
                 animat.fitness.set(fitness)
 
-        self.evaluate = (multi_fit_evaluate if self.experiment.fitness_function
-                         == 'mat' else single_fit_evaluate)
+        self.evaluate = (
+            multi_fit_evaluate if self.experiment.fitness_function == 'mat'
+            else single_fit_evaluate)
 
     def __getstate__(self):
         # Copy the instance attributes.
