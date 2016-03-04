@@ -144,7 +144,7 @@ class Animat:
                                  experiment.num_motors,
                                  experiment.deterministic)
         self.parent = None
-        self.gen = None
+        self.gen = 0
         self.fitness = ExponentialFitness(experiment.fitness_transform)
         self._correct = False
         self._incorrect = False
