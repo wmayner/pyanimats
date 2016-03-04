@@ -112,17 +112,17 @@ cli_opt_to_param = {
 }
 
 
-def main(arguments):
+def main(args):
     # TODO make this an option for -h?
     # Print available fitness functions and their descriptions.
-    if arguments['--list']:
+    if args['--list']:
         fitness_functions.print_functions()
         return 0
 
     # Final output will be written here.
-    OUTPUT_FILE = arguments['<output_file>']
+    OUTPUT_FILE = args['<output_file>']
     # Don't overwrite the output file or without permission.
-    if not arguments['--force'] and os.path.exists(OUTPUT_FILE):
+    if not args['--force'] and os.path.exists(OUTPUT_FILE):
         raise FileExistsError(
             'a file named `{}` already exists; not overwriting without the '
             '`--force` option.'.format(OUTPUT_FILE))
@@ -130,8 +130,8 @@ def main(arguments):
     if os.path.dirname(OUTPUT_FILE):
         utils.ensure_exists(os.path.dirname(OUTPUT_FILE))
     # Checkpoints will be written here.
-    CHECKPOINT_FILE = (arguments['--checkpoint-file'] or
-                       arguments['<checkpoint.pkl>'] or
+    CHECKPOINT_FILE = (args['--checkpoint-file'] or
+                       args['<checkpoint.pkl>'] or
                        os.path.join(os.path.dirname(OUTPUT_FILE),
                                     'checkpoint.pkl'))
     # Ensure checkpoint directory exists.
@@ -139,17 +139,17 @@ def main(arguments):
         utils.ensure_exists(os.path.dirname(CHECKPOINT_FILE))
 
     # Parse the CLI options.
-    cli_options = {param[0]: param[1](arguments[opt])
+    cli_options = {param[0]: param[1](args[opt])
                    for opt, param in cli_opt_to_param.items()
-                   if arguments[opt] is not None}
+                   if args[opt] is not None}
 
     # Either load from a checkpoint or start a new evolution.
-    if arguments['resume']:
+    if args['resume']:
         # Load the checkpoint.
         print('Loading checkpoint from `{}`... '
-              ''.format(arguments['<checkpoint.pkl>']),
+              ''.format(args['<checkpoint.pkl>']),
               end='', flush=True)
-        with open(arguments['<checkpoint.pkl>'], 'rb') as f:
+        with open(args['<checkpoint.pkl>'], 'rb') as f:
             evolution = pickle.load(f)
         # Update the evolution experiment file with simulation parameters.
         # TODO split into evolution params and animat params
@@ -158,13 +158,13 @@ def main(arguments):
         print('Resuming evolution from generation '
               '{}...\n'.format(evolution.generation))
     else:
-        experiment = Experiment(filepath=arguments['<experiment.yml>'],
+        experiment = Experiment(filepath=args['<experiment.yml>'],
                                 override=cli_options)
         # Initialize the simulation.
         evolution = Evolution(experiment)
         print('Simulating {} generations...'.format(experiment.ngen))
 
-    PROFILE_FILEPATH = arguments['--profile']
+    PROFILE_FILEPATH = args['--profile']
     if PROFILE_FILEPATH:
         utils.ensure_exists(os.path.dirname(PROFILE_FILEPATH))
         print('\nProfiling enabled.')
@@ -187,7 +187,7 @@ def main(arguments):
           end='', flush=True)
 
     # Get the evolution results and write to disk.
-    output = evolution.to_json(all_lineages=arguments['--all-lineages'])
+    output = evolution.to_json(all_lineages=args['--all-lineages'])
     with open(OUTPUT_FILE, 'w') as f:
         utils.dump(output, f)
 
@@ -195,6 +195,6 @@ def main(arguments):
 
 
 if __name__ == '__main__':
-    # Get command-line arguments from docopt.
-    arguments = docopt(__doc__, version=__version__)
-    main(arguments)
+    # Get command-line args from docopt.
+    args = docopt(__doc__, version=__version__)
+    main(args)
