@@ -174,8 +174,16 @@ class Evolution:
         self.record(offspring, gen)
         return offspring
 
-    def run(self, checkpoint_file):
+    def run(self, checkpoint_file, ngen=None):
         """Evolve."""
+        if ngen is None:
+            ngen = self.experiment.ngen
+        # Get the range of generations to simulate.
+        generations = range(self.generation + 1, ngen + 1)
+        # Return immediately if there are no generations to simulate.
+        if not generations:
+            return 0.0
+
         # Set the random number generator states.
         self.random.setstate(self.python_rng_state)
         c_animat.set_rng_state(self.c_rng_state)
@@ -194,7 +202,7 @@ class Evolution:
 
         last_status, last_checkpoint = [timer()] * 2
 
-        for gen in range(self.generation + 1, self.experiment.ngen + 1):
+        for gen in generations:
             self.generation = gen
             # Evolution.
             self.population = self.new_gen(self.population, gen)
@@ -225,7 +233,7 @@ class Evolution:
             end='', flush=True)
         with open(checkpoint_file, 'wb') as f:
             pickle.dump(self, f)
-        print('done.')
+        print('done.\n')
 
         return self.elapsed
 
