@@ -84,7 +84,7 @@ def from_json(dictionary, experiment=None, parent=None):
     """
     if experiment is None:
         try:
-            experiment = Experiment(override=dictionary['experiment'])
+            experiment = Experiment(dictionary['experiment'])
         except KeyError:
             raise ValueError('cannot load animat: no experiment was provided '
                              'and no experiment was found in the JSON data.')

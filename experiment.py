@@ -7,7 +7,6 @@ import pickle
 import pprint
 
 import pyphi
-import yaml
 from munch import Munch
 
 import constants
@@ -41,19 +40,9 @@ class Experiment(Munch):
         (0, 1, 2)
     """
 
-    def __init__(self, override=None, filepath=None):
-        dictionary = dict()
-        # Store the filepath in case the user needs to remember it later.
-        self.filepath = filepath
-        # Load the given YAML file if provided.
-        if filepath is not None:
-            with open(filepath) as f:
-                dictionary.update(yaml.load(f))
-        # Update from the dictionary if provided.
-        if override is not None:
-            dictionary.update(override)
+    def __init__(self, dictionary):
         # Validate.
-        validate.experiment_dict(dictionary)
+        validate.experiment(dictionary)
         # Derive parameters from the user-set ones.
         dictionary['_derived'] = _derive_params(dictionary)
         # Put everything in the Munch.
@@ -63,7 +52,7 @@ class Experiment(Munch):
         return self.serializable()
 
     def __setstate__(self, state):
-        self.__init__(override=state)
+        self.__init__(state)
 
     def __getattr__(self, k):
         """Fall back on derived parameters if ``k`` is not an attribute."""
