@@ -5,6 +5,7 @@
 import numpy as np
 
 import fitness_functions
+from constants import MINUTES
 
 GENERIC_MISMATCH_MSG = """
 cannot load animat: stored {attr} does not match the {attr} encoded by the
@@ -16,6 +17,19 @@ CHECK_VERSION_AND_PARAMS_MSG = """
 Check that you are using the same version as when the animat was stored and
 that you've provided the same experiment parameters.
 """.strip().replace('\n', ' ')
+
+REQUIRED_PARAM_FILE_KEYS = {'simulation', 'experiment'}
+REQUIRED_EXPERIMENT_KEYS = {
+    'rng_seed', 'fitness_function', 'popsize', 'init_genome_path',
+    'init_start_codons', 'fitness_transform', 'num_sensors', 'num_hidden',
+    'num_motors', 'body_length', 'world_width', 'world_height', 'task',
+    'mutation_prob', 'duplication_prob', 'deletion_prob', 'min_genome_length',
+    'max_genome_length', 'min_dup_del_width', 'max_dup_del_width',
+    'default_init_genome_value', 'default_init_genome_length', 'deterministic'}
+REQUIRED_SIMULATION_KEYS = {
+    'ngen', 'checkpoint_interval', 'status_interval', 'logbook_interval',
+    'output_samples', 'all_lineages'}
+REQUIRED_FITNESS_TRANSFORM_KEYS = {'base', 'scale', 'add'}
 
 
 def json_animat(animat, dictionary):
@@ -34,41 +48,85 @@ def json_animat(animat, dictionary):
                                    CHECK_VERSION_AND_PARAMS_MSG]))
 
 
-def _assert_ordering(ordering, name):
-    def assertion(dictionary, key, threshold):
+def _assert_ordering(ordering, text):
+    def assertion(dictionary, name, key, threshold):
         if not ordering(dictionary[key], threshold):
-            raise ValueError('invalid experiment: `{}` must be {} '
-                             '{}.'.format(key, name, threshold))
+            raise ValueError('invalid {}: `{}` must be {} '
+                             '{}.'.format(name, key, text, threshold))
     return assertion
 
 _assert_le = _assert_ordering(lambda a, b: a <= b, 'less than or equal to')
 _assert_ge = _assert_ordering(lambda a, b: a >= b, 'greater than or equal to')
+_assert_lt = _assert_ordering(lambda a, b: a < b, 'less than')
+_assert_gt = _assert_ordering(lambda a, b: a > b, 'greater than')
 
 
-def experiment_dict(d):
+def _assert_nonempty_dict(d, name):
+    if not isinstance(d, dict):
+        raise ValueError('{} must be a dictionary.'.format(name))
+    if not d:
+        raise ValueError('empty {}'.format(name))
+
+
+def _assert_has_keys(d, required, name):
+    missing = required - set(d.keys())
+    if missing:
+        raise ValueError(
+            'invalid {}: missing `{}`.'.format(name, '`, `'.join(missing)))
+
+
+def param_file(d):
+    name = 'parameter_file'
+    _assert_nonempty_dict(d, name)
+    _assert_has_keys(d, REQUIRED_PARAM_FILE_KEYS, name)
+    for k in REQUIRED_PARAM_FILE_KEYS:
+        _assert_nonempty_dict(d[k], k)
+
+
+def simulation(d):
+    name = 'simulation parameters'
+    _assert_nonempty_dict(d, name)
+    _assert_has_keys(d, REQUIRED_SIMULATION_KEYS, name)
+    _assert_ge(d, name, 'logbook_interval', 1)
+    _assert_ge(d, name, 'output_samples', 1)
+    # Get the generational interval at which to print the evolution status.
+    if d['status_interval'] <= 0:
+        d['status_interval'] = float('inf')
+    # Get the time interval at which to save checkpoints.
+    d['checkpoint_interval'] = (d['checkpoint_interval'] * MINUTES)
+    if d['checkpoint_interval'] <= 0:
+        id['checkpoint_interval'] = float('inf')
+    return d
+
+
+def experiment(d):
+    name = 'experiment parameters'
+    _assert_nonempty_dict(d, name)
     if '_derived' in d:
         raise ValueError("the key '_derived' is reserved; please use another "
                          "key.")
-    # TODO: check that all necessary params are present
-    # Data
-    _assert_ge(d, 'logbook_interval', 1)
-    _assert_ge(d, 'output_samples', 1)
+    # Check that all necessary params are present.
+    _assert_has_keys(d, REQUIRED_EXPERIMENT_KEYS, 'experiment parameters')
     # Evolution
     if d['fitness_function'] not in fitness_functions.metadata.keys():
         raise ValueError(
             'invalid experiment: `fitness_function` must be one of '
             '{}.'.format(list(fitness_functions.metadata.keys())))
-    _assert_ge(d, 'ngen', 1)
-    _assert_ge(d, 'popsize', 1)
+    _assert_ge(d, name, 'popsize', 1)
+    _assert_has_keys(d['fitness_transform'], REQUIRED_FITNESS_TRANSFORM_KEYS,
+                     'fitness transform')
+    _assert_gt(d['fitness_transform'], 'fitness transform', 'base', 0)
+    _assert_gt(d['fitness_transform'], 'fitness transform', 'scale', 0)
+    _assert_ge(d['fitness_transform'], 'fitness transform', 'add', 0)
     # TODO validate init_genome_path
     # Animat
-    _assert_ge(d, 'num_sensors', 1)
-    _assert_ge(d, 'num_hidden', 0)
-    _assert_ge(d, 'num_motors', 1)
-    _assert_ge(d, 'body_length', 3)
+    _assert_ge(d, name, 'num_sensors', 1)
+    _assert_ge(d, name, 'num_hidden', 0)
+    _assert_ge(d, name, 'num_motors', 1)
+    _assert_ge(d, name, 'body_length', 3)
     # Environment
-    _assert_ge(d, 'world_width', 1)
-    _assert_ge(d, 'world_height', 1)
+    _assert_ge(d, name, 'world_width', 1)
+    _assert_ge(d, name, 'world_height', 1)
     if not all(len(pattern[1]) == d['world_width'] for pattern in d['task']):
         raise ValueError(
             'invalid experiment: malformed task: each block pattern in the '
@@ -80,15 +138,15 @@ def experiment_dict(d):
         raise ValueError('invalid experiment: malformed task: block patterns '
                          'must be strings consisting only of 0s and 1s.')
     # Mutation
-    _assert_ge(d, 'mutation_prob', 0)
-    _assert_le(d, 'mutation_prob', 1)
-    _assert_ge(d, 'duplication_prob', 0)
-    _assert_le(d, 'duplication_prob', 1)
-    _assert_ge(d, 'deletion_prob', 0)
-    _assert_le(d, 'deletion_prob', 1)
-    _assert_ge(d, 'min_genome_length', 1)
-    _assert_ge(d, 'min_dup_del_width', 1)
-    _assert_le(d, 'max_dup_del_width', d['min_genome_length'])
+    _assert_ge(d, name, 'mutation_prob', 0)
+    _assert_le(d, name, 'mutation_prob', 1)
+    _assert_ge(d, name, 'duplication_prob', 0)
+    _assert_le(d, name, 'duplication_prob', 1)
+    _assert_ge(d, name, 'deletion_prob', 0)
+    _assert_le(d, name, 'deletion_prob', 1)
+    _assert_ge(d, name, 'min_genome_length', 1)
+    _assert_ge(d, name, 'min_dup_del_width', 1)
+    _assert_le(d, name, 'max_dup_del_width', d['min_genome_length'])
     # Genetics
-    _assert_ge(d, 'default_init_genome_value', 0)
-    _assert_le(d, 'default_init_genome_value', 255)
+    _assert_ge(d, name, 'default_init_genome_value', 0)
+    _assert_le(d, name, 'default_init_genome_value', 255)
