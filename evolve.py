@@ -228,7 +228,7 @@ class Evolution:
         self.elapsed += timer() - last_checkpoint
 
         # Save final checkpoint.
-        print('[Seed {}] Saving checkpoint to `{}`... '.format(
+        print('[Seed {}] Saving final checkpoint to `{}`... '.format(
             self.experiment.rng_seed, checkpoint_file),
             end='', flush=True)
         with open(checkpoint_file, 'wb') as f:
