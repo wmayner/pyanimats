@@ -38,9 +38,9 @@ General options:
     -P --profile=PATH          Profile performance and store results at PATH
 
 Simulation options:
-    -n --num-gen=NGEN          Number of generations to simulate
+    -n --num-gen=INT           Number of generations to simulate
     -s --status-interval=INT   Status-printing interval (generations)
-    -c --checkpoint=INT        Checkpoint interval (minutes)
+    -c --checkpoint=FLOAT      Checkpoint interval (minutes)
     -C --checkpoint-file=PATH  Save to this checkpoint file (defaults to
                                `checkpoint.pkl` in the output directory, or the
                                given checkpoint file if resuming)
