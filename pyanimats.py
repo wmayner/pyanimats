@@ -76,24 +76,30 @@ Genetic options:
 import cProfile
 import os
 import pickle
+import yaml
 
 from docopt import docopt
 
 import fitness_functions
 import utils
+import validate
 from __about__ import __version__
 from evolve import Evolution
-from experiment import Experiment
 
-# Map CLI options to experiment parameter names and types.
-cli_opt_to_param = {
-    '--rng-seed':         ('rng_seed', int),
+
+# Map CLI options to simulation parameter data types.
+cli_opt_to_simulation = {
+    '--num-gen':          ('ngen', int),
     '--checkpoint':       ('checkpoint_interval', float),
     '--status-interval':  ('status_interval', int),
     '--logbook-interval': ('logbook_interval', int),
     '--output-samples':   ('output_samples', int),
+}
+
+# Map CLI options to experiment parameter names and data types.
+cli_opt_to_experiment = {
+    '--rng-seed':         ('rng_seed', int),
     '--fitness':          ('fitness_function', str),
-    '--num-gen':          ('ngen', int),
     '--pop-size':         ('popsize', int),
     '--init-genome':      ('init_genome', str),
     '--jumpstart':        ('init_start_codons', int),
@@ -110,6 +116,29 @@ cli_opt_to_param = {
     '--min-length':       ('min_genome_length', int),
     '--max-length':       ('max_genome_length', int),
 }
+
+
+def process_cli_opts(args, mapping):
+    return {param[0]: param[1](args[opt])
+            for opt, param in mapping.items()
+            if args[opt] is not None}
+
+
+def load_param_file(filepath, experiment_overrides=None,
+                    simulation_overrides=None):
+    experiment, simulation = dict(), dict()
+    if filepath is not None:
+        with open(filepath) as f:
+            params = yaml.load(f)
+            validate.param_file(params)
+            experiment.update(params['experiment'])
+            simulation.update(params['simulation'])
+    # Update from the overrides if provided.
+    if experiment_overrides is not None:
+        experiment.update(experiment_overrides)
+    if simulation_overrides is not None:
+        simulation.update(simulation_overrides)
+    return experiment, simulation
 
 
 def main(args):
@@ -138,10 +167,8 @@ def main(args):
     if os.path.dirname(CHECKPOINT_FILE):
         utils.ensure_exists(os.path.dirname(CHECKPOINT_FILE))
 
-    # Parse the CLI options.
-    cli_options = {param[0]: param[1](args[opt])
-                   for opt, param in cli_opt_to_param.items()
-                   if args[opt] is not None}
+    # Get the simulation CLI options from the command-line arguments.
+    simulation_cli_opts = process_cli_opts(args, cli_opt_to_simulation)
 
     # Either load from a checkpoint or start a new evolution.
     if args['resume']:
@@ -151,18 +178,19 @@ def main(args):
               end='', flush=True)
         with open(args['<checkpoint.pkl>'], 'rb') as f:
             evolution = pickle.load(f)
-        # Update the evolution experiment file with simulation parameters.
-        # TODO split into evolution params and animat params
-        evolution.experiment.update(cli_options)
+        # Update the evolution simulation parameters from the CLI options.
+        evolution.update_simulation(simulation_cli_opts)
         print('done.')
         print('Resuming evolution from generation '
               '{}...\n'.format(evolution.generation))
     else:
-        experiment = Experiment(filepath=args['<experiment.yml>'],
-                                override=cli_options)
-        # Initialize the simulation.
-        evolution = Evolution(experiment)
-        print('Simulating {} generations...'.format(experiment.ngen))
+        # Start a new experiment.
+        experiment_cli_opts = process_cli_opts(args, cli_opt_to_experiment)
+        evolution = Evolution(*load_param_file(
+            filepath=args['<experiment.yml>'],
+            experiment_overrides=experiment_cli_opts,
+            simulation_overrides=simulation_cli_opts))
+        print('Simulating {} generations...'.format(evolution.simulation.ngen))
 
     PROFILE_FILEPATH = args['--profile']
     if PROFILE_FILEPATH:
@@ -172,7 +200,7 @@ def main(args):
         pr.enable()
 
     # Run it!
-    evolution.run(CHECKPOINT_FILE, ngen=cli_options.get('ngen'))
+    evolution.run(CHECKPOINT_FILE)
 
     if PROFILE_FILEPATH:
         pr.disable()
@@ -187,7 +215,7 @@ def main(args):
           end='', flush=True)
 
     # Get the evolution results and write to disk.
-    output = evolution.to_json(all_lineages=args['--all-lineages'])
+    output = evolution.to_json()
     with open(OUTPUT_FILE, 'w') as f:
         utils.dump(output, f)
 
