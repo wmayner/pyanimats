@@ -267,24 +267,3 @@ class Evolution:
             },
         }
         return json_data
-
-    def save_checkpoint(self, filepath):
-        """Save a checkpoint that can be used to resume evolution.
-
-        Pickles the evolution state and saves to ``filepath``.
-        """
-        data = {
-            'experiment': self.experiment,
-            'generation': self.generation,
-            # Save the population as a Phylogeny to recover lineages later.
-            'population': Phylogeny(self.population),
-            'logbook': self.logbook,
-            'python_rng_state': self.random.getstate(),
-            'c_rng_state': c_animat.get_rng_state(),
-            'metadata': {
-                'elapsed': round(self.elapsed, 2),
-                'version': utils.get_version(),
-            },
-        }
-        with open(filepath, 'wb') as f:
-            pickle.dump(data, f)
