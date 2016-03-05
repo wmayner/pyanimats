@@ -15,14 +15,16 @@ Usage:
     pyanimats.py --list
 
 Arguments:
-    run <experiment.yml>     Run an experiment.
-    resume <checkpoint.pkl>  Resume from a checkpoint file.
     <output_file>            File where the output should be stored.
+    run <experiment.yml>     Run an experiment.
+    resume <checkpoint.pkl>  Resume from a checkpoint file. New checkpoints
+                             will overwrite this unless a different file is
+                             specified with the `--checkpoint-file` option.
 
 Command-line options override the parameters given in the experiment file.
 
-If resuming from a checkpoint, only simulation and data options (listed below)
-have an effect.
+If resuming from a checkpoint, only simulation and data collection options
+(listed below) have an effect.
 
 To generate output from a checkpoint immediately, without simulating any more
 generations, resume from the checkpoint and pass the option `-n 0` (or any
@@ -36,12 +38,13 @@ General options:
     -P --profile=PATH          Profile performance and store results at PATH
 
 Simulation options:
+    -s --status-interval=INT   Status-printing interval (generations)
     -c --checkpoint=INT        Checkpoint interval (minutes)
     -C --checkpoint-file=PATH  Save to this checkpoint file (defaults to
-                               `checkpoint.pkl` in the output directory)
-    -s --status-interval=INT   Status-printing interval (generations)
+                               `checkpoint.pkl` in the output directory, or the
+                               given checkpoint file if resuming)
 
-Data options:
+Data collection options:
     -o --output-samples=INT    Number of animats to sample from evolution
     -b --logbook-interval=INT  Logbook recording interval (generations)
     -a --all-lineages          Save lineages of entire final population
