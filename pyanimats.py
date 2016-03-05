@@ -38,6 +38,7 @@ General options:
     -P --profile=PATH          Profile performance and store results at PATH
 
 Simulation options:
+    -n --num-gen=NGEN          Number of generations to simulate
     -s --status-interval=INT   Status-printing interval (generations)
     -c --checkpoint=INT        Checkpoint interval (minutes)
     -C --checkpoint-file=PATH  Save to this checkpoint file (defaults to
@@ -52,7 +53,6 @@ Data collection options:
 Evolution options:
     -r --rng-seed=INT          Random number generator seed
     -f --fitness=FUNC          Fitness function
-    -n INT --num-gen=NGEN      Number of generations to simulate
     -p --pop-size=INT          Population size
     -g --init-genome=PATH      Path to a lineage file for an intial genome
     -j --jumpstart=INT         Begin with this many start codons
