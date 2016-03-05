@@ -11,12 +11,14 @@ from time import perf_counter as timer
 
 import numpy as np
 from deap import base, tools
+from munch import Munch
 
 import c_animat
 import fitness_functions
 import utils
+import validate
 from animat import Animat
-from constants import MINUTES
+from experiment import Experiment
 from phylogeny import Phylogeny
 
 
@@ -24,25 +26,18 @@ class Evolution:
 
     """An evolutionary simulation."""
 
-    def __init__(self, experiment):
+    def __init__(self, experiment, simulation):
         self.version = utils.get_version()
-        self.experiment = experiment
+        self.experiment = (experiment if isinstance(experiment, Experiment)
+                           else Experiment(experiment))
+        self.simulation = Munch(validate.simulation(simulation))
         self.generation = 0
         self.elapsed = 0
-        # Get the generational interval at which to print the evolution status.
-        self.status_interval = self.experiment.status_interval
-        if self.status_interval <= 0:
-            self.status_interval = float('inf')
-        # Get the time interval at which to save checkpoints.
-        self.checkpoint_interval = (self.experiment.checkpoint_interval *
-                                    MINUTES)
-        if self.checkpoint_interval <= 0:
-            self.checkpoint_interval = float('inf')
         # Get our own RNG.
         self.random = random.Random()
         # Seed the random number generators.
-        self.random.seed(experiment.rng_seed)
-        c_animat.seed(experiment.rng_seed)
+        self.random.seed(self.experiment.rng_seed)
+        c_animat.seed(self.experiment.rng_seed)
         # Get their states to pass to the evolution.
         self.python_rng_state = random.getstate()
         self.c_rng_state = c_animat.get_rng_state()
@@ -56,7 +51,7 @@ class Evolution:
         # Initialize logbooks and hall of fame.
         self.logbook = tools.Logbook()
         # Create initial population.
-        self.population = self.toolbox.population(n=experiment.popsize)
+        self.population = self.toolbox.population(n=self.experiment.popsize)
         # Create statistics trackers.
         fitness_stats = tools.Statistics(key=lambda animat: animat.fitness.raw)
         fitness_stats.register('max', np.max)
@@ -84,7 +79,7 @@ class Evolution:
                 real_fitness=real_fitness_stats)
         # Initialize evaluate function.
         fitness_function = \
-            fitness_functions.__dict__[experiment.fitness_function]
+            fitness_functions.__dict__[self.experiment.fitness_function]
 
         def multi_fit_evaluate(pop, gen):
             fitnesses = map(fitness_function, pop)
@@ -101,6 +96,10 @@ class Evolution:
             multi_fit_evaluate if self.experiment.fitness_function == 'mat'
             else single_fit_evaluate)
 
+    def update_simulation(self, opts):
+        self.simulation.update(opts)
+        self.simulation = validate.simulation(self.simulation)
+
     def __getstate__(self):
         # Copy the instance attributes.
         state = self.__dict__.copy()
@@ -114,8 +113,8 @@ class Evolution:
     def __setstate__(self, state):
         # Convert the Phylogeny back to a normal list.
         state['population'] = list(state['population'])
-        # Initialize from the experiment.
-        self.__init__(state['experiment'])
+        # Initialize from the saved experiment and simulation.
+        self.__init__(state['experiment'], state['simulation'])
         # Update with the saved state.
         self.__dict__.update(state)
 
@@ -148,7 +147,7 @@ class Evolution:
                                       utils.compress(elapsed)))
 
     def record(self, population, gen):
-        if gen % self.experiment.logbook_interval == 0:
+        if gen % self.simulation.logbook_interval == 0:
             record = self.mstats.compile(population)
             self.logbook.record(gen=gen, **record)
 
@@ -177,7 +176,7 @@ class Evolution:
     def run(self, checkpoint_file, ngen=None):
         """Evolve."""
         if ngen is None:
-            ngen = self.experiment.ngen
+            ngen = self.simulation.ngen
         # Get the range of generations to simulate.
         generations = range(self.generation + 1, ngen + 1)
         # Return immediately if there are no generations to simulate.
@@ -193,7 +192,7 @@ class Evolution:
             self.evaluate(self.population, 0)
             self.record(self.population, 0)
             # Print first lines of the logbook.
-            if 0 < self.status_interval < float('inf'):
+            if 0 < self.simulation.status_interval < float('inf'):
                 first_lines = str(self.logbook).split('\n')
                 header_lines = [
                     '[Seed {}] {}'.format(self.experiment.rng_seed, l)
@@ -207,7 +206,7 @@ class Evolution:
             # Evolution.
             self.population = self.new_gen(self.population, gen)
             # Reporting.
-            if gen % self.status_interval == 0:
+            if gen % self.simulation.status_interval == 0:
                 # Get time since last report was printed.
                 elapsed_since_last_status = timer() - last_status
                 self.print_status(self.logbook.__str__(startindex=-1),
@@ -215,7 +214,8 @@ class Evolution:
                 last_status = timer()
             # Checkpointing.
             elapsed_since_last_checkpoint = timer() - last_checkpoint
-            if elapsed_since_last_checkpoint >= self.checkpoint_interval:
+            if (elapsed_since_last_checkpoint >=
+                    self.simulation.checkpoint_interval):
                 print('[Seed {}] Saving checkpoint to `{}`... '.format(
                     self.experiment.rng_seed, checkpoint_file),
                     end='', flush=True)
@@ -237,10 +237,12 @@ class Evolution:
 
         return self.elapsed
 
-    def to_json(self, all_lineages=False):
+    def to_json(self, all_lineages=None):
+        if all_lineages is None:
+            all_lineages = self.simulation.all_lineages
         # Determine the generational interval.
         gen_interval = max(
-            self.experiment.ngen // self.experiment.output_samples, 1)
+            self.simulation.ngen // self.simulation.output_samples, 1)
         # Get the lineage(s).
         if not all_lineages:
             fittest = max(self.population, key=lambda a: a.fitness.value)
@@ -253,6 +255,7 @@ class Evolution:
         # Set up the JSON object.
         json_data = {
             'experiment': self.experiment.serializable(),
+            'simulation': self.simulation,
             'lineage': lineage,
             'logbook': {
                 'gen': self.logbook.select('gen'),
