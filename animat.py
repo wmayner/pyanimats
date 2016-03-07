@@ -136,8 +136,8 @@ class Animat:
         copy.parent = self.parent
         copy.gen = deepcopy(self.gen)
         copy.fitness = deepcopy(self.fitness)
+        copy._correct = deepcopy(self._correct)
         copy._incorrect = deepcopy(self._incorrect)
-        copy._correct = deepcopy(self._incorrect)
         copy._tpm = deepcopy(self._tpm)
         copy._dirty_tpm = deepcopy(self._dirty_tpm)
         copy._cm = deepcopy(self._cm)
