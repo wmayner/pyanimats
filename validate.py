@@ -113,11 +113,12 @@ def experiment(d):
             'invalid experiment: `fitness_function` must be one of '
             '{}.'.format(list(fitness_functions.metadata.keys())))
     _assert_ge(d, name, 'popsize', 1)
-    _assert_has_keys(d['fitness_transform'], REQUIRED_FITNESS_TRANSFORM_KEYS,
-                     'fitness transform')
-    _assert_gt(d['fitness_transform'], 'fitness transform', 'base', 0)
-    _assert_gt(d['fitness_transform'], 'fitness transform', 'scale', 0)
-    _assert_ge(d['fitness_transform'], 'fitness transform', 'add', 0)
+    if d['fitness_transform'] is not None:
+        _assert_has_keys(d['fitness_transform'],
+                         REQUIRED_FITNESS_TRANSFORM_KEYS, 'fitness transform')
+        _assert_gt(d['fitness_transform'], 'fitness transform', 'base', 0)
+        _assert_gt(d['fitness_transform'], 'fitness transform', 'scale', 0)
+        _assert_ge(d['fitness_transform'], 'fitness transform', 'add', 0)
     # TODO validate init_genome_path
     # Animat
     _assert_ge(d, name, 'num_sensors', 1)

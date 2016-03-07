@@ -76,7 +76,9 @@ class Animat:
                                  experiment.deterministic)
         self.parent = None
         self.gen = 0
-        self.fitness = ExponentialFitness(experiment.fitness_transform)
+        self.fitness = ExponentialFitness(
+            experiment.fitness_transform or
+            constants.FITNESS_TRANSFORMS[experiment.fitness_function])
         self._correct = False
         self._incorrect = False
         # Don't initialize the animat's network attributes until we need to,
