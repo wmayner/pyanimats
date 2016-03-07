@@ -24,78 +24,9 @@ from c_animat import cAnimat
 from experiment import Experiment
 
 
-class ExponentialFitness:
-
-    """
-    Represents the two notions of fitness: the value that is used in
-    selection (the ``exponential`` attribute and the one returned by
-    ``value``), and the value we're interested in (the ``raw`` attribute and
-    the one used when setting ``value``).
-
-    We use an exponential fitness function to ensure that selection pressure is
-    more even as the animats improve. When the actual fitness function is not
-    exponential, this class handles transforming it to be so.
-
-    Args:
-        transform (dict): A dictionary containing keys ``base``, ``scale``, and
-            ``add``, which are the constants ``B``, ``S``, and ``A`` in the
-            exponential formula.
-        value (float): The initial raw fitness value.
-    """
-
-    def __init__(self, transform, value=0.0):
-        self.base = transform['base']
-        self.scale = transform['scale']
-        self.add = transform['add']
-        self.set(value)
-
-    def __eq__(self, other):
-        return self.value == other.value
-
-    def __repr__(self):
-        return 'ExponentialFitness({})'.format(self.raw)
-
-    def __str__(self):
-        return '(raw={}, exponential={})'.format(self.raw, self.exponential)
-
-    @functools.total_ordering
-    def __lt__(self, other):
-        return self.value < other.value
-
-    @property
-    def value(self):
-        return self.exponential
-
-    def set(self, v):
-        self.raw = v
-        self.exponential = self.base**(self.scale * v + self.add)
-
-
 Game = namedtuple('Game', ['animat_states', 'world_states', 'animat_positions',
                            'trial_results', 'correct', 'incorrect'])
 Mechanism = namedtuple('Mechanism', ['inputs', 'tpm'])
-
-
-def from_json(dictionary, experiment=None, parent=None):
-    """Initialize an animat object from a JSON dictionary.
-
-    Checks that the stored TPM and connectivity matrix match those encoded by
-    the stored genome.
-    """
-    if experiment is None:
-        try:
-            experiment = Experiment(dictionary['experiment'])
-        except KeyError:
-            raise ValueError('cannot load animat: no experiment was provided '
-                             'and no experiment was found in the JSON data.')
-    animat = Animat(experiment, dictionary['genome'])
-    animat.parent = parent
-    animat.gen = dictionary['gen']
-    animat.fitness.set(dictionary['fitness']['raw'])
-    animat._correct = dictionary['correct']
-    animat._incorrect = dictionary['incorrect']
-    validate.json_animat(animat, dictionary)
-    return animat
 
 
 class Animat:
@@ -378,3 +309,72 @@ _c_animat_properties = ['genome', 'num_sensors', 'num_hidden', 'num_motors',
 # Add underlying animat properties to the Animat class
 for name in _c_animat_properties:
     setattr(Animat, name, property(_c_animat_getter(name)))
+
+
+def from_json(dictionary, experiment=None, parent=None):
+    """Initialize an animat object from a JSON dictionary.
+
+    Checks that the stored TPM and connectivity matrix match those encoded by
+    the stored genome.
+    """
+    if experiment is None:
+        try:
+            experiment = Experiment(dictionary['experiment'])
+        except KeyError:
+            raise ValueError('cannot load animat: no experiment was provided '
+                             'and no experiment was found in the JSON data.')
+    animat = Animat(experiment, dictionary['genome'])
+    animat.parent = parent
+    animat.gen = dictionary['gen']
+    animat.fitness.set(dictionary['fitness']['raw'])
+    animat._correct = dictionary['correct']
+    animat._incorrect = dictionary['incorrect']
+    validate.json_animat(animat, dictionary)
+    return animat
+
+
+class ExponentialFitness:
+
+    """
+    Represents the two notions of fitness: the value that is used in
+    selection (the ``exponential`` attribute and the one returned by
+    ``value``), and the value we're interested in (the ``raw`` attribute and
+    the one used when setting ``value``).
+
+    We use an exponential fitness function to ensure that selection pressure is
+    more even as the animats improve. When the actual fitness function is not
+    exponential, this class handles transforming it to be so.
+
+    Args:
+        transform (dict): A dictionary containing keys ``base``, ``scale``, and
+            ``add``, which are the constants ``B``, ``S``, and ``A`` in the
+            exponential formula.
+        value (float): The initial raw fitness value.
+    """
+
+    def __init__(self, transform, value=0.0):
+        self.base = transform['base']
+        self.scale = transform['scale']
+        self.add = transform['add']
+        self.set(value)
+
+    def __eq__(self, other):
+        return self.value == other.value
+
+    def __repr__(self):
+        return 'ExponentialFitness({})'.format(self.raw)
+
+    def __str__(self):
+        return '(raw={}, exponential={})'.format(self.raw, self.exponential)
+
+    @functools.total_ordering
+    def __lt__(self, other):
+        return self.value < other.value
+
+    @property
+    def value(self):
+        return self.exponential
+
+    def set(self, v):
+        self.raw = v
+        self.exponential = self.base**(self.scale * v + self.add)
