@@ -81,6 +81,7 @@ class Animat:
             constants.FITNESS_TRANSFORMS[experiment.fitness_function])
         self._correct = False
         self._incorrect = False
+        self._dirty_fitness = True
         # Don't initialize the animat's network attributes until we need to,
         # because it may be expensive.
         self._tpm = False
@@ -138,6 +139,7 @@ class Animat:
         copy.parent = self.parent
         copy.gen = deepcopy(self.gen)
         copy.fitness = deepcopy(self.fitness)
+        copy._dirty_fitness = deepcopy(self._dirty_fitness)
         copy._correct = deepcopy(self._correct)
         copy._incorrect = deepcopy(self._incorrect)
         copy._tpm = deepcopy(self._tpm)

@@ -81,16 +81,18 @@ class Evolution:
         fitness_function = \
             fitness_functions.__dict__[self.experiment.fitness_function]
 
-        def multi_fit_evaluate(pop, gen):
-            fitnesses = map(fitness_function, pop)
-            for animat, fitness in zip(pop, fitnesses):
+        def multi_fit_evaluate(population):
+            animats = [a for a in population if a._dirty_fitness]
+            for animat in animats:
+                fitness = fitness_function(animat)
                 animat.fitness.set(fitness[0])
                 animat.alt_fitness = fitness[1:]
 
-        def single_fit_evaluate(pop, gen):
-            fitnesses = map(fitness_function, pop)
-            for animat, fitness in zip(pop, fitnesses):
-                animat.fitness.set(fitness)
+        def single_fit_evaluate(population):
+            animats = [a for a in population if a._dirty_fitness]
+            print(len(animats), end='\t', flush=True)
+            for animat in animats:
+                animat.fitness.set(fitness_function(animat))
 
         self.evaluate = (
             multi_fit_evaluate if self.experiment.fitness_function == 'mat'
@@ -167,8 +169,11 @@ class Evolution:
             animat.gen = gen
             # Mutate.
             animat.mutate()
+            # Determine whether fitness needs updating.
+            animat._dirty_fitness = not np.array_equal(animat.tpm,
+                                                       animat.parent.tpm)
         # Evaluation.
-        self.evaluate(offspring, gen)
+        self.evaluate(offspring)
         # Recording.
         self.record(offspring, gen)
         return offspring
@@ -189,7 +194,7 @@ class Evolution:
 
         # Initial evalutation.
         if self.generation == 0:
-            self.evaluate(self.population, 0)
+            self.evaluate(self.population)
             self.record(self.population, 0)
             # Print first lines of the logbook.
             if 0 < self.simulation.status_interval < float('inf'):
