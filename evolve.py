@@ -90,7 +90,6 @@ class Evolution:
 
         def single_fit_evaluate(population):
             animats = [a for a in population if a._dirty_fitness]
-            print(len(animats), end='\t', flush=True)
             for animat in animats:
                 animat.fitness.set(fitness_function(animat))
 
