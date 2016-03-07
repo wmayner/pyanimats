@@ -9,7 +9,7 @@ simulation:
     # Number of generations to evolve.
     ngen: 100
     # Length of checkpoint interval in minutes.
-    checkpoint_interval: 1
+    checkpoint_interval: 120
     # Generational interval at which to print evolution status to the screen. 
     # NOTE: printing to the screen is a slow operation; setting a short interval
     # can significantly impact performance if simulating a generation is fast.
@@ -44,12 +44,14 @@ experiment:
     # Raw fitness values are scaled exponentially according to the formula
     #   F(R) = B^(S*R + A)
     # If no `fitness_transform` is set, then the default fitness transform for the
-    # given fitness function is used.
-    # Otherwise, the constants in the formula above are specified as follows:
+    # given fitness function is used (the `fitness_function` key must still be
+    # present; just leave the value blank).
     fitness_transform:
-        base: 1.02  # B
-        scale: 1    # A
-        add: 0      # S
+        # Otherwise, the constants in the formula above are specified as
+        # follows:
+        # base: 1.02  # B
+        # scale: 1    # A
+        # add: 0      # S
 
     # Animat
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
