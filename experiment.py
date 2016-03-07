@@ -7,6 +7,7 @@ import pickle
 import pprint
 
 import pyphi
+import yaml
 from munch import Munch
 
 import constants
@@ -81,6 +82,11 @@ class Experiment(Munch):
         """Return a serializable representation of the experiment."""
         # Exclude `_derived` parameters when serializing to JSON.
         return {k: v for k, v in self.items() if k != '_derived'}
+
+
+def load(filepath):
+    with open(filepath) as f:
+        return Experiment(yaml.load(f)['experiment'])
 
 
 def _derive_params(d):
