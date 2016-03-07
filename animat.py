@@ -138,6 +138,12 @@ class Animat:
         copy.fitness = deepcopy(self.fitness)
         copy._incorrect = deepcopy(self._incorrect)
         copy._correct = deepcopy(self._incorrect)
+        copy._tpm = deepcopy(self._tpm)
+        copy._dirty_tpm = deepcopy(self._dirty_tpm)
+        copy._cm = deepcopy(self._cm)
+        copy._dirty_cm = deepcopy(self._dirty_cm)
+        copy._network = deepcopy(self._network)
+        copy._dirty_network = deepcopy(self._dirty_network)
         return copy
 
     def serializable(self, compact=False, experiment=True):
