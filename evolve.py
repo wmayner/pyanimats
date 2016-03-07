@@ -264,9 +264,7 @@ class Evolution:
                 'incorrect': (self.logbook.chapters['correct']
                               .select('incorrect')),
             },
-            'metadata': {
-                'elapsed': round(self.elapsed, 2),
-                'version': utils.get_version(),
-            },
+            'elapsed': round(self.elapsed, 2),
+            'version': utils.get_version(),
         }
         return json_data
