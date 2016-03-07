@@ -1,11 +1,10 @@
 # Example PyAnimats parameter file
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ---
 # These parameters relate to the running of the simulation and can be changed
 # mid-evolution, e.g. between checkpoints.
 simulation:
     # Simulation
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Number of generations to evolve.
     ngen: 100
     # Length of checkpoint interval in minutes.
@@ -16,7 +15,7 @@ simulation:
     status_interval: 1
 
     # Data
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Generational interval at which to record fitness data into the logbook.
     logbook_interval: 1
     # Number of genomes to sample from the lineage of the final animats.
@@ -29,7 +28,7 @@ simulation:
 # evolution has begun.
 experiment:
     # Evolution
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # The random number generator seed to use.
     rng_seed: 0
     # The fitness function to evolve to.
@@ -43,9 +42,9 @@ experiment:
     init_start_codons: 0
     # Raw fitness values are scaled exponentially according to the formula
     #   F(R) = B^(S*R + A)
-    # If no `fitness_transform` is set, then the default fitness transform for the
-    # given fitness function is used (the `fitness_function` key must still be
-    # present; just leave the value blank).
+    # If no `fitness_transform` is set, then the default fitness transform for
+    # the given fitness function is used (the `fitness_function` key must still
+    # be present; just leave the value blank).
     fitness_transform:
         # Otherwise, the constants in the formula above are specified as
         # follows:
@@ -54,7 +53,7 @@ experiment:
         # add: 0      # S
 
     # Animat
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # The number of sensors in an animat.
     num_sensors: 3
     # The number of hidden units in an animat.
@@ -67,7 +66,7 @@ experiment:
     body_length: 3
 
     # Environment
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # The width of the animats' environment.
     world_width: 16
     # The height of the animats' environment.
@@ -93,7 +92,7 @@ experiment:
     - [-1, '1110000000000000']
 
     # Mutation
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Probability of a point mutation at any point in the genome.
     mutation_prob: 0.005
     # Probability of a duplication.
@@ -110,7 +109,7 @@ experiment:
     max_dup_del_width: 511
 
     # Genetics
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Value of every nucleotide initially.
     default_init_genome_value: 127
     # Initial length of the genome.
