@@ -10,16 +10,17 @@ Evolve animats.
 Usage:
     pyanimats.py run <experiment.yml> <output_file> [options]
     pyanimats.py resume <checkpoint.pkl> <output_file> [options]
+    pyanimats.py list
     pyanimats.py -h | --help
     pyanimats.py -v | --version
-    pyanimats.py --list
 
 Arguments:
-    <output_file>            File where the output should be stored.
-    run <experiment.yml>     Run an experiment.
+    <output_file>            File where the output should be stored
+    run <experiment.yml>     Run an experiment
     resume <checkpoint.pkl>  Resume from a checkpoint file. New checkpoints
                              will overwrite this unless a different file is
                              specified with the `--checkpoint-file` option.
+    list                     List available fitness functions
 
 Command-line options override the parameters given in the experiment file.
 
@@ -31,11 +32,10 @@ generations, resume from the checkpoint and pass the option `-n 0` (or any
 value lower than the number of generations already simulated).
 
 General options:
-    --list                     List available fitness functions
     -h --help                  Show this
     -v --version               Show version
-    -F --force                 Overwrite the output file.
-    -P --profile=PATH          Profile performance and store results at PATH
+    -F --force                 Overwrite the output file
+    -P --profile=PATH          Profile performance and store results at PATH.
 
 Simulation options:
     -n --num-gen=INT           Number of generations to simulate
@@ -147,7 +147,7 @@ def load_param_file(filepath, experiment_overrides=None,
 def main(args):
     # TODO make this an option for -h?
     # Print available fitness functions and their descriptions.
-    if args['--list']:
+    if args['list']:
         fitness_functions.print_functions()
         return 0
 
