@@ -338,7 +338,7 @@ _register(data_function=main_complex)(bp_wvn)
 # World vs. noise state differentiation
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def state_wvn(ind, upto=[3, 4, 5]):
+def sd_wvn(ind, upto=[3, 4, 5]):
     """State differentiation (world vs. noise): Measures the number of
     hidden-unit states that appear only in the world or only in the scrambled
     world."""
@@ -352,7 +352,7 @@ def state_wvn(ind, upto=[3, 4, 5]):
          len(unique_rows(noise_trial, upto=upto)))
         for world_trial, noise_trial in zip(world, noise)
     ) / num_trials
-_register(data_function=main_complex)(state_wvn)
+_register(data_function=main_complex)(sd_wvn)
 
 
 # Matching
