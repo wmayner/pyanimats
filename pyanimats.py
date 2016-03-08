@@ -218,7 +218,7 @@ def main(args):
           end='', flush=True)
 
     # Get the evolution results and write to disk.
-    output = evolution.to_json()
+    output = evolution.serializable(all_lineages=args['--all-lineages'])
     with open(OUTPUT_FILE, 'w') as f:
         utils.dump(output, f)
 

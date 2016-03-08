@@ -241,7 +241,7 @@ class Evolution:
 
         return self.elapsed
 
-    def to_json(self, all_lineages=None):
+    def serializable(self, all_lineages=None):
         if all_lineages is None:
             all_lineages = self.simulation.all_lineages
         # Determine the generational interval.
@@ -256,9 +256,9 @@ class Evolution:
             lineage = [a.serializable_lineage(interval=gen_interval,
                                               experiment=False)
                        for a in self.population]
-        # Set up the JSON object.
-        json_data = {
-            'experiment': self.experiment.serializable(),
+        # Set up the serializable object.
+        return {
+            'experiment': self.experiment,
             'simulation': self.simulation,
             'lineage': lineage,
             'logbook': {
@@ -271,4 +271,3 @@ class Evolution:
             'elapsed': round(self.elapsed, 2),
             'version': utils.get_version(),
         }
-        return json_data
