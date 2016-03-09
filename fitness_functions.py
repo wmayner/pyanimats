@@ -78,9 +78,21 @@ def print_functions():
 # Helper functions
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+def shortcircuit_if_empty(value=0.0):
+    """Immediately return ``value`` if the animat has no connections."""
+    def decorator(func):
+        @wraps(func)
+        def wrapper(ind, **kwargs):
+            if ind.cm.sum() == 0:
+                return value
+            return func(ind, **kwargs)
+        return wrapper
+    return decorator
+
+
 # TODO document kwargs
-def avg_over_visited_states(shortcircuit=True, upto=False,
-                            transform=False, n=None, scrambled=False):
+def avg_over_visited_states(upto=False, transform=False, n=None,
+                            scrambled=False):
     """A decorator that takes an animat and applies a function for every unique
     state the animat visits during a game (up to the given units only) and
     returns the average.
@@ -89,9 +101,6 @@ def avg_over_visited_states(shortcircuit=True, upto=False,
     def decorator(func):
         @wraps(func)
         def wrapper(ind, **kwargs):
-            # Short-circuit if the animat has no connections.
-            if shortcircuit and ind.cm.sum() == 0:
-                return 0.0
             if upto:
                 upto = getattr(ind, upto)
             game = ind.play_game(scrambled=scrambled)
@@ -152,9 +161,6 @@ def wvn(transform=None, reduce=sum, upto=False, shortcircuit=True,
         def wrapper(ind, **kwargs):
             if upto:
                 upto = getattr(ind, upto)
-            # Short-circuit if the animat has no connections.
-            if shortcircuit and ind.cm.sum() == 0:
-                return shortcircuit_value
             # Play the game and a scrambled version of it.
             world = ind.play_game().animat_states
             noise = ind.play_game(scrambled=True).animat_states
@@ -254,7 +260,8 @@ def extrinsic_causes(ind, state):
     return list(filter(lambda m: m.phi > 0, mice))
 
 
-ex = avg_over_visited_states(transform=phi_sum)(extrinsic_causes)
+ex = shortcircuit_if_empty(
+    avg_over_visited_states(transform=phi_sum)(extrinsic_causes))
 ex.__name__ = 'ex'
 ex.__doc__ = """Extrinsic cause information: Animats are evaluated based on the
     sum of φ for core causes that are “about” the sensors (the purview is a
@@ -288,8 +295,9 @@ def all_concepts(ind, state):
 # The states only need to be considered unique up to the hidden units because
 # the subsystem is always the entire network (not the main complex), so there
 # are no background conditions.
-sp = avg_over_visited_states(transform=phi_sum,
-                             upto='hidden_indices')(all_concepts)
+sp = shortcircuit_if_empty(
+    avg_over_visited_states(transform=phi_sum,
+                            upto='hidden_indices')(all_concepts))
 sp.__name__ = 'sp'
 sp.__doc__ = """Sum of φ: Animats are evaluated based on the sum of φ for all
     the concepts of the animat's hidden units, or “brain”, averaged over the
@@ -322,9 +330,10 @@ def main_complex(ind, state):
 # reasons. Ideally we would consider every unique state.
 NUM_BIG_PHI_STATES_TO_COMPUTE = 5
 
-bp = avg_over_visited_states(transform=lambda x: x.phi,
-                             upto='sensor_hidden_indices',
-                             n=NUM_BIG_PHI_STATES_TO_COMPUTE)(main_complex)
+bp = shortcircuit_if_empty(
+    avg_over_visited_states(transform=lambda x: x.phi,
+                            upto='sensor_hidden_indices',
+                            n=NUM_BIG_PHI_STATES_TO_COMPUTE)(main_complex))
 bp.__name__ = 'bp'
 bp.__doc__ = """Animats are evaluated based on the ϕ-value of their brains,
     averaged over the {}unique states the animat visits during a game (where
@@ -334,7 +343,8 @@ bp.__doc__ = """Animats are evaluated based on the ϕ-value of their brains,
 _register(data_function=main_complex)(bp)
 
 
-bp_wvn = wvn(reduce=phi_sum, upto='hidden_indices')(main_complex)
+bp_wvn = shortcircuit_if_empty(wvn(reduce=phi_sum,
+                                   upto='hidden_indices')(main_complex))
 bp_wvn.__name__ = 'bp_wvn'
 bp_wvn.__doc__ = """Same as `bp` but counting the difference between world and
     noise."""
@@ -343,7 +353,7 @@ _register(data_function=main_complex)(bp_wvn)
 
 # World vs. noise state differentiation
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+@shortcircuit_if_empty(value=0.0)
 def sd_wvn(ind, upto='hidden_indices'):
     """State differentiation (world vs. noise): Measures the number of
     hidden-unit states that appear only in the world or only in the scrambled
@@ -436,6 +446,7 @@ def matching_average_weighted(W, N, constellations, complexes):
             sum(c.phi * big_phis_n[c] for c in noise_concepts))
 
 
+@shortcircuit_if_empty(value=(0, 0, 0))
 def mat(ind):
     """Matching: Animats are evaluated based on how well they “match” their
     environment. Roughly speaking, this captures the degree to which their
@@ -449,9 +460,6 @@ def mat(ind):
     that the animat obtains when presented with a stimulus set from the world,
     and Σφ'(N) is the same but for a stimulus set that has been scrambled first
     in space and then in time."""
-    # Short-circuit if the animat has no connections.
-    if ind.cm.sum() == 0:
-        return (0, 0, 0)
     # Play the game and a scrambled version of it.
     world = ind.play_game().animat_states
     noise = ind.play_game(scrambled=True).animat_states
