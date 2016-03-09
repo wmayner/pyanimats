@@ -353,13 +353,11 @@ _register(data_function=main_complex)(bp_wvn)
 
 # World vs. noise state differentiation
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-@shortcircuit_if_empty(value=0.0)
+@shortcircuit_if_empty()
 def sd_wvn(ind, upto='hidden_indices'):
     """State differentiation (world vs. noise): Measures the number of
     hidden-unit states that appear only in the world or only in the scrambled
     world."""
-    if ind.cm.sum() == 0:
-        return 0
     if upto:
         upto = getattr(ind, upto)
     world = ind.play_game().animat_states
