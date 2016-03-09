@@ -10,6 +10,7 @@ animat properties (connectivity, associated PyPhi objects, etc.).
 """
 
 import functools
+import random
 from collections import namedtuple
 from copy import deepcopy
 from uuid import uuid4
@@ -82,6 +83,8 @@ class Animat:
         self._correct = False
         self._incorrect = False
         self._dirty_fitness = True
+        # Get a RNG.
+        self.random = random
         # Don't initialize the animat's network attributes until we need to,
         # because it may be expensive.
         self._tpm = False

@@ -162,6 +162,8 @@ class Evolution:
         offspring = [deepcopy(x) for x in population]
         # Variation.
         for i, animat in enumerate(offspring):
+            # Use our RNG.
+            animat.random = self.random
             # Update parent reference.
             animat.parent = population[i]
             # Update generation number.
