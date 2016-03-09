@@ -79,7 +79,7 @@ def print_functions():
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # TODO document kwargs
-def avg_over_visited_states(shortcircuit=True, upto_attr=False,
+def avg_over_visited_states(shortcircuit=True, upto=False,
                             transform=False, n=None, scrambled=False):
     """A decorator that takes an animat and applies a function for every unique
     state the animat visits during a game (up to the given units only) and
@@ -92,7 +92,8 @@ def avg_over_visited_states(shortcircuit=True, upto_attr=False,
             # Short-circuit if the animat has no connections.
             if shortcircuit and ind.cm.sum() == 0:
                 return 0.0
-            upto = getattr(ind, upto_attr) if upto_attr else False
+            if upto:
+                upto = getattr(ind, upto)
             game = ind.play_game(scrambled=scrambled)
             sort = n is not None
             unique_states = unique_rows(game.animat_states, upto=upto,
@@ -283,7 +284,7 @@ def all_concepts(ind, state):
 # the subsystem is always the entire network (not the main complex), so there
 # are no background conditions.
 sp = avg_over_visited_states(transform=phi_sum,
-                             upto_attr='hidden_indices')(all_concepts)
+                             upto='hidden_indices')(all_concepts)
 sp.__name__ = 'sp'
 sp.__doc__ = """Sum of φ: Animats are evaluated based on the sum of φ for all
     the concepts of the animat's hidden units, or “brain”, averaged over the
@@ -317,7 +318,7 @@ def main_complex(ind, state):
 NUM_BIG_PHI_STATES_TO_COMPUTE = 5
 
 bp = avg_over_visited_states(transform=lambda x: x.phi,
-                             upto_attr='sensor_hidden_indices',
+                             upto='sensor_hidden_indices',
                              n=NUM_BIG_PHI_STATES_TO_COMPUTE)(main_complex)
 bp.__name__ = 'bp'
 bp.__doc__ = """Animats are evaluated based on the ϕ-value of their brains,
