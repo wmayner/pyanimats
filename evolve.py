@@ -193,8 +193,7 @@ class Evolution:
 
         # Initial evalutation.
         if self.generation == 0:
-            self.evaluate(self.population)
-            self.record(self.population, 0)
+            self.population = self.new_gen(self.population, self.generation)
             # Print first lines of the logbook.
             if 0 < self.simulation.status_interval < float('inf'):
                 first_lines = str(self.logbook).split('\n')
