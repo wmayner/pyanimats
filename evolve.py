@@ -39,7 +39,7 @@ class Evolution:
         self.random.seed(self.experiment.rng_seed)
         c_animat.seed(self.experiment.rng_seed)
         # Get their states to pass to the evolution.
-        self.python_rng_state = random.getstate()
+        self.python_rng_state = self.random.getstate()
         self.c_rng_state = c_animat.get_rng_state()
         # Initialize the DEAP toolbox.
         self.toolbox = base.Toolbox()
