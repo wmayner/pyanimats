@@ -365,11 +365,16 @@ def sd_wvn(ind, upto='hidden_indices'):
     world = ind.play_game().animat_states
     noise = ind.play_game(scrambled=True).animat_states
     num_trials = world.shape[0]
-    return sum(
-        (len(unique_rows(world_trial, upto=upto)) -
-         len(unique_rows(noise_trial, upto=upto)))
-        for world_trial, noise_trial in zip(world, noise)
-    ) / num_trials
+    # Get a permutation of the trials.
+    shuffled_trials = list(range(num_trials))
+    ind.random.shuffle(shuffled_trials)
+    # Take the world vs. noise difference with randomly paired trials.
+    differences = [
+        len(unique_rows(world[[shuffled_trials[i:i + 2]]], upto=upto)) -
+        len(unique_rows(noise[[shuffled_trials[i:i + 2]]], upto=upto))
+        for i in range(0, num_trials, 2)
+    ]
+    return sum(differences) / len(differences)
 _register(data_function=main_complex)(sd_wvn)
 
 
