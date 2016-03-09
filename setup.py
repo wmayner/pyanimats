@@ -27,7 +27,7 @@ extensions = [
                   'c_animat/rng.cpp',
               ],
               language='c++',
-              extra_compile_args=['-std=c++11', '-stdlib=libc++'])
+              extra_compile_args=['-std=c++11'])
 ]
 
 setup_requires = [
