@@ -114,6 +114,9 @@ class Evolution:
     def __setstate__(self, state):
         # Convert the Phylogeny back to a normal list.
         state['population'] = list(state['population'])
+        # Re-initialize references to our RNG on the animats.
+        for animat in state['population']:
+            animat.random = state['random']
         # Initialize from the saved experiment and simulation.
         self.__init__(state['experiment'], state['simulation'])
         # Update with the saved state.

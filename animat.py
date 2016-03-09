@@ -10,7 +10,6 @@ animat properties (connectivity, associated PyPhi objects, etc.).
 """
 
 import functools
-import random
 from collections import namedtuple
 from copy import deepcopy
 from uuid import uuid4
@@ -80,11 +79,11 @@ class Animat:
         self.fitness = ExponentialFitness(
             experiment.fitness_transform or
             constants.FITNESS_TRANSFORMS[experiment.fitness_function])
+        self._dirty_fitness = True
         self._correct = False
         self._incorrect = False
-        self._dirty_fitness = True
         # Get a RNG.
-        self.random = random
+        self.random = constants.DEFAULT_RNG
         # Don't initialize the animat's network attributes until we need to,
         # because it may be expensive.
         self._tpm = False
@@ -93,7 +92,6 @@ class Animat:
         self._dirty_cm = True
         self._network = False
         self._dirty_network = True
-        # Same for the connectivity matrix.
         # Get a random unique ID.
         self._id = uuid4()
 
@@ -118,11 +116,11 @@ class Animat:
         return getattr(self._experiment, name)
 
     def __getstate__(self):
-        # Exclude the parent pointer, network attributes, and dirty flags from
-        # the pickled object.
+        # Exclude the parent pointer, network attributes, dirty flags, and RNG,
+        # from the pickled object.
         state = {k: v for k, v in self.__dict__.items()
-                 if k not in ['parent', '_network', '_dirty_network', '_cm',
-                              '_dirty_cm', '_tpm', '_dirty_tpm']}
+                 if k not in ['parent', 'random', '_network', '_dirty_network',
+                              '_cm', '_dirty_cm', '_tpm', '_dirty_tpm']}
         # Record the ID of the parent to reconstruct phylogeny later.
         state['parent'] = self.parent._id if self.parent is not None else None
         return state
@@ -137,9 +135,17 @@ class Animat:
         self._dirty_network = True
 
     def __deepcopy__(self, memo):
-        # Make an entirely new instance and copy over some attributes.
+        """Make an entirely new instance and copy over some attributes.
+
+        .. note::
+
+            This is not, strictly speaking, a deep copy: the ``parent`` and
+            ``random`` attributes are not deeply copied; they're still just
+            references.
+        """
         copy = Animat(self._experiment, genome=self._c_animat.genome)
         copy.parent = self.parent
+        copy.random = self.random
         copy.gen = deepcopy(self.gen)
         copy.fitness = deepcopy(self.fitness)
         copy._dirty_fitness = deepcopy(self._dirty_fitness)

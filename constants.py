@@ -7,10 +7,12 @@ Container for package-level constants.
 """
 
 import math
+import random
 
 import c_animat
 from c_animat import MIN_BODY_LENGTH
 
+DEFAULT_RNG = random.Random()
 NAT_TO_BIT_CONVERSION_FACTOR = 1 / math.log(2)
 START_CODON = [c_animat.START_CODON_NUCLEOTIDE_ONE,
                c_animat.START_CODON_NUCLEOTIDE_TWO]
