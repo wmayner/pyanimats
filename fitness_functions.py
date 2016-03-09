@@ -259,7 +259,7 @@ _register(data_function=extrinsic_causes)(ex)
 
 
 ex_wvn = wvn(transform=unq_concepts, reduce=phi_sum,
-             upto=[3, 4, 5, 6, 7])(extrinsic_causes)
+             upto='hidden_motor_indices')(extrinsic_causes)
 ex_wvn.__name__ = 'ex_wvn'
 ex_wvn.__doc__ = """Same as `ex` but counting the difference between the sum of
     φ of unique concepts that appear in the world and a scrambled version of
@@ -298,7 +298,7 @@ _register(data_function=all_concepts)(sp)
 
 
 sp_wvn = wvn(transform=unq_concepts, reduce=phi_sum,
-             upto=[3, 4, 5])(all_concepts)
+             upto='hidden_indices')(all_concepts)
 sp_wvn.__name__ = 'sp_wvn'
 sp_wvn.__doc__ = """Same as `sp` but counting the difference between the sum of
     φ of unique concepts that appear in the world and a scrambled version of
@@ -329,7 +329,7 @@ bp.__doc__ = """Animats are evaluated based on the ϕ-value of their brains,
 _register(data_function=main_complex)(bp)
 
 
-bp_wvn = wvn(reduce=phi_sum, upto=[3, 4, 5])(main_complex)
+bp_wvn = wvn(reduce=phi_sum, upto='hidden_indices')(main_complex)
 bp_wvn.__name__ = 'bp_wvn'
 bp_wvn.__doc__ = """Same as `bp` but counting the difference between world and
     noise."""
@@ -339,12 +339,14 @@ _register(data_function=main_complex)(bp_wvn)
 # World vs. noise state differentiation
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def sd_wvn(ind, upto=[3, 4, 5]):
+def sd_wvn(ind, upto='hidden_indices'):
     """State differentiation (world vs. noise): Measures the number of
     hidden-unit states that appear only in the world or only in the scrambled
     world."""
     if ind.cm.sum() == 0:
         return 0
+    if upto:
+        upto = getattr(ind, upto)
     world = ind.play_game().animat_states
     noise = ind.play_game(scrambled=True).animat_states
     num_trials = world.shape[0]
