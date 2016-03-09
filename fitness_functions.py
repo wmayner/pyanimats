@@ -109,8 +109,10 @@ def avg_over_visited_states(shortcircuit=True, upto=False,
 def wvn_trial(world_trial, noise_trial, state_data, transform, reduce,
               upto):
     if upto:
-        world_values = [state_data[tuple(state[upto])] for state in world_trial]
-        noise_values = [state_data[tuple(state[upto])] for state in noise_trial]
+        world_values = [state_data[tuple(state[upto])]
+                        for state in world_trial]
+        noise_values = [state_data[tuple(state[upto])]
+                        for state in noise_trial]
     else:
         world_values = [state_data[tuple(state)] for state in world_trial]
         noise_values = [state_data[tuple(state)] for state in noise_trial]
@@ -122,7 +124,7 @@ def wvn_trial(world_trial, noise_trial, state_data, transform, reduce,
     return reduce(world_values) - reduce(noise_values)
 
 
-def wvn(transform=None, reduce=sum, upto=[1, 2, 3], shortcircuit=True,
+def wvn(transform=None, reduce=sum, upto=False, shortcircuit=True,
         shortcircuit_value=0.0):
     """Compute the world vs. noise difference for a given function.
 
@@ -137,7 +139,9 @@ def wvn(transform=None, reduce=sum, upto=[1, 2, 3], shortcircuit=True,
             single value with this function, and the difference between the
             reduced world and noise values is returned. Defaults to the sum of
             the values.
-        upto (list(int)): Consider states to be the same up to these indices.
+        upto (str): The attribute name that holds the indices up to which
+            states will be considered different. Defaults to ``False``, which
+            means all indices will be considered.
         shortcircuit (bool): If the animat has no connections, then immediately
             return the ``shortcircuit_value``.
         shortcircuit_value (float): The value to immediately return if
@@ -146,6 +150,8 @@ def wvn(transform=None, reduce=sum, upto=[1, 2, 3], shortcircuit=True,
     def decorator(func):
         @wraps(func)
         def wrapper(ind, **kwargs):
+            if upto:
+                upto = getattr(ind, upto)
             # Short-circuit if the animat has no connections.
             if shortcircuit and ind.cm.sum() == 0:
                 return shortcircuit_value
@@ -156,9 +162,8 @@ def wvn(transform=None, reduce=sum, upto=[1, 2, 3], shortcircuit=True,
             w_and_n = np.concatenate([world, noise])
             w_and_n = w_and_n.reshape(-1, w_and_n.shape[-1])
             unq_w_and_n = unique_rows(w_and_n, upto=upto)
-            # Compute the wrapped function for the unique states.
-            # Cast uniqe states to tuples for hashing. Only include `upto`
-            # indices.
+            # Compute the wrapped function for the unique states. Cast unique
+            # states to tuples for hashing. Only include `upto` indices.
             if upto:
                 state_data = {
                     tuple(state[upto]): func(ind, tuple(state), **kwargs)
