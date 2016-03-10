@@ -55,6 +55,8 @@ class JSONEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.integer):
             obj = int(obj)
+        if isinstance(obj, np.bool_):
+            obj = bool(obj)
         return obj
 
 
