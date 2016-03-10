@@ -38,7 +38,7 @@ def dumps(obj, **kwargs):
 
     Uses the custom JSON encoder.
     """
-    json.dumps(obj, cls=JSONEncoder, **kwargs)
+    return json.dumps(obj, cls=JSONEncoder, **kwargs)
 
 
 class JSONEncoder(json.JSONEncoder):
