@@ -8,6 +8,7 @@
 #include <random>
 #include <sstream>
 #include <string>
+#include <algorithm>
 
 
 static std::mt19937 mersenne(1729);
