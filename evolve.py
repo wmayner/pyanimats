@@ -261,7 +261,7 @@ class Evolution:
                        for a in self.population]
         # Set up the serializable object.
         return {
-            'experiment': self.experiment,
+            'experiment': self.experiment.serializable(),
             'simulation': self.simulation,
             'lineage': lineage,
             'logbook': {
