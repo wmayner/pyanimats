@@ -50,33 +50,32 @@ class Evolution:
                               self.toolbox.animat)
         # Initialize logbooks and hall of fame.
         self.logbook = tools.Logbook()
+        self.logbook.header = 'gen', 'fitness', 'exp_fitness', 'game'
         # Create initial population.
         self.population = self.toolbox.population(n=self.experiment.popsize)
         # Create statistics trackers.
-        fitness_stats = tools.Statistics(key=lambda animat: animat.fitness.raw)
-        fitness_stats.register('max', np.max)
-        real_fitness_stats = tools.Statistics(key=lambda animat:
-                                              animat.fitness.value)
-        real_fitness_stats.register('max', np.max)
-        correct_stats = tools.Statistics(key=lambda animat: (animat.correct,
-                                                             animat.incorrect))
-        correct_stats.register('correct', lambda x: np.max(x, 0)[0])
-        correct_stats.register('incorrect', lambda x: np.max(x, 0)[1])
+        raw_fitness_stats = tools.Statistics(key=lambda a: a.fitness.raw)
+        raw_fitness_stats.register('max', np.max)
+        exp_fitness_stats = tools.Statistics(key=lambda a: a.fitness.value)
+        exp_fitness_stats.register('max', np.max)
+        game_stats = tools.Statistics(key=lambda a: (a.correct, a.incorrect))
+        game_stats.register('correct', lambda x: np.max(x, 0)[0])
+        game_stats.register('incorrect', lambda x: np.max(x, 0)[1])
         # Stats objects for alternate matching measures.
-        alt_fitness_stats = tools.Statistics(key=lambda animat:
-                                             animat.alt_fitness)
+        alt_fitness_stats = tools.Statistics(key=lambda a: a.alt_fitness)
         alt_fitness_stats.register('weighted', lambda x: np.max(x, 0)[0])
         alt_fitness_stats.register('unweighted', lambda x: np.max(x, 0)[1])
         # Initialize a MultiStatistics object for convenience that allows for
         # only one call to `compile`.
         if self.experiment.fitness_function == 'mat':
-            self.mstats = tools.MultiStatistics(
-                correct=correct_stats, fitness=fitness_stats,
-                real_fitness=real_fitness_stats, alt_fitness=alt_fitness_stats)
+            self.mstats = tools.MultiStatistics(fitness=raw_fitness_stats,
+                                                exp_fitness=exp_fitness_stats,
+                                                alt_fitness=alt_fitness_stats,
+                                                game=game_stats)
         else:
-            self.mstats = tools.MultiStatistics(
-                correct=correct_stats, fitness=fitness_stats,
-                real_fitness=real_fitness_stats)
+            self.mstats = tools.MultiStatistics(fitness=raw_fitness_stats,
+                                                exp_fitness=exp_fitness_stats,
+                                                game=game_stats,)
         # Initialize evaluate function.
         fitness_function = \
             fitness_functions.__dict__[self.experiment.fitness_function]
