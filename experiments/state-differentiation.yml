@@ -6,13 +6,13 @@ simulation:
     # Simulation
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Number of generations to evolve.
-    ngen: 100
+    ngen: 60000
     # Length of checkpoint interval in minutes.
-    checkpoint_interval: 120
+    checkpoint_interval: 1440
     # Generational interval at which to print evolution status to the screen. 
     # NOTE: printing to the screen is a slow operation; setting a short interval
     # can significantly impact performance if simulating a generation is fast.
-    status_interval: 1
+    status_interval: 10
 
     # Data
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -32,7 +32,7 @@ experiment:
     # The random number generator seed to use.
     rng_seed: 0
     # The fitness function to evolve to.
-    fitness_function: 'nat'
+    fitness_function: 'sd_wvn'
     # Size of the population.
     popsize: 100
     # Must be a path to the output file from a previous run, or `false`.
@@ -57,7 +57,7 @@ experiment:
     # The number of sensors in an animat.
     num_sensors: 3
     # The number of hidden units in an animat.
-    num_hidden: 3
+    num_hidden: 5
     # The number of motors in an animat.
     # NOTE: changing this has not been tested and probably won't work!
     num_motors: 2
@@ -68,7 +68,6 @@ experiment:
     # Environment
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # The width of the animats' environment.
-    # NOTE: must be a power of 2.
     world_width: 16
     # The height of the animats' environment.
     world_height: 36
@@ -87,10 +86,10 @@ experiment:
     # - The hit multiplier is added to the animat's score if there was a
     #   hit, and subtracted if there wasn't.
     task: 
-    - [ 1, '1000000000000000']
-    - [-1, '1110000000000000']
-    - [ 1, '1000000000000000']
-    - [-1, '1110000000000000']
+    - [ 1, '1110000000000000']
+    - [-1, '1111000000000000']
+    - [ 1, '1111110000000000']
+    - [-1, '1111100000000000']
 
     # Mutation
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

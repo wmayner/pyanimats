@@ -41,6 +41,7 @@ def dumps(obj, **kwargs):
     return json.dumps(obj, cls=JSONEncoder, **kwargs)
 
 
+# TODO make this actually recursively try `serializable`
 class JSONEncoder(json.JSONEncoder):
     """Custom JSON encoder that attempts to call ``serializable``."""
     def encode(self, obj):

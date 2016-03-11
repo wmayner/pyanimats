@@ -5,7 +5,6 @@ import os
 
 import pytest
 
-
 collect_ignore = [
     "setup.py",
 ]

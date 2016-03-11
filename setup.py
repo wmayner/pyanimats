@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from setuptools import setup, Extension
-from setuptools.command.build_ext import build_ext as _build_ext
 from Cython.Build import cythonize
+from setuptools import Extension, setup
+from setuptools.command.build_ext import build_ext as _build_ext
 
 
 # See http://stackoverflow.com/a/21621689/1085344

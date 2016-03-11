@@ -23,7 +23,6 @@ import validate
 from c_animat import cAnimat
 from experiment import Experiment
 
-
 Game = namedtuple('Game', ['animat_states', 'world_states', 'animat_positions',
                            'trial_results', 'correct', 'incorrect'])
 Mechanism = namedtuple('Mechanism', ['inputs', 'tpm'])

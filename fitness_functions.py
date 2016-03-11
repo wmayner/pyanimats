@@ -6,16 +6,15 @@
 Fitness functions for driving animat evolution.
 """
 
-import random
 import textwrap
 from collections import Counter, OrderedDict
 from functools import wraps
 
 import numpy as np
 import pyphi
-from sklearn.metrics import mutual_info_score
 
 import constants
+from sklearn.metrics import mutual_info_score
 from utils import unique_rows
 
 _WRAPPER_WIDTH = 72
