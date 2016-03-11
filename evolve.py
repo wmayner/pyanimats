@@ -147,8 +147,8 @@ class Evolution:
 
     def print_status(self, line, elapsed):
         """Print a status uptdate to the screen."""
-        print('[Seed {}] {}{}'.format(self.experiment.rng_seed, line,
-                                      utils.compress(elapsed)))
+        print('[Seed {}]\t{}{}'.format(self.experiment.rng_seed, line,
+                                       utils.compress(elapsed)))
 
     def record(self, population, gen):
         if gen % self.simulation.logbook_interval == 0:
@@ -203,7 +203,7 @@ class Evolution:
             if 0 < self.simulation.status_interval < float('inf'):
                 first_lines = str(self.logbook).split('\n')
                 header_lines = [
-                    '[Seed {}] {}'.format(self.experiment.rng_seed, l)
+                    '[Seed {}]\t{}'.format(self.experiment.rng_seed, l)
                     for l in first_lines[:-1]]
                 print('\n' + '\n'.join(header_lines))
 
@@ -236,7 +236,7 @@ class Evolution:
         self.elapsed += timer() - last_checkpoint
 
         # Save final checkpoint.
-        print('[Seed {}] Saving final checkpoint to `{}`... '.format(
+        print('[Seed {}]\tSaving final checkpoint to `{}`... '.format(
             self.experiment.rng_seed, checkpoint_file),
             end='', flush=True)
         with open(checkpoint_file, 'wb') as f:
