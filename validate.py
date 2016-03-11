@@ -123,7 +123,7 @@ def experiment(d):
     # Animat
     _assert_ge(d, name, 'num_sensors', 1)
     _assert_ge(d, name, 'num_hidden', 0)
-    _assert_ge(d, name, 'num_motors', 1)
+    _assert_ge(d, name, 'num_motors', 0)
     _assert_ge(d, name, 'body_length', 3)
     # Environment
     _assert_ge(d, name, 'world_width', 1)
