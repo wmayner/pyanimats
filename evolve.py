@@ -4,6 +4,7 @@
 
 """Implements the genetic algorithm."""
 
+import datetime
 import pickle
 import random
 from copy import deepcopy
@@ -273,4 +274,5 @@ class Evolution:
             },
             'elapsed': round(self.elapsed, 2),
             'version': utils.get_version(),
+            'time': datetime.datetime.now().isoformat(),
         }
