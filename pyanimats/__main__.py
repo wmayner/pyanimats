@@ -8,11 +8,11 @@ PyAnimats
 Evolve animats.
 
 Usage:
-    pyanimats.py run <experiment.yml> <output_file> [options]
-    pyanimats.py resume <checkpoint.pkl> <output_file> [options]
-    pyanimats.py list
-    pyanimats.py -h | --help
-    pyanimats.py -v | --version
+    python -m pyanimats run <experiment.yml> <output_file> [options]
+    python -m pyanimats resume <checkpoint.pkl> <output_file> [options]
+    python -m pyanimats list
+    python -m pyanimats -h | --help
+    python -m pyanimats -v | --version
 
 Arguments:
     <output_file>            File where the output should be stored
