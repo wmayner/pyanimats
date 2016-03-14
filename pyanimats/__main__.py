@@ -8,11 +8,11 @@ PyAnimats
 Evolve animats.
 
 Usage:
-    python -m pyanimats run <experiment.yml> <output_file> [options]
-    python -m pyanimats resume <checkpoint.pkl> <output_file> [options]
-    python -m pyanimats list
-    python -m pyanimats -h | --help
-    python -m pyanimats -v | --version
+    pyanimats run <experiment.yml> <output_file> [options]
+    pyanimats resume <checkpoint.pkl> <output_file> [options]
+    pyanimats list
+    pyanimats -h | --help
+    pyanimats -v | --version
 
 Arguments:
     <output_file>            File where the output should be stored
@@ -79,6 +79,7 @@ Genetic options:
 import cProfile
 import os
 import pickle
+import sys
 
 import yaml
 from docopt import docopt
@@ -226,5 +227,6 @@ def main(args):
 
 if __name__ == '__main__':
     # Get command-line args from docopt.
+    sys.argv[0] = 'pyanimats'
     args = docopt(__doc__, version=__version__)
     main(args)
