@@ -6,7 +6,7 @@ import pytest
 import numpy as np
 
 from conftest import p
-from utils import unique_rows
+from pyanimats.utils import unique_rows
 
 
 @pytest.fixture()
@@ -106,7 +106,7 @@ def test_unique_rows_with_counts_and_indices(a):
         assert np.array_equal(r, a)
 
 
-def test_unique_rows_with_counts_and_indices(a):
+def test_unique_rows_with_sort(a):
     result = unique_rows(a, sort=True)
     answer = np.array([[1, 1, 0, 0, 0],
                        [0, 0, 1, 1, 1],
