@@ -10,8 +10,8 @@ import pyphi
 import yaml
 from munch import Munch
 
-import constants
-import validate
+from . import constants
+from . import validate
 
 
 class Experiment(Munch):

@@ -8,9 +8,10 @@ import json
 import os
 from glob import glob
 
-import data
 import tinydb
 from tinydb import TinyDB
+
+from . import data
 
 
 # TODO figure out `.all`?

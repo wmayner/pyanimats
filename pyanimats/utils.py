@@ -14,8 +14,8 @@ import sys
 
 import numpy as np
 
-from __about__ import __version__
-from constants import DAYS, HOURS, MINUTES, WEEKS
+from .__about__ import __version__
+from .constants import DAYS, HOURS, MINUTES, WEEKS
 
 
 def get_version():

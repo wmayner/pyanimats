@@ -18,13 +18,13 @@ class build_ext(_build_ext):
 
 
 extensions = [
-    Extension('c_animat',
+    Extension('pyanimats/c_animat',
               sources=[
-                  'c_animat/c_animat.pyx',
-                  'c_animat/Agent.cpp',
-                  'c_animat/HMM.cpp',
-                  'c_animat/Game.cpp',
-                  'c_animat/rng.cpp',
+                  'pyanimats/c_animat/c_animat.pyx',
+                  'pyanimats/c_animat/Agent.cpp',
+                  'pyanimats/c_animat/HMM.cpp',
+                  'pyanimats/c_animat/Game.cpp',
+                  'pyanimats/c_animat/rng.cpp',
               ],
               language='c++',
               extra_compile_args=['-std=c++11'])

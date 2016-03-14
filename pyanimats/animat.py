@@ -17,11 +17,11 @@ from uuid import uuid4
 import numpy as np
 import pyphi
 
-import constants
-import utils
-import validate
-from c_animat import cAnimat
-from experiment import Experiment
+from . import constants
+from . import utils
+from . import validate
+from .c_animat import cAnimat
+from .experiment import Experiment
 
 Game = namedtuple('Game', ['animat_states', 'world_states', 'animat_positions',
                            'trial_results', 'correct', 'incorrect'])
@@ -221,12 +221,11 @@ class Animat:
             yield ancestor
             ancestor = ancestor.parent
 
-    def serializable_lineage(self, interval=1, experiment=True):
+    def serializable_lineage(self, interval=1, compact=False, experiment=True):
         """Return a serializable object for this animat's lineage."""
         return tuple(map(
-            lambda a: a.serializable(experiment=experiment),
-            self.lineage())
-        )[::interval]
+            lambda a: a.serializable(compact=compact, experiment=experiment),
+            self.lineage()[::interval]))
 
     def mutate(self):
         """Mutate the animat's genome in-place."""

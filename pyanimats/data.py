@@ -8,8 +8,8 @@ import json
 
 from munch import Munch
 
-import animat
-from experiment import Experiment
+from . import animat
+from .experiment import Experiment
 
 
 def load_dict(d):

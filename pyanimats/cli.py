@@ -83,11 +83,11 @@ import pickle
 import yaml
 from docopt import docopt
 
-import fitness_functions
-import utils
-import validate
-from __about__ import __version__
-from evolve import Evolution
+from . import fitness_functions
+from . import utils
+from . import validate
+from .__about__ import __version__
+from .evolve import Evolution
 
 # Map CLI options to simulation parameter data types.
 cli_opt_to_simulation = {

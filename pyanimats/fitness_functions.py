@@ -12,10 +12,10 @@ from functools import wraps
 
 import numpy as np
 import pyphi
-
-import constants
 from sklearn.metrics import mutual_info_score
-from utils import unique_rows
+
+from . import constants
+from .utils import unique_rows
 
 _WRAPPER_WIDTH = 72
 _base_wrapper = textwrap.TextWrapper(width=_WRAPPER_WIDTH)

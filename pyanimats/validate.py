@@ -4,8 +4,8 @@
 
 import numpy as np
 
-import fitness_functions
-from constants import MINUTES
+from . import fitness_functions
+from .constants import MINUTES
 
 GENERIC_MISMATCH_MSG = """
 cannot load animat: stored {attr} does not match the {attr} encoded by the

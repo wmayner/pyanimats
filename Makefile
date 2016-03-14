@@ -1,12 +1,12 @@
 default:
-	python setup.py build_ext --inplace
+	python setup.py build_ext -b .
 
 build:
-	cython -v -t --cplus c_animat/c_animat.pyx
+	cython -v -t --cplus pyanimats/c_animat/c_animat.pyx
 
 clean: 
 	rm -r build
-	rm c_animat*.so
+	rm pyanimats/c_animat*.so
 
 test: default
 	py.test test

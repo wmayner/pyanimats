@@ -14,13 +14,13 @@ import numpy as np
 from deap import base, tools
 from munch import Munch
 
-import c_animat
-import fitness_functions
-import utils
-import validate
-from animat import Animat
-from experiment import Experiment
-from phylogeny import Phylogeny
+from . import c_animat
+from . import fitness_functions
+from . import utils
+from . import validate
+from .animat import Animat
+from .experiment import Experiment
+from .phylogeny import Phylogeny
 
 
 class Evolution:
