@@ -99,6 +99,7 @@ class Evolution:
 
     def update_simulation(self, opts):
         self.simulation.update(opts)
+        # TODO don't change user-set stuff
         self.simulation = validate.simulation(self.simulation)
 
     def __getstate__(self):
@@ -254,15 +255,12 @@ class Evolution:
         # Get the lineage(s).
         if not all_lineages:
             fittest = max(self.population, key=lambda a: a.fitness.value)
-            lineage = fittest.serializable_lineage(interval=gen_interval,
-                                                   experiment=False)
+            lineage = fittest.lineage(step=gen_interval)
         else:
-            lineage = [a.serializable_lineage(interval=gen_interval,
-                                              experiment=False)
-                       for a in self.population]
+            lineage = [a.lineage(step=gen_interval) for a in self.population]
         # Set up the serializable object.
         return {
-            'experiment': self.experiment.serializable(),
+            'experiment': self.experiment,
             'simulation': self.simulation,
             'lineage': lineage,
             'logbook': {

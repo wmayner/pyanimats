@@ -168,11 +168,10 @@ class Animat:
             'fitness': self.fitness
         }
         if not compact:
-            d['tpm'] = (self.tpm.astype(int).tolist() if self.deterministic
-                        else self.tpm.tolist())
-            d['cm'] = self.cm.tolist()
+            d['tpm'] = self.tpm
+            d['cm'] = self.cm
             if experiment:
-                d['experiment'] = self._experiment.serializable()
+                d['experiment'] = self._experiment
         return d
 
     # TODO compute once
