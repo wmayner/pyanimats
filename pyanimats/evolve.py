@@ -264,11 +264,8 @@ class Evolution:
             'simulation': self.simulation,
             'lineage': lineage,
             'logbook': {
-                'gen': self.logbook.select('gen'),
                 'fitness': self.logbook.chapters['fitness'].select('max'),
-                'correct': self.logbook.chapters['correct'].select('correct'),
-                'incorrect': (self.logbook.chapters['correct']
-                              .select('incorrect')),
+                'game': self.logbook.chapters['game'].select('correct'),
             },
             'elapsed': round(self.elapsed, 2),
             'version': utils.get_version(),
