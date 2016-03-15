@@ -4,6 +4,7 @@
 
 """Data management."""
 
+import gzip
 import json
 
 from munch import Munch
@@ -30,6 +31,10 @@ def load_dict(d):
     return d
 
 
-def load(filepath):
-    with open(filepath, 'r') as f:
+def load(filepath, gzipped=False):
+    if gzipped:
+        _open = gzip.open
+    else:
+        _open = open
+    with _open(filepath, 'r') as f:
         return load_dict(json.load(f))

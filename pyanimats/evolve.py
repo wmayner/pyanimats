@@ -5,6 +5,7 @@
 """Implements the genetic algorithm."""
 
 import datetime
+import gzip
 import pickle
 import random
 from copy import deepcopy
@@ -229,7 +230,7 @@ class Evolution:
                     self.experiment.rng_seed, checkpoint_file),
                     end='', flush=True)
                 self.elapsed += timer() - last_checkpoint
-                with open(checkpoint_file, 'wb') as f:
+                with gzip.open(checkpoint_file, 'wb') as f:
                     pickle.dump(self, f)
                 last_checkpoint = timer()
                 print('done.')
@@ -240,7 +241,7 @@ class Evolution:
         print('[Seed {}]\tSaving final checkpoint to `{}`... '.format(
             self.experiment.rng_seed, checkpoint_file),
             end='', flush=True)
-        with open(checkpoint_file, 'wb') as f:
+        with gzip.open(checkpoint_file, 'wb') as f:
             pickle.dump(self, f)
         print('done.\n')
 

@@ -34,6 +34,7 @@ value lower than the number of generations already simulated).
 General options:
     -h --help                  Show this
     -v --version               Show version
+    -z --gzip                  Compress the output file with gzip
     -F --force                 Overwrite the output file
     -P --profile=PATH          Profile performance and store results at PATH.
 
@@ -77,6 +78,7 @@ Genetic options:
 """
 
 import cProfile
+import gzip
 import os
 import json
 import pickle
@@ -167,7 +169,7 @@ def main(args):
     CHECKPOINT_FILE = (args['--checkpoint-file'] or
                        args['<checkpoint.pkl>'] or
                        os.path.join(os.path.dirname(OUTPUT_FILE),
-                                    'checkpoint.pkl'))
+                                    'checkpoint.pkl.gz'))
     # Ensure checkpoint directory exists.
     if os.path.dirname(CHECKPOINT_FILE):
         utils.ensure_exists(os.path.dirname(CHECKPOINT_FILE))
@@ -181,7 +183,7 @@ def main(args):
         print('Loading checkpoint from `{}`... '
               ''.format(args['<checkpoint.pkl>']),
               end='', flush=True)
-        with open(args['<checkpoint.pkl>'], 'rb') as f:
+        with gzip.open(args['<checkpoint.pkl>'], 'rb') as f:
             evolution = pickle.load(f)
         # Update the evolution simulation parameters from the CLI options.
         evolution.update_simulation(simulation_cli_opts)
@@ -220,7 +222,11 @@ def main(args):
           end='', flush=True)
 
     # Get the evolution results and write to disk.
-    with open(OUTPUT_FILE, 'w') as f:
+    if args['--gzip']:
+        _open = gzip.open
+    else:
+        _open = open
+    with _open(OUTPUT_FILE, 'wt') as f:
         json.dump(evolution, f, default=serializable)
 
     print('done.')
