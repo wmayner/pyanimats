@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# pyanimats.py
+# __main__.py
 
 """
 PyAnimats
