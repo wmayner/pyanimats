@@ -95,7 +95,7 @@ def simulation(d):
     # Get the time interval at which to save checkpoints.
     d['checkpoint_interval'] = (d['checkpoint_interval'] * MINUTES)
     if d['checkpoint_interval'] <= 0:
-        id['checkpoint_interval'] = float('inf')
+        d['checkpoint_interval'] = float('inf')
     return d
 
 
