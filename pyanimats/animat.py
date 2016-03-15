@@ -158,7 +158,7 @@ class Animat:
         copy._dirty_network = deepcopy(self._dirty_network)
         return copy
 
-    def serializable(self, compact=False, experiment=True):
+    def serializable(self, compact=True, experiment=False):
         """Return a serializable representation of the animat."""
         d = {
             'genome': self.genome,
