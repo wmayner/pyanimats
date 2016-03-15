@@ -165,8 +165,7 @@ class Animat:
             'gen': self.gen,
             'correct': self._correct,
             'incorrect': self._incorrect,
-            'fitness': {'raw': self.fitness.raw,
-                        'exponential': self.fitness.value},
+            'fitness': self.fitness
         }
         if not compact:
             d['tpm'] = (self.tpm.astype(int).tolist() if self.deterministic
