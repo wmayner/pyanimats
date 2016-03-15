@@ -221,12 +221,6 @@ class Animat:
             yield ancestor
             ancestor = ancestor.parent
 
-    def serializable_lineage(self, interval=1, compact=False, experiment=True):
-        """Return a serializable object for this animat's lineage."""
-        return tuple(map(
-            lambda a: a.serializable(compact=compact, experiment=experiment),
-            self.lineage()[::interval]))
-
     def mutate(self):
         """Mutate the animat's genome in-place."""
         self._c_animat.mutate(self.mutation_prob, self.duplication_prob,
