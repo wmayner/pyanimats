@@ -78,6 +78,7 @@ Genetic options:
 
 import cProfile
 import os
+import json
 import pickle
 import sys
 
@@ -86,6 +87,7 @@ from docopt import docopt
 
 from . import fitness_functions
 from . import utils
+from .serializable import serializable
 from . import validate
 from .__about__ import __version__
 from .evolve import Evolution
@@ -218,9 +220,8 @@ def main(args):
           end='', flush=True)
 
     # Get the evolution results and write to disk.
-    output = evolution.serializable(all_lineages=args['--all-lineages'])
     with open(OUTPUT_FILE, 'w') as f:
-        utils.dump(output, f)
+        json.dump(evolution, f, default=serializable)
 
     print('done.')
 
