@@ -212,11 +212,13 @@ class Animat:
         """The number of incorrect trials in the most recently played game."""
         return self._incorrect
 
-    def lineage(self):
+    def lineage(self, step=1):
         """Return the lineage of this animat as a generator."""
-        ancestor = self
+        yield self
+        ancestor = self.parent
         while ancestor is not None:
-            yield ancestor
+            if ancestor.gen % step == 0:
+                yield ancestor
             ancestor = ancestor.parent
 
     def mutate(self):
