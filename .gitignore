@@ -20,7 +20,8 @@ output
 data
 tasks
 notebooks
-*.json
+*.json*
+*.pkl*
 *.sh
 *.md
 *.txt
