@@ -25,42 +25,6 @@ def get_version():
             if git_describe.returncode == 0 else __version__)
 
 
-def dump(obj, fp, **kwargs):
-    """Serialize ``obj`` to JSON and write to a file ``fp``.
-
-    Uses the custom JSON encoder.
-    """
-    json.dump(obj, fp, cls=JSONEncoder, **kwargs)
-
-
-def dumps(obj, **kwargs):
-    """Serialize ``obj`` to a JSON-formatted ``str``.
-
-    Uses the custom JSON encoder.
-    """
-    return json.dumps(obj, cls=JSONEncoder, **kwargs)
-
-
-# TODO make this actually recursively try `serializable`
-class JSONEncoder(json.JSONEncoder):
-    """Custom JSON encoder that attempts to call ``serializable``."""
-    def encode(self, obj):
-        try:
-            # Use `getattribute` to ensure that the function truly belongs to
-            # the object.
-            obj = obj.__getattribute__('serializable')()
-        except AttributeError:
-            pass
-        return super().encode(obj)
-
-    def default(self, obj):
-        if isinstance(obj, np.integer):
-            obj = int(obj)
-        if isinstance(obj, np.bool_):
-            obj = bool(obj)
-        return obj
-
-
 def ensure_exists(path):
     """Makes a path if it doesn't exist and returns it."""
     os.makedirs(path, exist_ok=True)
