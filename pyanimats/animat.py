@@ -120,8 +120,6 @@ class Animat:
         state = {k: v for k, v in self.__dict__.items()
                  if k not in ['parent', 'random', '_network', '_dirty_network',
                               '_cm', '_dirty_cm', '_tpm', '_dirty_tpm']}
-        # Record the ID of the parent to reconstruct phylogeny later.
-        state['parent'] = self.parent._id if self.parent is not None else None
         return state
 
     def __setstate__(self, state):
