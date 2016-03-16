@@ -47,7 +47,7 @@ Simulation options:
                                given checkpoint file if resuming)
 
 Data collection options:
-    -o --output-samples=INT    Number of animats to sample from evolution
+    -S --sample-interval=INT   Number of animats to sample from evolution
     -b --logbook-interval=INT  Logbook recording interval (generations)
     -a --all-lineages          Save lineages of entire final population
 
@@ -100,7 +100,7 @@ cli_opt_to_simulation = {
     '--checkpoint':       ('checkpoint_interval', float),
     '--status-interval':  ('status_interval', int),
     '--logbook-interval': ('logbook_interval', int),
-    '--output-samples':   ('output_samples', int),
+    '--sample-interval':  ('sample_interval', int),
 }
 
 # Map CLI options to experiment parameter names and data types.

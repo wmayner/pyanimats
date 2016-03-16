@@ -28,7 +28,7 @@ REQUIRED_EXPERIMENT_KEYS = {
     'default_init_genome_value', 'default_init_genome_length', 'deterministic'}
 REQUIRED_SIMULATION_KEYS = {
     'ngen', 'checkpoint_interval', 'status_interval', 'logbook_interval',
-    'output_samples', 'all_lineages'}
+    'sample_interval', 'all_lineages'}
 REQUIRED_FITNESS_TRANSFORM_KEYS = {'base', 'scale', 'add'}
 
 
@@ -88,7 +88,9 @@ def simulation(d):
     _assert_nonempty_dict(d, name)
     _assert_has_keys(d, REQUIRED_SIMULATION_KEYS, name)
     _assert_ge(d, name, 'logbook_interval', 1)
-    _assert_ge(d, name, 'output_samples', 1)
+    # Get the generational interval at which to print the evolution status.
+    if d['sample_interval'] <= 0:
+        d['sample_interval'] = float('inf')
     # Get the generational interval at which to print the evolution status.
     if d['status_interval'] <= 0:
         d['status_interval'] = float('inf')

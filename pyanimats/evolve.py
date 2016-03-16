@@ -110,7 +110,8 @@ class Evolution:
         del state['evaluate']
         del state['mstats']
         # Save the population as a Phylogeny to recover lineages later.
-        state['population'] = Phylogeny(state['population'])
+        state['population'] = Phylogeny(state['population'],
+                                        step=self.simulation.sample_interval)
         return state
 
     def __setstate__(self, state):
@@ -250,15 +251,13 @@ class Evolution:
     def serializable(self, all_lineages=None):
         if all_lineages is None:
             all_lineages = self.simulation.all_lineages
-        # Determine the generational interval.
-        gen_interval = max(
-            self.simulation.ngen // self.simulation.output_samples, 1)
         # Get the lineage(s).
         if not all_lineages:
             fittest = max(self.population, key=lambda a: a.fitness.value)
-            lineage = fittest.lineage(step=gen_interval)
+            lineage = fittest.lineage(step=self.simulation.sample_interval)
         else:
-            lineage = [a.lineage(step=gen_interval) for a in self.population]
+            lineage = [a.lineage(step=self.simulation.sample_interval)
+                       for a in self.population]
         # Set up the serializable object.
         return {
             'experiment': self.experiment,
