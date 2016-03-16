@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# serializable.py
+# serialize.py
 
 """
 Recursively convert NumPy types to native types and call a serialization method

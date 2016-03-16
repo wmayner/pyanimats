@@ -89,7 +89,7 @@ from docopt import docopt
 
 from . import fitness_functions
 from . import utils
-from .serializable import serializable
+from .serialize import serializable
 from . import validate
 from .__about__ import __version__
 from .evolve import Evolution
