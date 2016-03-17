@@ -21,7 +21,7 @@ do
   # Ensure the output directory exists.
   mkdir -p $cur_output_dir
   # Build the command.
-  cmd="python pyanimats/cli.py run $param_file $cur_output_dir/output.json -r $seed"
+  cmd="python -m pyanimats run $param_file $cur_output_dir/output.json -r $seed"
   # Display command.
   echo "Executing command:"
   echo $cmd
