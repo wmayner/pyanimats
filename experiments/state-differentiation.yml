@@ -6,7 +6,7 @@ simulation:
     # Simulation
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Number of generations to evolve.
-    ngen: 60000
+    ngen: 100000
     # Length of checkpoint interval in minutes.
     checkpoint_interval: 1440
     # Generational interval at which to print evolution status to the screen. 
