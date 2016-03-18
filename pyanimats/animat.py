@@ -218,7 +218,6 @@ class Animat:
             if ancestor.gen % step == 0:
                 yield ancestor
             ancestor = ancestor.parent
-        yield ancestor
 
     def mutate(self):
         """Mutate the animat's genome in-place."""

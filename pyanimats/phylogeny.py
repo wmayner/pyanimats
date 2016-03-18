@@ -53,6 +53,7 @@ class Phylogeny(UserList):
             parent = ancestor
             self._incref(child, parent)
             child = parent
+        self._incref(child, None)
 
     def _lineage(self, animat):
         """Returns the lineage of the animat as it exists in the phylogeny."""
