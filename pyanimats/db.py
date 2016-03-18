@@ -30,10 +30,9 @@ class AnimatTable(tinydb.database.Table):
 TinyDB.table_class = AnimatTable
 
 
-def insert_all(db, directory, pattern='output.json'):
+def insert_all(db, directory, pattern=os.path.join('**', 'output.json'):
     """Recursively insert files matching ``pattern``."""
-    paths = glob(os.path.join(directory, '**', pattern))
-    paths += glob(os.path.join(directory, '**', pattern))
+    paths = glob(os.path.join(directory, pattern))
     data = []
     for path in paths:
         print('Loading {}...'.format(path))
