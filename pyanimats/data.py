@@ -13,13 +13,9 @@ from . import animat
 from .experiment import Experiment
 
 
-def load_dict(d):
-    """Initialize an animat object from a JSON dictionary.
-
-    Checks that the stored TPM and connectivity matrix match those encoded by
-    the stored genome.
-    """
+def load_evolution(d):
     d = Munch(d)
+    d.simulation = Munch(d.simulation)
     d.experiment = Experiment(d.experiment)
     # Restore population
     lineage = list(

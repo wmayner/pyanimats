@@ -14,16 +14,25 @@ from tinydb import TinyDB
 from . import data
 
 
+def true(x):
+    return True
+
+
 # TODO figure out `.all`?
 class PyAnimatsTable(tinydb.database.Table):
 
     """Convert PyAnimats JSON output back into PyAnimats objects."""
 
     def search(self, *args, **kwargs):
+        if not args:
+            args = [true]
         return list(map(data.load_dict, super().search(*args, **kwargs)))
 
     def get(self, *args, **kwargs):
-        return data.load_dict(super().get(*args, **kwargs))
+        if not args:
+            args = [true]
+        item = super().get(*args, **kwargs)
+        return item if item is None else data.load_evolution(item)
 
 
 # Use PyAnimatsTable as the default table for TinyDB databases.
