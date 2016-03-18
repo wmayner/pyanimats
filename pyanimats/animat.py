@@ -336,7 +336,7 @@ def from_json(dictionary, experiment=None, parent=None):
     animat = Animat(experiment, dictionary['genome'])
     animat.parent = parent
     animat.gen = dictionary['gen']
-    animat.fitness.set(dictionary['fitness']['raw'])
+    animat.fitness.set(dictionary['fitness'])
     animat._correct = dictionary['correct']
     animat._incorrect = dictionary['incorrect']
     validate.json_animat(animat, dictionary)
@@ -388,3 +388,6 @@ class ExponentialFitness:
     def set(self, v):
         self.raw = v
         self.exponential = self.base**(self.scale * v + self.add)
+
+    def serializable(self):
+        return self.raw
