@@ -15,7 +15,7 @@ from . import data
 
 
 # TODO figure out `.all`?
-class AnimatTable(tinydb.database.Table):
+class PyAnimatsTable(tinydb.database.Table):
 
     """Convert PyAnimats JSON output back into PyAnimats objects."""
 
@@ -26,8 +26,8 @@ class AnimatTable(tinydb.database.Table):
         return data.load_dict(super().get(*args, **kwargs))
 
 
-# Use AnimatTable as the default table for TinyDB databases.
-TinyDB.table_class = AnimatTable
+# Use PyAnimatsTable as the default table for TinyDB databases.
+TinyDB.table_class = PyAnimatsTable
 
 
 def insert_all(db, directory, pattern=os.path.join('**', 'output.json'):
