@@ -36,6 +36,8 @@ def insert_all(db, directory, pattern='output.json'):
     paths += glob(os.path.join(directory, '**', pattern))
     data = []
     for path in paths:
+        print('Loading {}...'.format(path))
         with open(path, 'r') as f:
             data.append(json.load(f))
+    print('Inserting data...')
     return db.insert_multiple(data)
