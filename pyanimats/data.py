@@ -35,4 +35,4 @@ def load(filepath, gzipped=False):
     else:
         _open = open
     with _open(filepath, 'r') as f:
-        return load_dict(json.load(f))
+        return load_evolution(json.load(f))
