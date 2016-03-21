@@ -23,16 +23,13 @@ class PyAnimatsTable(tinydb.database.Table):
 
     """Convert PyAnimats JSON output back into PyAnimats objects."""
 
-    def search(self, *args, **kwargs):
-        if not args:
-            args = [true]
-        return list(map(data.load_dict, super().search(*args, **kwargs)))
+    def all(self, *args, **kwargs):
+        return [data.load_evolution(x) for x in super().all(*args, **kwargs)]
 
     def get(self, *args, **kwargs):
         if not args:
             args = [true]
-        item = super().get(*args, **kwargs)
-        return item if item is None else data.load_evolution(item)
+        return super().get(*args, **kwargs)
 
 
 # Use PyAnimatsTable as the default table for TinyDB databases.
@@ -49,3 +46,7 @@ def insert_all(db, directory, pattern=os.path.join('**', 'output.json')):
             data.append(json.load(f))
     print('Inserting data...')
     return db.insert_multiple(data)
+
+
+def in_range(value, begin, end):
+    return begin < value < end
