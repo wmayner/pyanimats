@@ -5,6 +5,7 @@
 import os
 import pickle
 import pprint
+from copy import deepcopy
 
 import pyphi
 import yaml
@@ -42,6 +43,7 @@ class Experiment(Munch):
     """
 
     def __init__(self, dictionary):
+        dictionary = deepcopy(dictionary)
         # Validate.
         validate.experiment(dictionary)
         # Derive parameters from the user-set ones.
