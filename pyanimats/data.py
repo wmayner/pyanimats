@@ -7,6 +7,7 @@
 import gzip
 import json
 
+import dateutil.parser
 from munch import Munch
 
 from . import animat
@@ -17,6 +18,7 @@ def load_evolution(d):
     d = Munch(d)
     d.simulation = Munch(d.simulation)
     d.experiment = Experiment(d.experiment)
+    d.time = dateutil.parser.parse(d.time)
     # Restore population
     lineage = list(
         map(lambda a: animat.from_json(a, experiment=d['experiment']),
