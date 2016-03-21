@@ -39,7 +39,7 @@ class PyAnimatsTable(tinydb.database.Table):
 TinyDB.table_class = PyAnimatsTable
 
 
-def insert_all(db, directory, pattern=os.path.join('**', 'output.json'):
+def insert_all(db, directory, pattern=os.path.join('**', 'output.json')):
     """Recursively insert files matching ``pattern``."""
     paths = glob(os.path.join(directory, pattern))
     data = []
