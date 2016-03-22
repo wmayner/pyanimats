@@ -492,12 +492,21 @@ def mat(ind):
         state: set(bm.unpartitioned_constellation)
         for state, bm in complexes.items()
     }
-    # Get the set of unique states in each trial for world and noise.
-    world = [[tuple(state) for state in trial] for trial in world]
-    noise = [[tuple(state) for state in trial] for trial in noise]
-    # Now we calculate the matching terms for many stimulus sets (each trial)
-    # which are later averaged to obtain the matching value for a “typical”
-    # stimulus set.
+    # Randomly pair trials to form stimulus sets.
+    shuffled = list(range(len(world)))
+    ind.random.shuffle(shuffled)
+    world_stimuli = [np.vstack((world[shuffled[i]], world[shuffled[i + 1]]))
+                     for i in range(0, len(world), 2)]
+    noise_stimuli = [np.vstack((noise[shuffled[i]], noise[shuffled[i + 1]]))
+                     for i in range(0, len(noise), 2)]
+    # Get the states in each stimulus set for world and noise.
+    world = [[tuple(state) for state in stimulus]
+             for stimulus in world_stimuli]
+    noise = [[tuple(state) for state in stimulus]
+             for stimulus in noise_stimuli]
+    # Now we calculate the matching terms for many stimulus sets (each pair of
+    # trials) which are later averaged to obtain the matching value for a
+    # “typical” stimulus set.
     raw_matching = np.mean([
         matching(W, N, constellations) for W, N in zip(world, noise)
     ])
