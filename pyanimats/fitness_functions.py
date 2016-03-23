@@ -468,8 +468,8 @@ def mat(ind):
     noise = ind.play_game(scrambled=True).animat_states
     # Since the motor states can't influence φ or ϕ, we set them to zero to
     # make uniqifying the states simpler.
-    world[ind.motor_indices] = 0
-    noise[ind.motor_indices] = 0
+    world[..., ind.motor_indices] = 0
+    noise[..., ind.motor_indices] = 0
     # Get a flat list of all the the states.
     combined = np.concatenate([world, noise])
     combined = combined.reshape(-1, combined.shape[-1])
