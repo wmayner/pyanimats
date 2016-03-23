@@ -11,14 +11,12 @@ import random
 from copy import deepcopy
 from time import perf_counter as timer
 
+import dateutil
 import numpy as np
 from deap import base, tools
 from munch import Munch
 
-from . import c_animat
-from . import fitness_functions
-from . import utils
-from . import validate
+from . import animat, c_animat, fitness_functions, utils, validate
 from .animat import Animat
 from .experiment import Experiment
 from .phylogeny import Phylogeny
@@ -271,3 +269,19 @@ class Evolution:
             'version': utils.get_version(),
             'time': datetime.datetime.now().isoformat(),
         }
+
+
+def from_json(d):
+    """Initialize an Evolution object from a JSON dictionary."""
+    d = Munch(d)
+    d.simulation = Munch(d.simulation)
+    d.experiment = Experiment(d.experiment)
+    d.time = dateutil.parser.parse(d.time)
+    # Restore population
+    lineage = list(
+        map(lambda a: animat.from_json(a, experiment=d['experiment']),
+            d['lineage']))
+    for i in range(len(lineage) - 1):
+        lineage[i].parent = lineage[i + 1]
+    d.lineage = lineage
+    return d
