@@ -17,7 +17,7 @@ dist
 profiling
 raw_results
 compiled_results
-output
+output*
 data
 tasks
 notebooks
