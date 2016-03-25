@@ -7,11 +7,7 @@
 import gzip
 import json
 
-import dateutil.parser
-from munch import Munch
-
-from . import animat
-from .experiment import Experiment
+from . import evolve
 
 
 def load(filepath, gzipped=False):
@@ -20,4 +16,4 @@ def load(filepath, gzipped=False):
     else:
         _open = open
     with _open(filepath, 'r') as f:
-        return load_evolution(json.load(f))
+        return evolve.from_json(json.load(f))
