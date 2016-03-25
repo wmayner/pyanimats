@@ -125,7 +125,9 @@ def experiment(d):
     # Animat
     _assert_ge(d, name, 'num_sensors', 1)
     _assert_ge(d, name, 'num_hidden', 0)
-    _assert_ge(d, name, 'num_motors', 0)
+    if d['num_motors'] not in [0, 2]:
+        raise ValueError(
+            'invalid experiment: must have either 0 or 2 motor units.')
     _assert_ge(d, name, 'body_length', 3)
     # Environment
     _assert_ge(d, name, 'world_width', 1)

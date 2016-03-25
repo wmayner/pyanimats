@@ -209,7 +209,7 @@ vector<int> executeGame(vector<unsigned char> &allAnimatStates, vector<int>
                         break;
                     }
 
-                    action = (agent->states[6] << 1) + agent->states[7];
+                    action = agent->getAction();
 
                     // Move agent
                     switch (action) {

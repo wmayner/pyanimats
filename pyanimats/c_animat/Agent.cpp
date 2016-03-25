@@ -6,6 +6,8 @@ Agent::Agent(vector<unsigned char> genome, int numSensors, int numHidden,
         int numMotors, bool deterministic) : genome(genome) {
     mNumSensors = numSensors;
     mNumHidden = numHidden;
+    // Note: only the last 2 motors have an effect. There must be > 2 motors or
+    // none.
     mNumMotors = numMotors;
     mNumNodes = mNumSensors + mNumHidden + mNumMotors;
     mNumStates = 1 << mNumNodes;
@@ -25,6 +27,13 @@ Agent::~Agent() {
     for (int i = 0; i < (int)hmms.size(); i++) {
         delete hmms[i];
     }
+}
+
+int Agent::getAction() {
+    if (mNumMotors > 0) {
+        return (states[mNumNodes - 2] << 1) + states[mNumNodes - 1];
+    }
+    else return 0;
 }
 
 void Agent::resetState() {

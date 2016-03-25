@@ -33,6 +33,7 @@ class Agent {
     vector<unsigned char> states;
     vector<unsigned char> newStates;
 
+    int getAction();
     void injectStartCodons(int n);
     void resetState();
     void updateStates();
