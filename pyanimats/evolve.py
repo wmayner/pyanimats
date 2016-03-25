@@ -11,7 +11,7 @@ import random
 from copy import deepcopy
 from time import perf_counter as timer
 
-import dateutil
+import dateutil.parser
 import numpy as np
 from deap import base, tools
 from munch import Munch
