@@ -518,7 +518,6 @@ def mat(ind):
         matching_average_weighted(W, N, constellations, complexes)
         for W, N in zip(world, noise)
     ])
-    # TODO don't double-weight last two by phi
     return (raw_matching_average_weighted,
             raw_matching_weighted,
             existence * raw_matching)
