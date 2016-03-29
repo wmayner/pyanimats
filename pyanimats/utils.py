@@ -7,7 +7,6 @@ Utility functions.
 """
 
 import datetime
-import json
 import os
 import subprocess
 import sys
@@ -29,6 +28,11 @@ def ensure_exists(path):
     """Makes a path if it doesn't exist and returns it."""
     os.makedirs(path, exist_ok=True)
     return path
+
+
+def rowset(array):
+    """Return the unique rows of an array as a set of tuples."""
+    return set(map(tuple, unique_rows(array)))
 
 
 def contains_row(array, row):
