@@ -76,8 +76,8 @@ def unique_rows(array, upto=[], indices=False, counts=False, sort=False):
     if not (counts or indices or sort):
         return unique
     if counts or sort:
-        # Get the number of occurences of each unique state (the -1 is needed at
-        # the beginning, rather than 0, because of fencepost concerns).
+        # Get the number of occurences of each unique state (the -1 is needed
+        # at the beginning, rather than 0, because of fencepost concerns).
         unq_counts = np.diff(
             np.append(np.insert(diff_idx, 0, -1), sorted_array.shape[0] - 1))
         # Get sorted order.
