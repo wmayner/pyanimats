@@ -30,9 +30,9 @@ def ensure_exists(path):
     return path
 
 
-def rowset(array):
+def rowset(array, **kwargs):
     """Return the unique rows of an array as a set of tuples."""
-    return set(map(tuple, unique_rows(array)))
+    return set(map(tuple, unique_rows(array, **kwargs)))
 
 
 def contains_row(array, row):
