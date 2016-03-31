@@ -7,7 +7,7 @@ import pickle
 import pprint
 from copy import deepcopy
 
-import pyphi
+# import pyphi
 import yaml
 from munch import Munch
 
@@ -166,18 +166,18 @@ def _derive_params(d):
         'hidden_motor_indices': hidden_indices + motor_indices,
         'sensor_motor_indices': sensor_indices + motor_indices,
         # Get their power sets.
-        'hidden_powerset': tuple(pyphi.utils.powerset(hidden_indices)),
-        'sensors_and_hidden_powerset': tuple(
-            pyphi.utils.powerset(sensor_indices + hidden_indices)),
-        'hidden_and_motor_powerset': tuple(
-            pyphi.utils.powerset(hidden_indices + motor_indices)),
+        # 'hidden_powerset': tuple(pyphi.utils.powerset(hidden_indices)),
+        # 'sensors_and_hidden_powerset': tuple(
+        #     pyphi.utils.powerset(sensor_indices + hidden_indices)),
+        # 'hidden_and_motor_powerset': tuple(
+        #     pyphi.utils.powerset(hidden_indices + motor_indices)),
         # Get information about possible animat states.
         'num_sensor_states': num_sensor_states,
         'num_hidden_states': num_hidden_states,
         'num_motor_states': num_motor_states,
         'num_possible_states': 2**num_nodes,
-        'possible_states': [pyphi.convert.loli_index2state(i, num_nodes)
-                            for i in range(2**num_nodes)],
+        # 'possible_states': [pyphi.convert.loli_index2state(i, num_nodes)
+        #                     for i in range(2**num_nodes)],
         'sensor_motor_states': sensor_motor_states,
         'sensor_locations': sensor_locations,
     }

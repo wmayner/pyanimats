@@ -11,8 +11,8 @@ from collections import Counter, OrderedDict
 from functools import wraps
 
 import numpy as np
-import pyphi
-from sklearn.metrics import mutual_info_score
+# import pyphi
+# from sklearn.metrics import mutual_info_score
 
 from . import constants
 from .utils import unique_rows

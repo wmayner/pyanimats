@@ -12,10 +12,11 @@ animat properties (connectivity, associated PyPhi objects, etc.).
 import functools
 from collections import namedtuple
 from copy import deepcopy
+import random
 from uuid import uuid4
 
 import numpy as np
-import pyphi
+# import pyphi
 
 from . import constants
 from . import utils
@@ -82,7 +83,7 @@ class Animat:
         self._correct = False
         self._incorrect = False
         # Get a RNG.
-        self.random = constants.DEFAULT_RNG
+        self.random = random.Random(experiment.rng_seed)
         # Don't initialize the animat's network attributes until we need to,
         # because it may be expensive.
         self._tpm = False
@@ -191,14 +192,14 @@ class Animat:
             self._dirty_tpm = False
         return self._tpm
 
-    @property
-    def network(self):
-        """The PyPhi network representing the animat in the given state."""
-        if self._dirty_network:
-            self._network = pyphi.Network(self.tpm,
-                                          connectivity_matrix=self.cm)
-            self._dirty_network = False
-        return self._network
+    # @property
+    # def network(self):
+    #     """The PyPhi network representing the animat in the given state."""
+    #     if self._dirty_network:
+    #         self._network = pyphi.Network(self.tpm,
+    #                                       connectivity_matrix=self.cm)
+    #         self._dirty_network = False
+    #     return self._network
 
     @property
     def correct(self):
@@ -256,34 +257,34 @@ class Animat:
         occurrences = np.all((window == constants.START_CODON), axis=1)
         return np.where(occurrences)[0]
 
-    def as_subsystem(self, state=None):
-        """Return the PyPhi subsystem consisting of all the animat's nodes."""
-        if state is None:
-            state = [0] * self.num_nodes
-        return pyphi.Subsystem(self.network, state, range(self.num_nodes))
+    # def as_subsystem(self, state=None):
+    #     """Return the PyPhi subsystem consisting of all the animat's nodes."""
+    #     if state is None:
+    #         state = [0] * self.num_nodes
+    #     return pyphi.Subsystem(self.network, state, range(self.num_nodes))
 
-    def brain(self, state=None):
-        """Return the PyPhi subsystem consisting of the animat's hidden
-        units."""
-        if state is None:
-            state = [0] * self.num_nodes
-        return pyphi.Subsystem(self.network, state, self.hidden_indices)
+    # def brain(self, state=None):
+    #     """Return the PyPhi subsystem consisting of the animat's hidden
+    #     units."""
+    #     if state is None:
+    #         state = [0] * self.num_nodes
+    #     return pyphi.Subsystem(self.network, state, self.hidden_indices)
 
-    def brain_and_sensors(self, state=None):
-        """Return the PyPhi subsystem consisting of the animat's hidden
-        units and sensors."""
-        if state is None:
-            state = [0] * self.num_nodes
-        return pyphi.Subsystem(
-            self.network, state, self.hidden_indices + self.sensor_indices)
+    # def brain_and_sensors(self, state=None):
+    #     """Return the PyPhi subsystem consisting of the animat's hidden
+    #     units and sensors."""
+    #     if state is None:
+    #         state = [0] * self.num_nodes
+    #     return pyphi.Subsystem(
+    #         self.network, state, self.hidden_indices + self.sensor_indices)
 
-    def brain_and_motors(self, state=None):
-        """Return the PyPhi subsystem consisting of the animat's hidden
-        units and motors."""
-        if state is None:
-            state = [0] * self.num_nodes
-        return pyphi.Subsystem(
-            self.network, state, self.hidden_indices + self.motor_indices)
+    # def brain_and_motors(self, state=None):
+    #     """Return the PyPhi subsystem consisting of the animat's hidden
+    #     units and motors."""
+    #     if state is None:
+    #         state = [0] * self.num_nodes
+    #     return pyphi.Subsystem(
+    #         self.network, state, self.hidden_indices + self.motor_indices)
 
     def mechanism(self, node_index, separate_on_off=False):
         """Return the TPM of a single animat node."""
