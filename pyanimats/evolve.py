@@ -17,6 +17,7 @@ from deap import base, tools
 from munch import Munch
 
 from . import animat, c_animat, fitness_functions, utils, validate
+from .fitness_functions import MULTIVALUED_FITNESS_FUNCTIONS
 from .animat import Animat
 from .experiment import Experiment
 from .phylogeny import Phylogeny
@@ -50,7 +51,7 @@ class Evolution:
                               self.toolbox.animat)
         # Initialize logbooks and hall of fame.
         self.logbook = tools.Logbook()
-        self.logbook.header = 'gen', 'fitness', 'exp_fitness', 'game'
+        self.logbook.header = ['gen', 'fitness', 'exp_fitness', 'game']
         # Create initial population.
         self.population = self.toolbox.population(n=self.experiment.popsize)
         # Create statistics trackers.
@@ -63,15 +64,17 @@ class Evolution:
         game_stats.register('incorrect', lambda x: np.max(x, 0)[1])
         # Stats objects for alternate matching measures.
         alt_fitness_stats = tools.Statistics(key=lambda a: a.alt_fitness)
-        alt_fitness_stats.register('weighted', lambda x: np.max(x, 0)[0])
-        alt_fitness_stats.register('unweighted', lambda x: np.max(x, 0)[1])
+        alt_fitness_stats.register('alternate-1', lambda x: np.max(x, 0)[0])
+        alt_fitness_stats.register('alternate-2', lambda x: np.max(x, 0)[1])
+        # Stats objects for combination measures.
         # Initialize a MultiStatistics object for convenience that allows for
         # only one call to `compile`.
-        if self.experiment.fitness_function == 'mat':
+        if self.experiment.fitness_function in MULTIVALUED_FITNESS_FUNCTIONS:
             self.mstats = tools.MultiStatistics(fitness=raw_fitness_stats,
                                                 exp_fitness=exp_fitness_stats,
                                                 alt_fitness=alt_fitness_stats,
                                                 game=game_stats)
+            self.logbook.header.insert(3, 'alt_fitness')
         else:
             self.mstats = tools.MultiStatistics(fitness=raw_fitness_stats,
                                                 exp_fitness=exp_fitness_stats,
@@ -93,8 +96,8 @@ class Evolution:
                 animat.fitness.set(fitness_function(animat))
 
         self.evaluate = (
-            multi_fit_evaluate if self.experiment.fitness_function == 'mat'
-            else single_fit_evaluate)
+            multi_fit_evaluate if self.experiment.fitness_function in
+            MULTIVALUED_FITNESS_FUNCTIONS else single_fit_evaluate)
 
     def update_simulation(self, opts):
         self.simulation.update(opts)

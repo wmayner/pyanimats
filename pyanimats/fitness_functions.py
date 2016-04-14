@@ -34,6 +34,10 @@ LaTeX_NAMES = {
     'bp_wvn': '\Phi\ (world\ vs.\ noise)',
     'mat': 'Matching'
 }
+MULTIVALUED_FITNESS_FUNCTIONS = [
+    'mi_nat', 'mi_wvn_nat', 'ex_nat', 'ex_wvn_nat', 'sp_nat', 'sp_wvn_nat',
+    'bp_nat', 'bp_wvn_nat', 'sd_wvn_nat', 'mat', 'mat_nat'
+]
 
 
 def _register(data_function=None):
@@ -236,10 +240,24 @@ def mi(ind, scrambled=False):
 _register()(mi)
 
 
+def mi_nat(ind):
+    """The product of the ``mi`` and ``nat`` measures."""
+    f1, f2 = mi(ind), nat(ind)
+    return (f1 * f2, f1, f2)
+_register(data_function=mi)(mi_nat)
+
+
 def mi_wvn(ind):
     """Same as `mi` but counting the difference between world and noise."""
     return mi(ind, scrambled=False) - mi(ind, scrambled=True)
 _register(data_function=mi)(mi_wvn)
+
+
+def mi_wvn_nat(ind):
+    """The product of the ``mi_wvn`` and ``nat`` measures."""
+    f1, f2 = mi_wvn(ind), nat(ind)
+    return (f1 * f2, f1, f2)
+_register(data_function=mi)(mi_wvn_nat)
 
 
 # Extrinsic cause information
@@ -268,6 +286,13 @@ ex.__doc__ = """Extrinsic cause information: Animats are evaluated based on the
 _register(data_function=extrinsic_causes)(ex)
 
 
+def ex_nat(ind):
+    """The product of the ``ex`` and ``nat`` measures."""
+    f1, f2 = ex(ind), nat(ind)
+    return (f1 * f2, f1, f2)
+_register(data_function=extrinsic_causes)(ex_nat)
+
+
 ex_wvn = wvn(transform=unq_concepts, reduce=phi_sum,
              upto_attr='hidden_motor_indices')(extrinsic_causes)
 ex_wvn.__name__ = 'ex_wvn'
@@ -275,6 +300,13 @@ ex_wvn.__doc__ = """Same as `ex` but counting the difference between the sum of
     φ of unique concepts that appear in the world and a scrambled version of
     it."""
 _register(data_function=extrinsic_causes)(ex_wvn)
+
+
+def ex_wvn_nat(ind):
+    """The product of the ``ex_wvn`` and ``nat`` measures."""
+    f1, f2 = ex_wvn(ind), nat(ind)
+    return (f1 * f2, f1, f2)
+_register(data_function=extrinsic_causes)(ex_wvn_nat)
 
 
 # Sum of small-phi
@@ -308,6 +340,13 @@ sp.__doc__ = """Sum of φ: Animats are evaluated based on the sum of φ for all
 _register(data_function=all_concepts)(sp)
 
 
+def sp_nat(ind):
+    """The product of the ``sp`` and ``nat`` measures."""
+    f1, f2 = sp(ind), nat(ind)
+    return (f1 * f2, f1, f2)
+_register(data_function=all_concepts)(sp_nat)
+
+
 sp_wvn = wvn(transform=unq_concepts, reduce=phi_sum,
              upto_attr='hidden_indices')(all_concepts)
 sp_wvn.__name__ = 'sp_wvn'
@@ -315,6 +354,13 @@ sp_wvn.__doc__ = """Same as `sp` but counting the difference between the sum of
     φ of unique concepts that appear in the world and a scrambled version of
     it."""
 _register(data_function=all_concepts)(sp_wvn)
+
+
+def sp_wvn_nat(ind):
+    """The product of the ``sp_wvn`` and ``nat`` measures."""
+    f1, f2 = sp_wvn(ind), nat(ind)
+    return (f1 * f2, f1, f2)
+_register(data_function=all_concepts)(sp_wvn_nat)
 
 
 # Big-Phi
@@ -341,12 +387,26 @@ bp.__doc__ = """Animats are evaluated based on the ϕ-value of their brains,
 _register(data_function=main_complex)(bp)
 
 
-bp_wvn = shortcircuit_if_empty(wvn(reduce=phi_sum,
-                                   upto='hidden_indices')(main_complex))
+def bp_nat(ind):
+    """The product of the ``bp`` and ``nat`` measures."""
+    f1, f2 = bp(ind), nat(ind)
+    return (f1 * f2, f1, f2)
+_register(data_function=main_complex)(bp_nat)
+
+
+bp_wvn = shortcircuit_if_empty()(wvn(reduce=phi_sum,
+                                   upto_attr='hidden_indices')(main_complex))
 bp_wvn.__name__ = 'bp_wvn'
 bp_wvn.__doc__ = """Same as `bp` but counting the difference between world and
     noise."""
 _register(data_function=main_complex)(bp_wvn)
+
+
+def bp_wvn_nat(ind):
+    """The product of the ``bp_wvn`` and ``nat`` measures."""
+    f1, f2 = bp_wvn(ind), nat(ind)
+    return (f1 * f2, f1, f2)
+_register(data_function=main_complex)(bp_wvn_nat)
 
 
 # World vs. noise state differentiation
@@ -371,6 +431,13 @@ def sd_wvn(ind, upto_attr='hidden_indices'):
     ]
     return sum(differences) / len(differences)
 _register(data_function=main_complex)(sd_wvn)
+
+
+def sd_wvn_nat(ind):
+    """The product of the ``sd_wvn`` and ``nat`` measures."""
+    f1, f2 = sd_wvn(ind), nat(ind)
+    return (f1 * f2, f1, f2)
+_register(data_function=main_complex)(sd_wvn_nat)
 
 
 # Matching
@@ -519,3 +586,10 @@ def mat(ind):
             raw_matching_weighted,
             existence * raw_matching)
 _register(data_function=main_complex)(mat)
+
+
+def mat_nat(ind):
+    """The product of the ``mat`` and ``nat`` measures."""
+    f1, f2 = mat(ind)[0], nat(ind)
+    return (f1 * f2, f1, f2)
+_register(data_function=main_complex)(mat_nat)

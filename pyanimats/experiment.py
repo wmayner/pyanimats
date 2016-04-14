@@ -121,10 +121,10 @@ def _derive_params(d):
                                  'add': 64}
     else:
         fitness_transform = False
-    sensor_indices = tuple(range(d['num_sensors']))
-    hidden_indices = tuple(range(
+    sensor_indices = list(range(d['num_sensors']))
+    hidden_indices = list(range(
         d['num_sensors'], d['num_sensors'] + d['num_hidden']))
-    motor_indices = tuple(range(
+    motor_indices = list(range(
         d['num_sensors'] + d['num_hidden'],
         d['num_sensors'] + d['num_hidden'] + d['num_motors']))
     num_sensor_states = 2**d['num_sensors']

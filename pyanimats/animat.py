@@ -78,6 +78,7 @@ class Animat:
         self.fitness = ExponentialFitness(
             experiment.fitness_transform or
             constants.FITNESS_TRANSFORMS[experiment.fitness_function])
+        self.alt_fitness = (0, 0)
         self._dirty_fitness = True
         self._correct = False
         self._incorrect = False
@@ -144,7 +145,10 @@ class Animat:
         copy.parent = self.parent
         copy.random = self.random
         copy.gen = deepcopy(self.gen)
+
+        # TODO this is a kludge, fix
         copy.fitness = deepcopy(self.fitness)
+        copy.alt_fitness = deepcopy(self.alt_fitness)
         copy._dirty_fitness = deepcopy(self._dirty_fitness)
         copy._correct = deepcopy(self._correct)
         copy._incorrect = deepcopy(self._incorrect)
@@ -165,11 +169,12 @@ class Animat:
             'incorrect': self._incorrect,
             'fitness': self.fitness
         }
+        d['alt_fit'] = self.alt_fitness
         if not compact:
             d['tpm'] = self.tpm
             d['cm'] = self.cm
             if experiment:
-                d['experiment'] = self._experiment
+                d['exp'] = self._experiment
         return d
 
     # TODO compute once
@@ -336,6 +341,8 @@ def from_json(dictionary, experiment=None, parent=None):
     animat.parent = parent
     animat.gen = dictionary['gen']
     animat.fitness.set(dictionary['fitness'])
+    if 'alt_fit' in dictionary:
+        animat.alt_fitness = dictionary['alt_fit']
     animat._correct = dictionary['correct']
     animat._incorrect = dictionary['incorrect']
     validate.json_animat(animat, dictionary)
