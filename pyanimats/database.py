@@ -4,10 +4,9 @@
 
 """Methods for interacting with a TinyDB database of PyAnimats output."""
 
-import json
 import os
-from glob import glob
 
+from . import data
 from . import evolve
 
 
@@ -31,17 +30,12 @@ def insert_all(database, directory, pattern=os.path.join('**', 'output.json'),
                transform=None):
     """Recursively insert files matching ``pattern``."""
     with database as db:
-        data = []
-        paths = glob(os.path.join(directory, pattern))
-        for path in paths:
-            print('Loading {}...'.format(path))
-            with open(path, 'r') as f:
-                data.append(json.load(f))
+        d = data.load_all(directory, pattern, convert=False)
         if transform:
             print('Transforming data...')
-            data = [transform(d) for d in data]
+            d = [transform(x) for x in d]
         print('Inserting data...')
-        return db.insert_multiple(data)
+        return db.insert_multiple(d)
 
 
 def in_range(value, begin, end):
