@@ -60,7 +60,7 @@ experiment:
     num_hidden: 5
     # The number of motors in an animat.
     # NOTE: changing this has not been tested and probably won't work!
-    num_motors: 2
+    num_motors: 0
     # The length of the animat's body.
     # NOTE: cannot be less than 3.
     body_length: 3
