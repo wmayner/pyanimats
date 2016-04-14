@@ -91,7 +91,7 @@ def shortcircuit_if_empty(value=0.0):
 
 
 # TODO document kwargs
-def avg_over_visited_states(upto=False, transform=False, n=None,
+def avg_over_visited_states(upto_attr=False, transform=False, n=None,
                             scrambled=False):
     """A decorator that takes an animat and applies a function for every unique
     state the animat visits during a game (up to the given units only) and
@@ -101,8 +101,7 @@ def avg_over_visited_states(upto=False, transform=False, n=None,
     def decorator(func):
         @wraps(func)
         def wrapper(ind, **kwargs):
-            if upto:
-                upto = getattr(ind, upto)
+            upto = getattr(ind, upto_attr) if upto_attr else False
             game = ind.play_game(scrambled=scrambled)
             sort = n is not None
             unique_states = unique_rows(game.animat_states, upto=upto,
@@ -133,7 +132,7 @@ def wvn_trial(world_trial, noise_trial, state_data, transform, reduce,
     return reduce(world_values) - reduce(noise_values)
 
 
-def wvn(transform=None, reduce=sum, upto=False, shortcircuit=True,
+def wvn(transform=None, reduce=sum, upto_attr=False, shortcircuit=True,
         shortcircuit_value=0.0):
     """Compute the world vs. noise difference for a given function.
 
@@ -159,8 +158,7 @@ def wvn(transform=None, reduce=sum, upto=False, shortcircuit=True,
     def decorator(func):
         @wraps(func)
         def wrapper(ind, **kwargs):
-            if upto:
-                upto = getattr(ind, upto)
+            upto = getattr(ind, upto_attr) if upto_attr else False
             # Play the game and a scrambled version of it.
             world = ind.play_game().animat_states
             noise = ind.play_game(scrambled=True).animat_states
@@ -271,7 +269,7 @@ _register(data_function=extrinsic_causes)(ex)
 
 
 ex_wvn = wvn(transform=unq_concepts, reduce=phi_sum,
-             upto='hidden_motor_indices')(extrinsic_causes)
+             upto_attr='hidden_motor_indices')(extrinsic_causes)
 ex_wvn.__name__ = 'ex_wvn'
 ex_wvn.__doc__ = """Same as `ex` but counting the difference between the sum of
     φ of unique concepts that appear in the world and a scrambled version of
@@ -297,7 +295,7 @@ def all_concepts(ind, state):
 # are no background conditions.
 sp = shortcircuit_if_empty(
     avg_over_visited_states(transform=phi_sum,
-                            upto='hidden_indices')(all_concepts))
+                            upto_attr='hidden_indices')(all_concepts))
 sp.__name__ = 'sp'
 sp.__doc__ = """Sum of φ: Animats are evaluated based on the sum of φ for all
     the concepts of the animat's hidden units, or “brain”, averaged over the
@@ -311,7 +309,7 @@ _register(data_function=all_concepts)(sp)
 
 
 sp_wvn = wvn(transform=unq_concepts, reduce=phi_sum,
-             upto='hidden_indices')(all_concepts)
+             upto_attr='hidden_indices')(all_concepts)
 sp_wvn.__name__ = 'sp_wvn'
 sp_wvn.__doc__ = """Same as `sp` but counting the difference between the sum of
     φ of unique concepts that appear in the world and a scrambled version of
@@ -332,7 +330,7 @@ NUM_BIG_PHI_STATES_TO_COMPUTE = 5
 
 bp = shortcircuit_if_empty(
     avg_over_visited_states(transform=lambda x: x.phi,
-                            upto='sensor_hidden_indices',
+                            upto_attr='sensor_hidden_indices',
                             n=NUM_BIG_PHI_STATES_TO_COMPUTE)(main_complex))
 bp.__name__ = 'bp'
 bp.__doc__ = """Animats are evaluated based on the ϕ-value of their brains,
@@ -354,12 +352,11 @@ _register(data_function=main_complex)(bp_wvn)
 # World vs. noise state differentiation
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 @shortcircuit_if_empty()
-def sd_wvn(ind, upto='hidden_indices'):
+def sd_wvn(ind, upto_attr='hidden_indices'):
     """State differentiation (world vs. noise): Measures the number of
     hidden-unit states that appear only in the world or only in the scrambled
     world."""
-    if upto:
-        upto = getattr(ind, upto)
+    upto = getattr(ind, upto_attr) if upto_attr else False
     world = ind.play_game().animat_states
     noise = ind.play_game(scrambled=True).animat_states
     num_trials = world.shape[0]
