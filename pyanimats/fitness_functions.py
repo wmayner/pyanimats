@@ -258,7 +258,7 @@ def extrinsic_causes(ind, state):
     return list(filter(lambda m: m.phi > 0, mice))
 
 
-ex = shortcircuit_if_empty(
+ex = shortcircuit_if_empty()(
     avg_over_visited_states(transform=phi_sum)(extrinsic_causes))
 ex.__name__ = 'ex'
 ex.__doc__ = """Extrinsic cause information: Animats are evaluated based on the
@@ -293,7 +293,7 @@ def all_concepts(ind, state):
 # The states only need to be considered unique up to the hidden units because
 # the subsystem is always the entire network (not the main complex), so there
 # are no background conditions.
-sp = shortcircuit_if_empty(
+sp = shortcircuit_if_empty()(
     avg_over_visited_states(transform=phi_sum,
                             upto_attr='hidden_indices')(all_concepts))
 sp.__name__ = 'sp'
@@ -328,7 +328,7 @@ def main_complex(ind, state):
 # reasons. Ideally we would consider every unique state.
 NUM_BIG_PHI_STATES_TO_COMPUTE = 5
 
-bp = shortcircuit_if_empty(
+bp = shortcircuit_if_empty()(
     avg_over_visited_states(transform=lambda x: x.phi,
                             upto_attr='sensor_hidden_indices',
                             n=NUM_BIG_PHI_STATES_TO_COMPUTE)(main_complex))
