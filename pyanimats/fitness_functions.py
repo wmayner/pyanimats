@@ -223,8 +223,10 @@ def mi(ind, scrambled=False):
     """Mutual information: Animats are evaluated based on the mutual
     information between their sensors and motor over the course of a game.
     """
+    if ind.num_motors == 0:
+        return 0.0
     states = ind.play_game(scrambled=scrambled).animat_states
-    # The contingency matrix has a row for every sensors state and a column for
+    # The contingency matrix has a row for every sensor state and a column for
     # every motor state.
     contingency = np.zeros([ind.num_sensor_states, ind.num_motor_states])
     # Get only the sensor and motor states.
