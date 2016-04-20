@@ -20,32 +20,49 @@ HIT_TYPE = {c_animat.CORRECT_CATCH: 'CORRECT_CATCH',
             c_animat.WRONG_CATCH: 'WRONG_CATCH',
             c_animat.CORRECT_AVOID: 'CORRECT_AVOID',
             c_animat.WRONG_AVOID: 'WRONG_AVOID'}
-# Scale raw fitness values so they're mostly in the range 64–128 before using
-# them as an exponent (this depends on which fitness function is used).
-FITNESS_TRANSFORMS = {
-    'nat':        {'base': 1.02, 'scale':  1 / 1, 'add': 0},
-    'mi':         {'base': 1.02, 'scale': 64 / 1, 'add': 64},
-    'mi_nat':     {'base': 1.02, 'scale':  1 / 2, 'add': 0},
-    'mi_wvn':     {'base': 1.02, 'scale': 64 / 1, 'add': 64},
-    'mi_wvn_nat': {'base': 1.02, 'scale':  1 / 2, 'add': 0},
-    'ex':         {'base': 1.02, 'scale': 64 / 4, 'add': 64},
-    'ex_nat':     {'base': 1.02, 'scale':  1 / 4, 'add': 0},
-    'ex_wvn':     {'base': 1.02, 'scale': 64 / 1, 'add': 64},
-    'ex_wvn_nat': {'base': 1.02, 'scale':  1 / 4, 'add': 0},
-    'sp':         {'base': 1.02, 'scale': 64 / 4, 'add': 64},
-    'sp_nat':     {'base': 1.02, 'scale':  1 / 4, 'add': 0},
-    'sp_wvn':     {'base': 1.02, 'scale': 64 / 1, 'add': 64},
-    'sp_wvn_nat': {'base': 1.02, 'scale':  1 / 4, 'add': 0},
-    'bp':         {'base': 1.02, 'scale': 64 / 4, 'add': 64},
-    'bp_nat':     {'base': 1.02, 'scale':  1 / 4, 'add': 0},
-    'bp_wvn':     {'base': 1.02, 'scale': 64 / 4, 'add': 64},
-    'bp_wvn_nat': {'base': 1.02, 'scale':  1 / 4, 'add': 0},
-    'sd_wvn':     {'base': 1.02, 'scale': 64 / 8, 'add': 64},
-    'sd_wvn_nat': {'base': 1.02, 'scale':  1 / 4, 'add': 0},
-    'mat':        {'base': 1.02, 'scale': 64 / 1, 'add': 64},
-    'mat_nat':    {'base': 1.02, 'scale':  1 / 4, 'add': 0},
-}
+
 MINUTES = 60
 HOURS = 60 * MINUTES
 DAYS = 24 * HOURS
 WEEKS = 7 * DAYS
+
+# Scale raw fitness values so they're mostly in the desired range before using
+# them as an exponent (this depends on which fitness function is used).
+DESIRED_RANGE = {'min': 64, 'max': 128}
+
+
+def normalization_params(minimum, maximum):
+    """Return the scale and constant factor"""
+    add = DESIRED_RANGE['min'] - minimum
+    scale = (DESIRED_RANGE['max'] - add) / maximum
+    return {'add': add, 'scale': scale}
+
+
+DEFAULT_BASE = 1.02
+RANGES = {
+    'nat':        (0, 128),
+    'mi':         (0, 2),
+    'mi_nat':     (0, 1),
+    'mi_wvn':     (0, 1),
+    'mi_wvn_nat': (0, 1),
+    'ex':         (0, 4),
+    'ex_nat':     (0, 1),
+    'ex_wvn':     (0, 1),
+    'ex_wvn_nat': (0, 1),
+    'sp':         (0, 4),
+    'sp_nat':     (0, 1),
+    'sp_wvn':     (0, 1),
+    'sp_wvn_nat': (0, 1),
+    'bp':         (0, 4),
+    'bp_nat':     (0, 1),
+    'bp_wvn':     (0, 4),
+    'bp_wvn_nat': (0, 1),
+    'sd_wvn':     (0, 4),
+    'sd_wvn_nat': (0, 1),
+    'mat':        (0, 1),
+    'mat_nat':    (0, 1),
+}
+FITNESS_TRANSFORMS = {k: normalization_params(r[0], r[1])
+                      for k, r in RANGES.items()}
+for k, params in FITNESS_TRANSFORMS.items():
+    params.update(base=DEFAULT_BASE)
