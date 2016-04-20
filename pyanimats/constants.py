@@ -57,7 +57,7 @@ RANGES = {
     'bp_nat':     (0, 1),
     'bp_wvn':     (0, 4),
     'bp_wvn_nat': (0, 1),
-    'sd_wvn':     (0, 4),
+    'sd_wvn':     (0, 8),
     'sd_wvn_nat': (0, 1),
     'mat':        (0, 1),
     'mat_nat':    (0, 1),
