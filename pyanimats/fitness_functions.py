@@ -14,7 +14,8 @@ import numpy as np
 import pyphi
 from sklearn.metrics import mutual_info_score
 
-from . import constants
+from . import constants, utils
+from .constants import RANGES
 from .utils import unique_rows
 
 _WRAPPER_WIDTH = 72
@@ -204,6 +205,24 @@ def phi_sum(phi_objects):
     return sum(o.phi for o in phi_objects)
 
 
+def product(f1, f2, weights=(1, 1)):
+    """Returns the product of a pair of fitness functions.
+
+    The raw values of the fitness functions are transformed according to
+    ``constants.FITNESS_TRANSFORMS`` before being multiplied.
+    """
+    norm1 = utils.normalizer(RANGES[f1.__name__])
+    norm2 = utils.normalizer(RANGES[f2.__name__])
+
+    def product_func(ind):
+        fitness1, fitness2 = f1(ind), f2(ind)
+        normalized1, normalized2 = norm1(fitness1), norm2(fitness2)
+        return (normalized1 * normalized2, fitness1, fitness2)
+
+    product_func.__name__ = f1.__name__ + '_' + f2.__name__
+    return product_func
+
+
 # Natural fitness
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -242,10 +261,7 @@ def mi(ind, scrambled=False):
 _register()(mi)
 
 
-def mi_nat(ind):
-    """The product of the ``mi`` and ``nat`` measures."""
-    f1, f2 = mi(ind), nat(ind)
-    return (f1 * f2, f1, f2)
+mi_nat = product(mi, nat)
 _register(data_function=mi)(mi_nat)
 
 
@@ -255,10 +271,7 @@ def mi_wvn(ind):
 _register(data_function=mi)(mi_wvn)
 
 
-def mi_wvn_nat(ind):
-    """The product of the ``mi_wvn`` and ``nat`` measures."""
-    f1, f2 = mi_wvn(ind), nat(ind)
-    return (f1 * f2, f1, f2)
+mi_wvn_nat = product(mi_wvn, nat)
 _register(data_function=mi)(mi_wvn_nat)
 
 
@@ -288,10 +301,7 @@ ex.__doc__ = """Extrinsic cause information: Animats are evaluated based on the
 _register(data_function=extrinsic_causes)(ex)
 
 
-def ex_nat(ind):
-    """The product of the ``ex`` and ``nat`` measures."""
-    f1, f2 = ex(ind), nat(ind)
-    return (f1 * f2, f1, f2)
+ex_nat = product(ex, nat)
 _register(data_function=extrinsic_causes)(ex_nat)
 
 
@@ -304,10 +314,7 @@ ex_wvn.__doc__ = """Same as `ex` but counting the difference between the sum of
 _register(data_function=extrinsic_causes)(ex_wvn)
 
 
-def ex_wvn_nat(ind):
-    """The product of the ``ex_wvn`` and ``nat`` measures."""
-    f1, f2 = ex_wvn(ind), nat(ind)
-    return (f1 * f2, f1, f2)
+ex_wvn_nat = product(ex_wvn, nat)
 _register(data_function=extrinsic_causes)(ex_wvn_nat)
 
 
@@ -342,10 +349,7 @@ sp.__doc__ = """Sum of φ: Animats are evaluated based on the sum of φ for all
 _register(data_function=all_concepts)(sp)
 
 
-def sp_nat(ind):
-    """The product of the ``sp`` and ``nat`` measures."""
-    f1, f2 = sp(ind), nat(ind)
-    return (f1 * f2, f1, f2)
+sp_nat = product(sp, nat)
 _register(data_function=all_concepts)(sp_nat)
 
 
@@ -358,10 +362,7 @@ sp_wvn.__doc__ = """Same as `sp` but counting the difference between the sum of
 _register(data_function=all_concepts)(sp_wvn)
 
 
-def sp_wvn_nat(ind):
-    """The product of the ``sp_wvn`` and ``nat`` measures."""
-    f1, f2 = sp_wvn(ind), nat(ind)
-    return (f1 * f2, f1, f2)
+sp_wvn_nat = product(sp_wvn, nat)
 _register(data_function=all_concepts)(sp_wvn_nat)
 
 
@@ -389,10 +390,7 @@ bp.__doc__ = """Animats are evaluated based on the ϕ-value of their brains,
 _register(data_function=main_complex)(bp)
 
 
-def bp_nat(ind):
-    """The product of the ``bp`` and ``nat`` measures."""
-    f1, f2 = bp(ind), nat(ind)
-    return (f1 * f2, f1, f2)
+bp_nat = product(bp, nat)
 _register(data_function=main_complex)(bp_nat)
 
 
@@ -404,10 +402,7 @@ bp_wvn.__doc__ = """Same as `bp` but counting the difference between world and
 _register(data_function=main_complex)(bp_wvn)
 
 
-def bp_wvn_nat(ind):
-    """The product of the ``bp_wvn`` and ``nat`` measures."""
-    f1, f2 = bp_wvn(ind), nat(ind)
-    return (f1 * f2, f1, f2)
+bp_wvn_nat = product(bp_wvn, nat)
 _register(data_function=main_complex)(bp_wvn_nat)
 
 
@@ -435,10 +430,7 @@ def sd_wvn(ind, upto_attr='hidden_indices'):
 _register(data_function=main_complex)(sd_wvn)
 
 
-def sd_wvn_nat(ind):
-    """The product of the ``sd_wvn`` and ``nat`` measures."""
-    f1, f2 = sd_wvn(ind), nat(ind)
-    return (f1 * f2, f1, f2)
+sd_wvn_nat = product(sd_wvn, nat)
 _register(data_function=main_complex)(sd_wvn_nat)
 
 
@@ -589,9 +581,5 @@ def mat(ind):
             existence * raw_matching)
 _register(data_function=main_complex)(mat)
 
-
-def mat_nat(ind):
-    """The product of the ``mat`` and ``nat`` measures."""
-    f1, f2 = mat(ind)[0], nat(ind)
-    return (f1 * f2, f1, f2)
+mat_nat = product(mat, nat)
 _register(data_function=main_complex)(mat_nat)
