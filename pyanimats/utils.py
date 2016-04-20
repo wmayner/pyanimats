@@ -17,6 +17,20 @@ from .__about__ import __version__
 from .constants import DAYS, HOURS, MINUTES, WEEKS
 
 
+def normalizer(r, target_r=(0, 1)):
+    """Return a function that maps the given range to the target range."""
+    minimum = r[0]
+    maximum = r[1]
+    target_minimum = target_r[0]
+    target_maximum = target_r[1]
+
+    def norm(x):
+        return ((x - minimum) / (maximum - minimum) *
+                target_maximum + target_minimum)
+
+    return norm
+
+
 def get_version():
     """Return repo description if available, otherwise version number."""
     git_describe = subprocess.run(['git', 'describe'], stdout=subprocess.PIPE)
