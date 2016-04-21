@@ -119,8 +119,8 @@ class Evolution:
         # Convert the Phylogeny back to a normal list.
         state['population'] = list(state['population'])
         # Re-initialize references to our RNG on the animats.
-        for animat in state['population']:
-            animat.random = state['random']
+        for a in state['population']:
+            a.random = state['random']
         # Initialize from the saved experiment and simulation.
         self.__init__(state['experiment'], state['simulation'])
         # Update with the saved state.
@@ -168,18 +168,18 @@ class Evolution:
         # TODO: why does directly cloning the population prevent evolution?!
         offspring = [deepcopy(x) for x in population]
         # Variation.
-        for i, animat in enumerate(offspring):
+        for i, a in enumerate(offspring):
             # Use our RNG.
-            animat.random = self.random
+            a.random = self.random
             # Update parent reference.
-            animat.parent = population[i]
+            a.parent = population[i]
             # Update generation number.
-            animat.gen = gen
+            a.gen = gen
             # Mutate.
-            animat.mutate()
+            a.mutate()
             # Determine whether fitness needs updating.
-            animat._dirty_fitness = not np.array_equal(animat.tpm,
-                                                       animat.parent.tpm)
+            a._dirty_fitness = not np.array_equal(a.tpm,
+                                                  a.parent.tpm)
         # Evaluation.
         self.evaluate(offspring)
         # Recording.
