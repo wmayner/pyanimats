@@ -205,7 +205,7 @@ def phi_sum(phi_objects):
     return sum(o.phi for o in phi_objects)
 
 
-def product(f1, f2, weights=(1, 1)):
+def product(f1, f2, iterations=(1, 1)):
     """Returns the product of a pair of fitness functions.
 
     The raw values of the fitness functions are transformed according to
@@ -215,7 +215,8 @@ def product(f1, f2, weights=(1, 1)):
     norm2 = utils.normalizer(RANGES[f2.__name__])
 
     def product_func(ind):
-        fitness1, fitness2 = f1(ind), f2(ind)
+        fitness1 = sum([f1(ind) for i in range(iterations[0])]) / iterations[0]
+        fitness2 = sum([f2(ind) for i in range(iterations[1])]) / iterations[1]
         normalized1, normalized2 = norm1(fitness1), norm2(fitness2)
         return (normalized1 * normalized2, fitness1, fitness2)
 
@@ -430,7 +431,7 @@ def sd_wvn(ind, upto_attr='hidden_indices'):
 _register(data_function=main_complex)(sd_wvn)
 
 
-sd_wvn_nat = product(sd_wvn, nat)
+sd_wvn_nat = product(sd_wvn, nat, iterations=(20, 1))
 _register(data_function=main_complex)(sd_wvn_nat)
 
 
