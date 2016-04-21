@@ -6,20 +6,20 @@ simulation:
     # Simulation
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Number of generations to evolve.
-    ngen: 100
+    ngen: 100000
     # Length of checkpoint interval in minutes.
-    checkpoint_interval: 120
+    checkpoint_interval: 1440
     # Generational interval at which to print evolution status to the screen. 
     # NOTE: printing to the screen is a slow operation; setting a short interval
     # can significantly impact performance if simulating a generation is fast.
-    status_interval: 1
+    status_interval: 100
 
     # Data
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Generational interval at which to record fitness data into the logbook.
     logbook_interval: 1
-    # Number of animats to sample from the lineage of the final animats.
-    sample_interval: 5
+    # Number of genomes to sample from the lineage of the final animats.
+    sample_interval: 200
     # Whether to save the lingeages of all animats in the final population, or
     # just the lineage of the fittest.
     all_lineages: false
@@ -68,7 +68,6 @@ experiment:
     # Environment
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # The width of the animats' environment.
-    # NOTE: must be a power of 2.
     world_width: 16
     # The height of the animats' environment.
     world_height: 36
@@ -87,10 +86,10 @@ experiment:
     # - The hit multiplier is added to the animat's score if there was a
     #   hit, and subtracted if there wasn't.
     task: 
-    - [ 1, '1000000000000000']
-    - [-1, '1110000000000000']
-    - [ 1, '1000000000000000']
-    - [-1, '1110000000000000']
+    - [ 1, '1110000000000000']
+    - [-1, '1111000000000000']
+    - [ 1, '1111110000000000']
+    - [-1, '1111100000000000']
 
     # Mutation
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
