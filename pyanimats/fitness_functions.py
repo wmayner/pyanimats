@@ -9,6 +9,7 @@ Fitness functions for driving animat evolution.
 import textwrap
 from collections import Counter, OrderedDict
 from functools import wraps
+from math import sqrt
 
 import numpy as np
 import pyphi
@@ -218,7 +219,7 @@ def product(f1, f2, iterations=(1, 1)):
         fitness1 = sum([f1(ind) for i in range(iterations[0])]) / iterations[0]
         fitness2 = sum([f2(ind) for i in range(iterations[1])]) / iterations[1]
         normalized1, normalized2 = norm1(fitness1), norm2(fitness2)
-        return (normalized1 * normalized2, fitness1, fitness2)
+        return (sqrt(max(0.0, normalized1 * normalized2)), fitness1, fitness2)
 
     product_func.__name__ = f1.__name__ + '_' + f2.__name__
     return product_func
