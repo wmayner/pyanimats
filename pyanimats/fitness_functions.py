@@ -396,7 +396,7 @@ _register(data_function=main_complex)(bp_nat)
 
 
 bp_wvn = shortcircuit_if_empty()(wvn(reduce=phi_sum,
-                                   upto_attr='hidden_indices')(main_complex))
+                                 upto_attr='hidden_indices')(main_complex))
 bp_wvn.__name__ = 'bp_wvn'
 bp_wvn.__doc__ = """Same as `bp` but counting the difference between world and
     noise."""
