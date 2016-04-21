@@ -55,49 +55,37 @@ class Evolution:
         # Create initial population.
         self.population = self.toolbox.population(n=self.experiment.popsize)
         # Create statistics trackers.
-        raw_fitness_stats = tools.Statistics(key=lambda a: a.fitness.raw)
-        raw_fitness_stats.register('max', np.max)
+        fitness_stats = tools.Statistics(key=lambda a: a.fitness.raw)
+
+        if self.experiment.fitness_function in MULTIVALUED_FITNESS_FUNCTIONS:
+            # Initialize the population with fitnesses that can be compared as
+            # sequences.
+            for a in self.population:
+                a.fitness.set((0.0, 0.0, 0.0))
+            # Round the fitnesses for readability and saving storage space.
+            fitness_stats.register(
+                'max', lambda x: tuple(round(f, 5) for f in max(x)))
+        else:
+            fitness_stats.register('max', max)
+
         exp_fitness_stats = tools.Statistics(key=lambda a: a.fitness.value)
-        exp_fitness_stats.register('max', np.max)
+        exp_fitness_stats.register('raw', max)
         game_stats = tools.Statistics(key=lambda a: (a.correct, a.incorrect))
         game_stats.register('correct', lambda x: np.max(x, 0)[0])
         game_stats.register('incorrect', lambda x: np.max(x, 0)[1])
-        # Stats objects for alternate matching measures.
-        alt_fitness_stats = tools.Statistics(key=lambda a: a.alt_fitness)
-        alt_fitness_stats.register('alternate-1', lambda x: np.max(x, 0)[0])
-        alt_fitness_stats.register('alternate-2', lambda x: np.max(x, 0)[1])
-        # Stats objects for combination measures.
         # Initialize a MultiStatistics object for convenience that allows for
         # only one call to `compile`.
-        if self.experiment.fitness_function in MULTIVALUED_FITNESS_FUNCTIONS:
-            self.mstats = tools.MultiStatistics(fitness=raw_fitness_stats,
-                                                exp_fitness=exp_fitness_stats,
-                                                alt_fitness=alt_fitness_stats,
-                                                game=game_stats)
-            self.logbook.header.insert(3, 'alt_fitness')
-        else:
-            self.mstats = tools.MultiStatistics(fitness=raw_fitness_stats,
-                                                exp_fitness=exp_fitness_stats,
-                                                game=game_stats,)
+        self.mstats = tools.MultiStatistics(fitness=fitness_stats,
+                                            exp_fitness=exp_fitness_stats,
+                                            game=game_stats)
         # Initialize evaluate function.
-        fitness_function = \
+        self.fitness_function = \
             fitness_functions.__dict__[self.experiment.fitness_function]
 
-        def multi_fit_evaluate(population):
-            animats = [a for a in population if a._dirty_fitness]
-            for animat in animats:
-                fitness = fitness_function(animat)
-                animat.fitness.set(fitness[0])
-                animat.alt_fitness = fitness[1:]
-
-        def single_fit_evaluate(population):
-            animats = [a for a in population if a._dirty_fitness]
-            for animat in animats:
-                animat.fitness.set(fitness_function(animat))
-
-        self.evaluate = (
-            multi_fit_evaluate if self.experiment.fitness_function in
-            MULTIVALUED_FITNESS_FUNCTIONS else single_fit_evaluate)
+    def evaluate(self, population):
+        animats = [a for a in population if a._dirty_fitness]
+        for a in animats:
+            a.fitness.set(self.fitness_function(a))
 
     def update_simulation(self, opts):
         self.simulation.update(opts)
@@ -108,7 +96,6 @@ class Evolution:
         # Copy the instance attributes.
         state = self.__dict__.copy()
         # Remove unpicklable attributes.
-        del state['evaluate']
         del state['mstats']
         # Save the population as a Phylogeny to recover lineages later.
         state['population'] = Phylogeny(state['population'],

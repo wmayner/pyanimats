@@ -391,9 +391,13 @@ class ExponentialFitness:
     def value(self):
         return self.exponential
 
-    def set(self, v):
-        self.raw = v
-        self.exponential = self.base**(self.scale * v + self.add)
+    def set(self, raw):
+        self.raw = raw
+        try:
+            raw = raw[0]
+        except (IndexError, TypeError):
+            pass
+        self.exponential = self.base**(self.scale * raw + self.add)
 
     def serializable(self):
         return self.raw
