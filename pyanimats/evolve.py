@@ -69,7 +69,7 @@ class Evolution:
             fitness_stats.register('max', max)
 
         exp_fitness_stats = tools.Statistics(key=lambda a: a.fitness.value)
-        exp_fitness_stats.register('raw', max)
+        exp_fitness_stats.register('max', max)
         game_stats = tools.Statistics(key=lambda a: (a.correct, a.incorrect))
         game_stats.register('correct', lambda x: np.max(x, 0)[0])
         game_stats.register('incorrect', lambda x: np.max(x, 0)[1])
@@ -97,6 +97,7 @@ class Evolution:
         state = self.__dict__.copy()
         # Remove unpicklable attributes.
         del state['mstats']
+        del state['fitness_function']
         # Save the population as a Phylogeny to recover lineages later.
         state['population'] = Phylogeny(state['population'],
                                         step=self.simulation.sample_interval)
