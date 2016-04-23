@@ -432,7 +432,7 @@ def sd_wvn(ind, upto_attr='hidden_indices'):
 _register(data_function=main_complex)(sd_wvn)
 
 
-sd_wvn_nat = product(sd_wvn, nat, iterations=(20, 1))
+sd_wvn_nat = product(sd_wvn, nat, iterations=(10, 1))
 _register(data_function=main_complex)(sd_wvn_nat)
 
 
