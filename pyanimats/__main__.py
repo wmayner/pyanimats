@@ -106,7 +106,8 @@ cli_opt_to_simulation = {
 # Map CLI options to experiment parameter names and data types.
 cli_opt_to_experiment = {
     '--rng-seed':         ('rng_seed', int),
-    '--fitness':          ('fitness_function', str),
+    '--fitness':          ('fitness_function',
+                           lambda f: tuple(f.split(','))),
     '--pop-size':         ('popsize', int),
     '--init-genome':      ('init_genome', str),
     '--jumpstart':        ('init_start_codons', int),
@@ -137,6 +138,8 @@ def load_param_file(filepath, experiment_overrides=None,
     if filepath is not None:
         with open(filepath) as f:
             params = yaml.load(f)
+            params['experiment']['fitness_function'] = tuple(
+                params['experiment']['fitness_function'].split(','))
             validate.param_file(params)
             experiment.update(params['experiment'])
             simulation.update(params['simulation'])

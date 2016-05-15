@@ -110,7 +110,8 @@ def experiment(d):
     # Check that all necessary params are present.
     _assert_has_keys(d, REQUIRED_EXPERIMENT_KEYS, 'experiment parameters')
     # Evolution
-    if d['fitness_function'] not in fitness_functions.metadata.keys():
+    if any(f not in fitness_functions.metadata.keys()
+           for f in d['fitness_function']):
         raise ValueError(
             'invalid experiment: `fitness_function` must be one of '
             '{}.'.format(list(fitness_functions.metadata.keys())))

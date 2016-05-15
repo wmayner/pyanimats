@@ -9,14 +9,12 @@ Fitness functions for driving animat evolution.
 import textwrap
 from collections import Counter, OrderedDict
 from functools import wraps
-from math import sqrt
 
 import numpy as np
 import pyphi
 from sklearn.metrics import mutual_info_score
 
-from . import constants, utils
-from .constants import RANGES
+from . import constants
 from .utils import unique_rows
 
 _WRAPPER_WIDTH = 72
@@ -206,25 +204,6 @@ def phi_sum(phi_objects):
     return sum(o.phi for o in phi_objects)
 
 
-def product(f1, f2, iterations=(1, 1)):
-    """Returns the product of a pair of fitness functions.
-
-    The raw values of the fitness functions are transformed according to
-    ``constants.FITNESS_TRANSFORMS`` before being multiplied.
-    """
-    norm1 = utils.normalizer(RANGES[f1.__name__])
-    norm2 = utils.normalizer(RANGES[f2.__name__])
-
-    def product_func(ind):
-        fitness1 = sum([f1(ind) for i in range(iterations[0])]) / iterations[0]
-        fitness2 = sum([f2(ind) for i in range(iterations[1])]) / iterations[1]
-        normalized1, normalized2 = norm1(fitness1), norm2(fitness2)
-        return (sqrt(max(0.0, normalized1 * normalized2)), fitness1, fitness2)
-
-    product_func.__name__ = f1.__name__ + '_' + f2.__name__
-    return product_func
-
-
 # Natural fitness
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -263,18 +242,10 @@ def mi(ind, scrambled=False):
 _register()(mi)
 
 
-mi_nat = product(mi, nat)
-_register(data_function=mi)(mi_nat)
-
-
 def mi_wvn(ind):
     """Same as `mi` but counting the difference between world and noise."""
     return mi(ind, scrambled=False) - mi(ind, scrambled=True)
 _register(data_function=mi)(mi_wvn)
-
-
-mi_wvn_nat = product(mi_wvn, nat)
-_register(data_function=mi)(mi_wvn_nat)
 
 
 # Extrinsic cause information
@@ -303,10 +274,6 @@ ex.__doc__ = """Extrinsic cause information: Animats are evaluated based on the
 _register(data_function=extrinsic_causes)(ex)
 
 
-ex_nat = product(ex, nat)
-_register(data_function=extrinsic_causes)(ex_nat)
-
-
 ex_wvn = wvn(transform=unq_concepts, reduce=phi_sum,
              upto_attr='hidden_motor_indices')(extrinsic_causes)
 ex_wvn.__name__ = 'ex_wvn'
@@ -314,10 +281,6 @@ ex_wvn.__doc__ = """Same as `ex` but counting the difference between the sum of
     φ of unique concepts that appear in the world and a scrambled version of
     it."""
 _register(data_function=extrinsic_causes)(ex_wvn)
-
-
-ex_wvn_nat = product(ex_wvn, nat)
-_register(data_function=extrinsic_causes)(ex_wvn_nat)
 
 
 # Sum of small-phi
@@ -351,10 +314,6 @@ sp.__doc__ = """Sum of φ: Animats are evaluated based on the sum of φ for all
 _register(data_function=all_concepts)(sp)
 
 
-sp_nat = product(sp, nat)
-_register(data_function=all_concepts)(sp_nat)
-
-
 sp_wvn = wvn(transform=unq_concepts, reduce=phi_sum,
              upto_attr='hidden_indices')(all_concepts)
 sp_wvn.__name__ = 'sp_wvn'
@@ -362,10 +321,6 @@ sp_wvn.__doc__ = """Same as `sp` but counting the difference between the sum of
     φ of unique concepts that appear in the world and a scrambled version of
     it."""
 _register(data_function=all_concepts)(sp_wvn)
-
-
-sp_wvn_nat = product(sp_wvn, nat)
-_register(data_function=all_concepts)(sp_wvn_nat)
 
 
 # Big-Phi
@@ -392,20 +347,12 @@ bp.__doc__ = """Animats are evaluated based on the ϕ-value of their brains,
 _register(data_function=main_complex)(bp)
 
 
-bp_nat = product(bp, nat)
-_register(data_function=main_complex)(bp_nat)
-
-
 bp_wvn = shortcircuit_if_empty()(wvn(reduce=phi_sum,
                                  upto_attr='hidden_indices')(main_complex))
 bp_wvn.__name__ = 'bp_wvn'
 bp_wvn.__doc__ = """Same as `bp` but counting the difference between world and
     noise."""
 _register(data_function=main_complex)(bp_wvn)
-
-
-bp_wvn_nat = product(bp_wvn, nat)
-_register(data_function=main_complex)(bp_wvn_nat)
 
 
 # World vs. noise state differentiation
@@ -430,10 +377,6 @@ def sd_wvn(ind, upto_attr='hidden_indices'):
     ]
     return sum(differences) / len(differences)
 _register(data_function=main_complex)(sd_wvn)
-
-
-sd_wvn_nat = product(sd_wvn, nat, iterations=(10, 1))
-_register(data_function=main_complex)(sd_wvn_nat)
 
 
 # Matching
@@ -592,6 +535,3 @@ def mat(ind, iterations=20):
             raw_matching_weighted.mean(),
             existence * raw_matching.mean())
 _register(data_function=main_complex)(mat)
-
-mat_nat = product(mat, nat)
-_register(data_function=main_complex)(mat_nat)

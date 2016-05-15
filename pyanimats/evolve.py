@@ -16,8 +16,8 @@ import numpy as np
 from deap import base, tools
 from munch import Munch
 
-from . import animat, c_animat, fitness_functions, utils, validate
-from .fitness_functions import MULTIVALUED_FITNESS_FUNCTIONS
+from . import animat, c_animat, utils, validate
+from .fitness_transforms import ExponentialMultiFitness
 from .animat import Animat
 from .experiment import Experiment
 from .phylogeny import Phylogeny
@@ -54,21 +54,18 @@ class Evolution:
         self.logbook.header = ['gen', 'fitness', 'exp_fitness', 'game']
         # Create initial population.
         self.population = self.toolbox.population(n=self.experiment.popsize)
+
+        def rounder(obj, precision=4):
+            """Recursively round all contents of ``obj`` to ``precision``."""
+            if isinstance(obj, (float, int)):
+                return round(obj, precision)
+            else:
+                return tuple(rounder(x) for x in obj)
+
         # Create statistics trackers.
-        fitness_stats = tools.Statistics(key=lambda a: a.fitness.raw)
-
-        if self.experiment.fitness_function in MULTIVALUED_FITNESS_FUNCTIONS:
-            # Initialize the population with fitnesses that can be compared as
-            # sequences.
-            for a in self.population:
-                a.fitness.set((0.0, 0.0, 0.0))
-            # Round the fitnesses for readability and saving storage space.
-            fitness_stats.register(
-                'max', lambda x: tuple(round(f, 5) for f in max(x)))
-        else:
-            fitness_stats.register('max', max)
-
-        exp_fitness_stats = tools.Statistics(key=lambda a: a.fitness.value)
+        fitness_stats = tools.Statistics(key=lambda a: rounder(a.raw_fitness))
+        fitness_stats.register('max', max)
+        exp_fitness_stats = tools.Statistics(key=lambda a: rounder(a.fitness))
         exp_fitness_stats.register('max', max)
         game_stats = tools.Statistics(key=lambda a: (a.correct, a.incorrect))
         game_stats.register('correct', lambda x: np.max(x, 0)[0])
@@ -78,14 +75,15 @@ class Evolution:
         self.mstats = tools.MultiStatistics(fitness=fitness_stats,
                                             exp_fitness=exp_fitness_stats,
                                             game=game_stats)
-        # Initialize evaluate function.
-        self.fitness_function = \
-            fitness_functions.__dict__[self.experiment.fitness_function]
+        # Transform the fitness function.
+        self.fitness_function = ExponentialMultiFitness(
+            self.experiment.fitness_function,
+            self.experiment.fitness_transform)
 
     def evaluate(self, population):
         animats = [a for a in population if a._dirty_fitness]
         for a in animats:
-            a.fitness.set(self.fitness_function(a))
+            a.fitness, a.raw_fitness = self.fitness_function(a)
 
     def update_simulation(self, opts):
         self.simulation.update(opts)
@@ -126,14 +124,13 @@ class Evolution:
         Returns
             list: The selected animats.
         """
-        max_fitness = max(animat.fitness.value for animat in animats)
+        max_fitness = max(animat.fitness for animat in animats)
         chosen = []
         for i in range(k):
             done = False
             while not done:
                 candidate = self.random.choice(animats)
-                done = self.random.random() <= (candidate.fitness.value /
-                                                max_fitness)
+                done = self.random.random() <= (candidate.fitness / max_fitness)
             chosen.append(candidate)
         return chosen
 
@@ -242,7 +239,7 @@ class Evolution:
             all_lineages = self.simulation.all_lineages
         # Get the lineage(s).
         if not all_lineages:
-            fittest = max(self.population, key=lambda a: a.fitness.value)
+            fittest = max(self.population, key=lambda a: a.fitness)
             lineage = fittest.lineage(step=self.simulation.sample_interval)
         else:
             lineage = [a.lineage(step=self.simulation.sample_interval)
