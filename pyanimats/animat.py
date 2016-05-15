@@ -113,7 +113,11 @@ class Animat:
         # NOTE: this works as expected because `__getattr__` is only called as
         # a last resort (unlike `__getattribute__`, which should rarely be
         # overriden).
-        return getattr(self._experiment, name)
+        try:
+            return getattr(self._experiment, name)
+        except AttributeError:
+            raise AttributeError(
+                "'Animat' object has no attribute '{}'".format(name))
 
     def __getstate__(self):
         # Exclude the parent pointer, network attributes, dirty flags, and RNG,
