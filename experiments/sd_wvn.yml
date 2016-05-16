@@ -31,8 +31,27 @@ experiment:
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # The random number generator seed to use.
     rng_seed: 0
-    # The fitness function to evolve to.
+    # The fitness function(s) to evolve to. To specify multiple fitness
+    # functions, separate them with a comma.
     fitness_function: 'sd_wvn'
+    # Theoretical (or practical) minimum and maximum values for each fitness
+    # function; used in normalizing the fitness values.
+    fitness_ranges: 
+        # [
+        #     [64, 128],  # First fitness function's range
+        #     [0, 1.86]   # Second fitness function's range
+        # ]
+    # The first function's fitness value is scaled exponentially according to
+    # the formula, after being normalized to 0–1 from the range given above:
+    #   F(R) = B^(S*R + A)
+    # If no `fitness_transform` is set, then the default fitness transform for
+    # is used.
+    fitness_transform:
+        # Otherwise, the constants in the formula above are specified as
+        # follows:
+        # base: 1.02  # B
+        # scale: 64   # A
+        # add: 64     # S
     # Size of the population.
     popsize: 100
     # Must be a path to the output file from a previous run, or `false`.
@@ -40,17 +59,6 @@ experiment:
     # Number of start codons to inject into the initial genome.
     # NOTE: this has no effect if loading from a checkpoint.
     init_start_codons: 0
-    # Raw fitness values are scaled exponentially according to the formula
-    #   F(R) = B^(S*R + A)
-    # If no `fitness_transform` is set, then the default fitness transform for
-    # the given fitness function is used (the `fitness_function` key must still
-    # be present; just leave the value blank).
-    fitness_transform:
-        # Otherwise, the constants in the formula above are specified as
-        # follows:
-        # base: 1.02  # B
-        # scale: 1    # A
-        # add: 0      # S
 
     # Animat
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

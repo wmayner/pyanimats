@@ -6,20 +6,20 @@ simulation:
     # Simulation
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Number of generations to evolve.
-    ngen: 100
+    ngen: 50000
     # Length of checkpoint interval in minutes.
-    checkpoint_interval: 120
+    checkpoint_interval: 1440
     # Generational interval at which to print evolution status to the screen. 
     # NOTE: printing to the screen is a slow operation; setting a short interval
     # can significantly impact performance if simulating a generation is fast.
-    status_interval: 1
+    status_interval: 100
 
     # Data
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Generational interval at which to record fitness data into the logbook.
     logbook_interval: 1
-    # Number of animats to sample from the lineage of the final animats.
-    sample_interval: 5
+    # Number of genomes to sample from the lineage(s) of the final animat(s).
+    sample_interval: 400
     # Whether to save the lingeages of all animats in the final population, or
     # just the lineage of the fittest.
     all_lineages: false
@@ -33,14 +33,14 @@ experiment:
     rng_seed: 0
     # The fitness function(s) to evolve to. To specify multiple fitness
     # functions, separate them with a comma.
-    fitness_function: 'nat,mi'
+    fitness_function: 'mi_wvn'
     # Theoretical (or practical) minimum and maximum values for each fitness
     # function; used in normalizing the fitness values.
     fitness_ranges: 
-        [
-            [64, 128],  # First fitness function's range
-            [0, 1.86]   # Second fitness function's range
-        ]
+        # [
+        #     [64, 128],  # First fitness function's range
+        #     [0, 1.86]   # Second fitness function's range
+        # ]
     # The first function's fitness value is scaled exponentially according to
     # the formula, after being normalized to 0–1 from the range given above:
     #   F(R) = B^(S*R + A)
@@ -49,9 +49,9 @@ experiment:
     fitness_transform:
         # Otherwise, the constants in the formula above are specified as
         # follows:
-        base: 1.02  # B
-        scale: 64   # A
-        add: 64     # S
+        # base: 1.02  # B
+        # scale: 64   # A
+        # add: 64     # S
     # Size of the population.
     popsize: 100
     # Must be a path to the output file from a previous run, or `false`.
@@ -63,9 +63,9 @@ experiment:
     # Animat
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # The number of sensors in an animat.
-    num_sensors: 2
+    num_sensors: 3
     # The number of hidden units in an animat.
-    num_hidden: 4
+    num_hidden: 5
     # The number of motors in an animat.
     # NOTE: changing this has not been tested and probably won't work!
     num_motors: 2
@@ -76,7 +76,6 @@ experiment:
     # Environment
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # The width of the animats' environment.
-    # NOTE: must be a power of 2.
     world_width: 16
     # The height of the animats' environment.
     world_height: 36
@@ -95,10 +94,10 @@ experiment:
     # - The hit multiplier is added to the animat's score if there was a
     #   hit, and subtracted if there wasn't.
     task: 
-    - [ 1, '1000000000000000']
-    - [-1, '1110000000000000']
-    - [ 1, '1000000000000000']
-    - [-1, '1110000000000000']
+    - [ 1, '1110000000000000']
+    - [-1, '1111000000000000']
+    - [ 1, '1111110000000000']
+    - [-1, '1111100000000000']
 
     # Mutation
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
