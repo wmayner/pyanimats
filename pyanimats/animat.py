@@ -148,6 +148,7 @@ class Animat:
         # TODO this is a kludge, fix
         copy.fitness = deepcopy(self.fitness)
         copy._dirty_fitness = deepcopy(self._dirty_fitness)
+        copy.raw_fitness = deepcopy(self.raw_fitness)
         copy._correct = deepcopy(self._correct)
         copy._incorrect = deepcopy(self._incorrect)
         copy._tpm = deepcopy(self._tpm)
@@ -165,7 +166,8 @@ class Animat:
             'gen': self.gen,
             'correct': self._correct,
             'incorrect': self._incorrect,
-            'fitness': self.fitness
+            'fitness': self.fitness,
+            'raw_fitness': self.raw_fitness
         }
         if not compact:
             d['tpm'] = self.tpm
