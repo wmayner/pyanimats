@@ -15,7 +15,7 @@ from . import utils, fitness_functions
 
 # Theoretical minima and theoretical (or in unbounded cases, practical) maxima
 # fitness function values.
-RANGES = {
+DEFAULT_RANGES = {
     'nat':        (64, 128),
     'mi':         (0, 2),
     'mi_wvn':     (0, 1),
@@ -59,10 +59,14 @@ class ExponentialMultiFitness:
         transform (dict): A dictionary containing keys ``base``, ``scale``, and
             ``add``, which are the constants ``B``, ``S``, and ``A`` in the
             formula. Defaults to ``DEFAULT_EXPONENTIAL_TRANSFORM``.
+        ranges (list(tuple(float))): A list of pairs giving the theoretical
+            minimum and maximum values of each fitness function in
+            ``function_names``. Defaults to the those in ``DEFAULT_RANGES``.
     """
 
-    def __init__(self, function_names,
-                 transform=DEFAULT_EXPONENTIAL_TRANSFORM):
+    def __init__(self, function_names, transform=None, ranges=None):
+        self.transform = transform or DEFAULT_EXPONENTIAL_TRANSFORM
+        self.ranges = ranges or [DEFAULT_RANGES[f] for f in function_names]
         self.functions = [fitness_functions.__dict__[f]
                           for f in function_names]
         self.multivalued = [
@@ -70,7 +74,8 @@ class ExponentialMultiFitness:
             for fname in function_names
         ]
         # Get normalizing functions for each fitness function
-        self.norms = [utils.normalizer(RANGES[f]) for f in function_names]
+        self.norms = [utils.normalizer(self.ranges[i])
+                      for i in range(len(function_names))]
 
     def normalize(self, fitnesses):
         # Get the first value if the fitness is multivalued
@@ -107,8 +112,8 @@ def product(f1, f2, iterations=(1, 1)):
     The raw values of the fitness functions are transformed according to
     ``constants.FITNESS_TRANSFORMS`` before being multiplied.
     """
-    norm1 = utils.normalizer(RANGES[f1.__name__])
-    norm2 = utils.normalizer(RANGES[f2.__name__])
+    norm1 = utils.normalizer(DEFAULT_RANGES[f1.__name__])
+    norm2 = utils.normalizer(DEFAULT_RANGES[f2.__name__])
 
     def product_func(ind):
         fitness1 = sum([f1(ind) for i in range(iterations[0])]) / iterations[0]
