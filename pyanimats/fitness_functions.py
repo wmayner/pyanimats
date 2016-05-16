@@ -207,12 +207,12 @@ def phi_sum(phi_objects):
 # Natural fitness
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def nat(ind):
+def nat(ind, scrambled=False):
     """Natural: Animats are evaluated based on the number of game trials they
     successfully complete. For each task given in the ``TASKS`` parameter,
     there is one trial per direction (left or right) of block descent, per
     initial animat position (given by ``config.WORLD_WIDTH``)."""
-    return ind.play_game().correct
+    return ind.play_game(scrambled=scrambled).correct
 _register()(nat)
 
 
