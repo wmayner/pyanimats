@@ -6,7 +6,7 @@ simulation:
     # Simulation
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Number of generations to evolve.
-    ngen: 25000
+    ngen: 50000
     # Length of checkpoint interval in minutes.
     checkpoint_interval: 720
     # Generational interval at which to print evolution status to the screen. 
@@ -32,7 +32,7 @@ experiment:
     # The random number generator seed to use.
     rng_seed: 0
     # The fitness function to evolve to.
-    fitness_function: 'sd_wvn_nat'
+    fitness_function: 'nat,sd_wvn'
     # Size of the population.
     popsize: 100
     # Must be a path to the output file from a previous run, or `false`.
@@ -48,9 +48,9 @@ experiment:
     fitness_transform:
         # Otherwise, the constants in the formula above are specified as
         # follows:
-        # base: 1.02  # B
-        # scale: 1    # A
-        # add: 0      # S
+        base: 1.02  # B
+        scale: 64   # A
+        add: 64     # S
 
     # Animat
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
