@@ -27,3 +27,4 @@ notebooks
 *.md
 *.txt
 *.py
+!pyanimats/*.py
