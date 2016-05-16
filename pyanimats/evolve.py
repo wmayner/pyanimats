@@ -51,9 +51,14 @@ class Evolution:
                               self.toolbox.animat)
         # Initialize logbooks and hall of fame.
         self.logbook = tools.Logbook()
-        self.logbook.header = ['gen', 'fitness', 'exp_fitness', 'game']
+        self.logbook.header = ['gen', 'fitness', 'game']
+        self.logbook.chapters['fitness'].header = ['raw', 'exp']
         # Create initial population.
         self.population = self.toolbox.population(n=self.experiment.popsize)
+        # Transform the fitness function.
+        self.fitness_function = ExponentialMultiFitness(
+            self.experiment.fitness_function,
+            self.experiment.fitness_transform)
 
         def rounder(obj, precision=4):
             """Recursively round all contents of ``obj`` to ``precision``."""
@@ -63,23 +68,17 @@ class Evolution:
                 return tuple(rounder(x) for x in obj)
 
         # Create statistics trackers.
-        fitness_stats = tools.Statistics(key=lambda a: rounder(a.raw_fitness))
-        fitness_stats.register('max', max)
-        exp_fitness_stats = tools.Statistics(key=lambda a: rounder(a.fitness))
-        exp_fitness_stats.register('max', max)
-        game_stats = tools.Statistics(key=lambda a: (a.correct, a.incorrect))
-        game_stats.register('correct', lambda x: np.max(x, 0)[0])
-        game_stats.register('incorrect', lambda x: np.max(x, 0)[1])
+        fitness_stats = tools.Statistics(
+            key=lambda a: (a.fitness, a.raw_fitness))
+        fitness_stats.register('raw', lambda x: rounder(max(x)[1]))
+        fitness_stats.register('exp', lambda x: rounder(max(x)[0]))
+        game_stats = tools.Statistics(key=lambda a: (a.fitness, a.correct))
+        game_stats.register('fittest', lambda x: max(x)[1])
+        game_stats.register('weakest', lambda x: min(x)[1])
         # Initialize a MultiStatistics object for convenience that allows for
         # only one call to `compile`.
         self.mstats = tools.MultiStatistics(fitness=fitness_stats,
-                                            exp_fitness=exp_fitness_stats,
                                             game=game_stats)
-        # Transform the fitness function.
-        self.fitness_function = ExponentialMultiFitness(
-            self.experiment.fitness_function,
-            self.experiment.fitness_transform)
-
     def evaluate(self, population):
         animats = [a for a in population if a._dirty_fitness]
         for a in animats:
