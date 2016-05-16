@@ -58,7 +58,8 @@ class Evolution:
         # Transform the fitness function.
         self.fitness_function = ExponentialMultiFitness(
             self.experiment.fitness_function,
-            self.experiment.fitness_transform)
+            self.experiment.fitness_transform,
+            self.experiment.fitness_ranges)
 
         def rounder(obj, precision=4):
             """Recursively round all contents of ``obj`` to ``precision``."""
@@ -79,6 +80,7 @@ class Evolution:
         # only one call to `compile`.
         self.mstats = tools.MultiStatistics(fitness=fitness_stats,
                                             game=game_stats)
+
     def evaluate(self, population):
         animats = [a for a in population if a._dirty_fitness]
         for a in animats:
