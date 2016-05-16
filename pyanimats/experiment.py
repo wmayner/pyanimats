@@ -112,14 +112,6 @@ def _derive_params(d):
                 init_genome[(i * gap):(i * gap + 1)] = constants.START_CODON
     # If no fitness transform was given, use the defaults.
     if 'fitness_transform' not in d:
-        # The fitness scale of mutual information depends on the number of
-        # sensors/motors.
-        fitness_transform = constants.FITNESS_TRANSFORMS[d['fitness_function']]
-        if d['fitness_function'] in ['mi', 'mi_wvn']:
-            fitness_transform = {'scale': 64 / min(d['num_sensors'],
-                                                   d['num_motors']),
-                                 'add': 64}
-    else:
         fitness_transform = False
     sensor_indices = list(range(d['num_sensors']))
     hidden_indices = list(range(
