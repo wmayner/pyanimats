@@ -21,9 +21,9 @@ that you've provided the same experiment parameters.
 REQUIRED_PARAM_FILE_KEYS = {'simulation', 'experiment'}
 REQUIRED_EXPERIMENT_KEYS = {
     'rng_seed', 'fitness_function', 'popsize', 'init_genome_path',
-    'init_start_codons', 'fitness_transform', 'num_sensors', 'num_hidden',
-    'num_motors', 'body_length', 'world_width', 'world_height', 'task',
-    'mutation_prob', 'duplication_prob', 'deletion_prob', 'min_genome_length',
+    'init_start_codons', 'num_sensors', 'num_hidden', 'num_motors',
+    'body_length', 'world_width', 'world_height', 'task', 'mutation_prob',
+    'duplication_prob', 'deletion_prob', 'min_genome_length',
     'max_genome_length', 'min_dup_del_width', 'max_dup_del_width',
     'default_init_genome_value', 'default_init_genome_length', 'deterministic'}
 REQUIRED_SIMULATION_KEYS = {
@@ -116,12 +116,13 @@ def experiment(d):
             'invalid experiment: `fitness_function` must be one of '
             '{}.'.format(list(fitness_functions.metadata.keys())))
     _assert_ge(d, name, 'popsize', 1)
-    if d['fitness_transform'] is not None:
+    if 'fitness_transform' in d and d['fitness_transform'] is not None:
         _assert_has_keys(d['fitness_transform'],
                          REQUIRED_FITNESS_TRANSFORM_KEYS, 'fitness transform')
         _assert_gt(d['fitness_transform'], 'fitness transform', 'base', 0)
         _assert_gt(d['fitness_transform'], 'fitness transform', 'scale', 0)
         _assert_ge(d['fitness_transform'], 'fitness transform', 'add', 0)
+    # TODO validate fitness_ranges
     # TODO validate init_genome_path
     # Animat
     _assert_ge(d, name, 'num_sensors', 1)
