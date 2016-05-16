@@ -363,8 +363,8 @@ def sd_wvn(ind, upto_attr='hidden_indices'):
     hidden-unit states that appear only in the world or only in the scrambled
     world."""
     upto = getattr(ind, upto_attr) if upto_attr else False
-    world = ind.play_game().animat_states
     noise = ind.play_game(scrambled=True).animat_states
+    world = ind.play_game().animat_states
     num_trials = world.shape[0]
     # Get a permutation of the trials.
     shuffled_trials = list(range(num_trials))
@@ -467,8 +467,8 @@ def mat(ind, iterations=20):
     and Σφ'(N) is the same but for a stimulus set that has been scrambled first
     in space and then in time."""
     # Play the game and a scrambled version of it.
-    world = ind.play_game().animat_states
     noise = ind.play_game(scrambled=True).animat_states
+    world = ind.play_game().animat_states
     # Since the motor states can't influence φ or ϕ, we set them to zero to
     # make uniqifying the states simpler.
     world[..., ind.motor_indices] = 0
