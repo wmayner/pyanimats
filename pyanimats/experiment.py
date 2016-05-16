@@ -110,9 +110,8 @@ def _derive_params(d):
             gap = len(init_genome) // d['init_start_codons']
             for i in range(d['init_start_codons']):
                 init_genome[(i * gap):(i * gap + 1)] = constants.START_CODON
-    # If no fitness transform was given, use the defaults.
-    if 'fitness_transform' not in d:
-        fitness_transform = False
+    fitness_transform = (d['fitness_transform'] if 'fitness_transform' in d
+                         else False)
     sensor_indices = list(range(d['num_sensors']))
     hidden_indices = list(range(
         d['num_sensors'], d['num_sensors'] + d['num_hidden']))
