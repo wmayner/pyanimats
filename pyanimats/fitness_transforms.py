@@ -98,9 +98,8 @@ class ExponentialMultiFitness:
         return (combined, fitnesses)
 
     def __repr__(self):
-        return 'ExponentialMultiFitness({}, base={}, scale={}, add={})'.format(
-            [f.__name__ for f in self.functions],
-            self.base, self.scale, self.add)
+        return 'ExponentialMultiFitness({}, transform={})'.format(
+            [f.__name__ for f in self.functions], self.transform)
 
     def __str__(self):
         return repr(self)
