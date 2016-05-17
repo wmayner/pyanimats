@@ -204,7 +204,7 @@ def main(args):
 
     PROFILE_FILEPATH = args['--profile']
     if PROFILE_FILEPATH:
-        utils.ensure_exists(os.path.dirname(PROFILE_FILEPATH))
+        utils.ensure_exists(os.path.dirname(PROFILE_FILEPATH) or '.')
         print('\nProfiling enabled.')
         pr = cProfile.Profile()
         pr.enable()
@@ -214,10 +214,10 @@ def main(args):
 
     if PROFILE_FILEPATH:
         pr.disable()
-        print('\nSaving profile to `{}`... '.format(PROFILE_FILEPATH),
+        print('Saving profile to `{}`...'.format(PROFILE_FILEPATH),
               end='', flush=True)
         pr.dump_stats(PROFILE_FILEPATH)
-        print('done.')
+        print('done.\n')
 
     print('Simulated {} generations in {}.'.format(
         evolution.generation, utils.compress(evolution.elapsed)))
