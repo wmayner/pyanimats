@@ -166,8 +166,8 @@ class Animat:
             'gen': self.gen,
             'correct': self._correct,
             'incorrect': self._incorrect,
-            'fitness': self.fitness,
-            'raw_fitness': self.raw_fitness
+            'fitness': utils.rounder(self.fitness),
+            'raw_fitness': utils.rounder(self.raw_fitness)
         }
         if not compact:
             d['tpm'] = self.tpm
