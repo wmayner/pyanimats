@@ -133,7 +133,7 @@ vector< vector<int> > Agent::getEdges() {
 
 
 vector< vector<bool> > Agent::getTransitions() {
-    // Save animats original state.
+    // Save animat's original state.
     unsigned char initial_states[mNumNodes];
     for (int i = 0; i < mNumNodes; i++) {
         initial_states[i] = states[i];
