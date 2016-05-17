@@ -251,8 +251,9 @@ class Evolution:
             'simulation': self.simulation,
             'lineage': lineage,
             'logbook': {
-                'fitness': self.logbook.chapters['fitness'].select('max'),
-                'game': self.logbook.chapters['game'].select('correct'),
+                'fitness': self.logbook.chapters['fitness'].select('exp'),
+                'raw_fitness': self.logbook.chapters['fitness'].select('raw'),
+                'game': self.logbook.chapters['game'].select('fittest'),
             },
             'elapsed': round(self.elapsed, 2),
             'version': utils.get_version(),
