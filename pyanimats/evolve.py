@@ -61,6 +61,7 @@ class Evolution:
             self.experiment.fitness_function,
             self.experiment.fitness_transform,
             self.experiment.fitness_ranges)
+        print(self.fitness_function)
         # Create statistics trackers.
         fitness_stats = tools.Statistics(
             key=lambda a: (a.fitness, a.raw_fitness))
@@ -124,7 +125,8 @@ class Evolution:
             done = False
             while not done:
                 candidate = self.random.choice(animats)
-                done = self.random.random() <= (candidate.fitness / max_fitness)
+                done = self.random.random() <= (candidate.fitness /
+                                                max_fitness)
             chosen.append(candidate)
         return chosen
 
