@@ -21,6 +21,7 @@ from .fitness_transforms import ExponentialMultiFitness
 from .animat import Animat
 from .experiment import Experiment
 from .phylogeny import Phylogeny
+from .utils import rounder
 
 
 class Evolution:
@@ -60,14 +61,6 @@ class Evolution:
             self.experiment.fitness_function,
             self.experiment.fitness_transform,
             self.experiment.fitness_ranges)
-
-        def rounder(obj, precision=4):
-            """Recursively round all contents of ``obj`` to ``precision``."""
-            if isinstance(obj, (float, int)):
-                return round(obj, precision)
-            else:
-                return tuple(rounder(x) for x in obj)
-
         # Create statistics trackers.
         fitness_stats = tools.Statistics(
             key=lambda a: (a.fitness, a.raw_fitness))

@@ -14,7 +14,18 @@ import sys
 import numpy as np
 
 from .__about__ import __version__
-from .constants import DAYS, HOURS, MINUTES, WEEKS
+from .constants import DAYS, HOURS, MINUTES, WEEKS, PRECISION
+
+
+def rounder(obj):
+    """Recursively round all contents of ``obj`` to ``precision``."""
+    if isinstance(obj, (float, int)):
+        # For some reason, just using the built-in `round` was off by ~1e-15
+        obj = str(round(obj, PRECISION))
+        num_digits = len(obj.split('.')[0])
+        return float(obj[:(num_digits + 1 + PRECISION)])
+    else:
+        return tuple(rounder(x) for x in obj)
 
 
 def normalizer(r, target_r=(0, 1)):
