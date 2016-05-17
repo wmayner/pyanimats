@@ -36,6 +36,7 @@ LaTeX_NAMES = {
     'mat': 'Matching'
 }
 MULTIVALUED = ['mat']
+CHEAP = ['nat']
 
 
 def _register(data_function=None):
@@ -64,6 +65,7 @@ def _wrap_docstring(docstring, width=_WRAPPER_WIDTH, indent='  '):
     return '\n\n'.join(map(wrapper.fill, paragraphs))
 
 
+# TODO update to describe multifitness
 def print_functions():
     """Display a list of available fitness functions."""
     print('\n\n'.join(name + '\n' + _wrap_docstring(data['doc'])

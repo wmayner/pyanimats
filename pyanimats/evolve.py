@@ -16,7 +16,7 @@ import numpy as np
 from deap import base, tools
 from munch import Munch
 
-from . import animat, c_animat, utils, validate
+from . import animat, c_animat, fitness_functions, utils, validate
 from .fitness_transforms import ExponentialMultiFitness
 from .animat import Animat
 from .experiment import Experiment
@@ -56,6 +56,12 @@ class Evolution:
         self.logbook.chapters['fitness'].header = ['raw', 'exp']
         # Create initial population.
         self.population = self.toolbox.population(n=self.experiment.popsize)
+        # If we're using an expensive fitness function, then check if the TPM
+        # has changed before re-evaluating fitness (with cheap functions, like
+        # `nat`, it's actually more expensive to generate the TPM and check it)
+        self.CHECK_FOR_TPM_CHANGE = all(
+            f in fitness_functions.CHEAP
+            for f in self.experiment.fitness_function)
         # Transform the fitness function.
         self.fitness_function = ExponentialMultiFitness(
             self.experiment.fitness_function,
@@ -157,9 +163,12 @@ class Evolution:
             a.gen = gen
             # Mutate.
             a.mutate()
-            # Determine whether fitness needs updating.
-            a._dirty_fitness = not np.array_equal(a.tpm,
-                                                  a.parent.tpm)
+            # Check whether fitness needs updating (if desired and CM is
+            # nontrivial)
+            if self.CHECK_FOR_TPM_CHANGE and not a.cm.sum() == 0:
+                a._dirty_fitness = not np.array_equal(a.tpm, a.parent.tpm)
+            else:
+                a._dirty_fitness = True
         # Evaluation.
         self.evaluate(offspring)
         # Recording.
