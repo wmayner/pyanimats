@@ -21,7 +21,7 @@ _WRAPPER_WIDTH = 72
 _base_wrapper = textwrap.TextWrapper(width=_WRAPPER_WIDTH)
 # Metadata associated with the available fitness functions.
 metadata = OrderedDict()
-# Mapping from parameter values to descriptive names
+# Mapping from short names to descriptive names
 LaTeX_NAMES = {
     'nat': 'Correct\ Trials',
     'mi': 'Mutual\ Information',
@@ -32,6 +32,7 @@ LaTeX_NAMES = {
     'sp_wvn': '\sum\\varphi\ (world\ vs.\ noise)',
     'bp': '\Phi',
     'bp_wvn': '\Phi\ (world\ vs.\ noise)',
+    'sd_wvn': 'State\ differentiation (world\ vs.\ noise)',
     'mat': 'Matching'
 }
 MULTIVALUED = ['mat']
