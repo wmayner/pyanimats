@@ -59,8 +59,8 @@ class Evolution:
         # If we're using an expensive fitness function, then check if the TPM
         # has changed before re-evaluating fitness (with cheap functions, like
         # `nat`, it's actually more expensive to generate the TPM and check it)
-        self.CHECK_FOR_TPM_CHANGE = all(
-            f in fitness_functions.CHEAP
+        self.CHECK_FOR_TPM_CHANGE = any(
+            f not in fitness_functions.CHEAP
             for f in self.experiment.fitness_function)
         # Transform the fitness function.
         self.fitness_function = ExponentialMultiFitness(
