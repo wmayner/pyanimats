@@ -61,7 +61,6 @@ class Evolution:
             self.experiment.fitness_function,
             self.experiment.fitness_transform,
             self.experiment.fitness_ranges)
-        print(self.fitness_function)
         # Create statistics trackers.
         fitness_stats = tools.Statistics(
             key=lambda a: (a.fitness, a.raw_fitness))
