@@ -34,10 +34,7 @@ LaTeX_NAMES = {
     'bp_wvn': '\Phi\ (world\ vs.\ noise)',
     'mat': 'Matching'
 }
-MULTIVALUED_FITNESS_FUNCTIONS = [
-    'mi_nat', 'mi_wvn_nat', 'ex_nat', 'ex_wvn_nat', 'sp_nat', 'sp_wvn_nat',
-    'bp_nat', 'bp_wvn_nat', 'sd_wvn_nat', 'mat', 'mat_nat'
-]
+MULTIVALUED = ['mat']
 
 
 def _register(data_function=None):

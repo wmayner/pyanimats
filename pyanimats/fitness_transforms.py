@@ -69,10 +69,8 @@ class ExponentialMultiFitness:
         self.ranges = ranges or [DEFAULT_RANGES[f] for f in function_names]
         self.functions = [fitness_functions.__dict__[f]
                           for f in function_names]
-        self.multivalued = [
-            fname in fitness_functions.MULTIVALUED_FITNESS_FUNCTIONS
-            for fname in function_names
-        ]
+        self.multivalued = [fname in fitness_functions.MULTIVALUED
+                            for fname in function_names]
         # Get normalizing functions for each fitness function
         self.norms = [utils.normalizer(self.ranges[i])
                       for i in range(len(function_names))]
