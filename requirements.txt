@@ -13,7 +13,8 @@ munch==2.0.4
 tinydb==3.1.3
 python-dateutil==2.4.2
 # Specific pyphi commit
-git+https://github.com/wmayner/pyphi.git@96c201c#egg=pyphi
+pyphi==0.8.1
+# git+https://github.com/wmayner/pyphi.git@96c201c#egg=pyphi
 #
 # Nested dependencies
 # ~~~~~~~~~~~~~~~~~~~
