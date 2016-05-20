@@ -339,7 +339,7 @@ def from_json(dictionary, experiment=None, parent=None):
     animat = Animat(experiment, dictionary['genome'])
     animat.parent = parent
     animat.gen = dictionary['gen']
-    animat.fitness.set(dictionary['fitness'])
+    animat.fitness = dictionary['fitness']
     animat._correct = dictionary['correct']
     animat._incorrect = dictionary['incorrect']
     validate.json_animat(animat, dictionary)
