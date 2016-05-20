@@ -104,10 +104,8 @@ class ExponentialMultiFitness:
 
 
 def product(f1, f2, iterations=(1, 1)):
-    """Returns the product of a pair of fitness functions.
-
-    The raw values of the fitness functions are transformed according to
-    ``constants.FITNESS_TRANSFORMS`` before being multiplied.
+    """Returns a function that combines two fitness functions by taking the
+    square root of the product.
     """
     norm1 = utils.normalizer(DEFAULT_RANGES[f1.__name__])
     norm2 = utils.normalizer(DEFAULT_RANGES[f2.__name__])
