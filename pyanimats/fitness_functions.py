@@ -458,7 +458,7 @@ def matching_average_weighted(W, N, constellations, complexes):
 
 
 @shortcircuit_if_empty(value=(0, 0, 0))
-def mat(ind, iterations=20):
+def mat(ind, iterations=20, precomputed_complexes=None):
     """Matching: Animats are evaluated based on how well they “match” their
     environment. Roughly speaking, this captures the degree to which their
     conceptual structure “resonates” with statistical regularities in the
@@ -487,10 +487,10 @@ def mat(ind, iterations=20):
     # since now they're all zero.
     all_states = Counter(tuple(state) for state in combined)
     # Get the main complexes for each unique state.
-    complexes = {
-        state: pyphi.compute.main_complex(ind.network, state)
-        for state in all_states
-    }
+    complexes = precomputed_complexes or {}
+    for state in all_states:
+        if state not in complexes:
+            complexes[state] = pyphi.compute.main_complex(ind.network, state)
     # Existence is the mean of the ϕ values.
     big_phis, counts = zip(*[(complexes[state].phi, count)
                              for state, count in all_states.items()])
