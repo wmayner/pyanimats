@@ -164,7 +164,7 @@ class Evolution:
             # Mutate.
             a.mutate()
             # Check whether fitness needs updating (if desired and CM is
-            # nontrivial)
+            # nontrivial).
             if self.CHECK_FOR_TPM_CHANGE and not a.cm.sum() == 0:
                 a._dirty_fitness = not np.array_equal(a.tpm, a.parent.tpm)
             else:
