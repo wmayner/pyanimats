@@ -12,7 +12,7 @@ simulation:
     # Generational interval at which to print evolution status to the screen. 
     # NOTE: printing to the screen is a slow operation; setting a short interval
     # can significantly impact performance if simulating a generation is fast.
-    status_interval: 100
+    status_interval: 1
 
     # Data
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -33,13 +33,13 @@ experiment:
     rng_seed: 0
     # The fitness function(s) to evolve to. To specify multiple fitness
     # functions, separate them with a comma.
-    fitness_function: 'nat,mi_wvn'
+    fitness_function: 'nat,ex_wvn'
     # Theoretical (or practical) minimum and maximum values for each fitness
     # function; used in normalizing the fitness values.
     fitness_ranges: 
         [
             [64, 128],  # First fitness function's range
-            [0, 1.86]   # Second fitness function's range
+            [0, 4]      # Second fitness function's range
         ]
     # The first function's fitness value is scaled exponentially according to
     # the formula, after being normalized to 0–1 from the range given above:

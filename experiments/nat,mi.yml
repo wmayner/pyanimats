@@ -33,7 +33,7 @@ experiment:
     rng_seed: 0
     # The fitness function(s) to evolve to. To specify multiple fitness
     # functions, separate them with a comma.
-    fitness_function: 'nat,mi_wvn'
+    fitness_function: 'nat,mi'
     # Theoretical (or practical) minimum and maximum values for each fitness
     # function; used in normalizing the fitness values.
     fitness_ranges: 
