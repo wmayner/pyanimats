@@ -47,7 +47,7 @@ Simulation options:
                                given checkpoint file if resuming)
 
 Data collection options:
-    -S --sample-interval=INT   Number of animats to sample from evolution
+    -S --sample-interval=INT   Genome recording interval (generations)
     -b --logbook-interval=INT  Logbook recording interval (generations)
     -a --all-lineages          Save lineages of entire final population
 

@@ -18,7 +18,8 @@ simulation:
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Generational interval at which to record fitness data into the logbook.
     logbook_interval: 1
-    # Number of animats to sample from the lineage of the final animats.
+    # Generational interval at which to sample genomes from the lineage(s) of
+    # the final animat(s).
     sample_interval: 500
     # Whether to save the lingeages of all animats in the final population, or
     # just the lineage of the fittest.
