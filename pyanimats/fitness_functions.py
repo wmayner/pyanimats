@@ -75,8 +75,8 @@ def print_functions():
         function used in the selection algorithm is transformed so that it is
         exponential, according to the formula F(R) = B^(S*R + A), where R is
         one of the “raw” fitness values described above, and where B, S, A are
-        controlled with the FITNESS_BASE, FITNESS_EXPONENT_SCALE, and
-        FITNESS_EXPONENT_ADD parameters, respectively.\n""")))
+        controlled with the ``experiment.fitness_transform``
+        parameters.\n""")))
 
 
 # Helper functions
@@ -209,9 +209,10 @@ def phi_sum(phi_objects):
 
 def nat(ind, scrambled=False):
     """Natural: Animats are evaluated based on the number of game trials they
-    successfully complete. For each task given in the ``TASKS`` parameter,
-    there is one trial per direction (left or right) of block descent, per
-    initial animat position (given by ``config.WORLD_WIDTH``)."""
+    successfully complete. For each task given in the ``experiment.task``
+    parameter, there is one trial per direction (left or right) of block
+    descent, per initial animat position (given by
+    ``experiment.world_width``)."""
     return ind.play_game(scrambled=scrambled).correct
 _register()(nat)
 
@@ -243,7 +244,7 @@ _register()(mi)
 
 
 def mi_wvn(ind):
-    """Same as `mi` but counting the difference between world and noise."""
+    """Same as ``mi`` but counting the difference between world and noise."""
     return mi(ind, scrambled=False) - mi(ind, scrambled=True)
 _register(data_function=mi)(mi_wvn)
 
@@ -277,7 +278,7 @@ _register(data_function=extrinsic_causes)(ex)
 ex_wvn = wvn(transform=unq_concepts, reduce=phi_sum,
              upto_attr='hidden_motor_indices')(extrinsic_causes)
 ex_wvn.__name__ = 'ex_wvn'
-ex_wvn.__doc__ = """Same as `ex` but counting the difference between the sum of
+ex_wvn.__doc__ = """Same as ``ex`` but counting the difference between the sum of
     φ of unique concepts that appear in the world and a scrambled version of
     it."""
 _register(data_function=extrinsic_causes)(ex_wvn)
@@ -317,7 +318,7 @@ _register(data_function=all_concepts)(sp)
 sp_wvn = wvn(transform=unq_concepts, reduce=phi_sum,
              upto_attr='hidden_indices')(all_concepts)
 sp_wvn.__name__ = 'sp_wvn'
-sp_wvn.__doc__ = """Same as `sp` but counting the difference between the sum of
+sp_wvn.__doc__ = """Same as ``sp`` but counting the difference between the sum of
     φ of unique concepts that appear in the world and a scrambled version of
     it."""
 _register(data_function=all_concepts)(sp_wvn)
@@ -350,7 +351,7 @@ _register(data_function=main_complex)(bp)
 bp_wvn = shortcircuit_if_empty()(wvn(reduce=phi_sum,
                                  upto_attr='hidden_indices')(main_complex))
 bp_wvn.__name__ = 'bp_wvn'
-bp_wvn.__doc__ = """Same as `bp` but counting the difference between world and
+bp_wvn.__doc__ = """Same as ``bp`` but counting the difference between world and
     noise."""
 _register(data_function=main_complex)(bp_wvn)
 
