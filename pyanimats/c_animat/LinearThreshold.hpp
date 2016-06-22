@@ -21,7 +21,7 @@ class LinearThreshold {
     unsigned char numInputs;
     vector<unsigned char> inputs;
 
-    unsigned char output;
+    vector<unsigned char> outputs;
 
     int threshold;
 

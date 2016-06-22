@@ -6,6 +6,7 @@
 LinearThreshold::LinearThreshold(vector<unsigned char> &genome, int start,
         const int numSensors, const int numHidden, const int numMotors) {
     inputs.clear();
+    outputs.clear();
 
     mNumSensors = numSensors;
     mNumHidden = numHidden;
@@ -30,8 +31,11 @@ LinearThreshold::LinearThreshold(vector<unsigned char> &genome, int start,
     // Move past the input codon.
     scan += maxInputs;
 
-    // Get the single output node.
-    output = mNumSensors + (genome[(scan++) % (int)genome.size()] % maxOutputs);
+    // There's always just 1 output.
+    outputs.resize(1);
+    outputs[0] = mNumSensors + (genome[(scan + 1) % (int)genome.size()] % maxOutputs);
+    // Move past the output codons.
+    scan += maxOutputs;
 
     // Get the threshold.
     threshold = genome[(scan++) % (int)genome.size()] % numInputs;
@@ -44,10 +48,11 @@ void LinearThreshold::update(unsigned char *currentStates, unsigned char *nextSt
         inputCount += (currentStates[inputs[i]] & 1);
     // Activate output if count exceeds threshold.
     if (inputCount > threshold) {
-        nextStates[output] = 1;
+        nextStates[outputs[0]] = 1;
     }
 }
 
 LinearThreshold::~LinearThreshold() {
     inputs.clear();
+    outputs.clear();
 }
