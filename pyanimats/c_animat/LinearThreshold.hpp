@@ -1,17 +1,17 @@
 // Threshold.hpp
 
-#ifndef ANIMAT_THRESHOLD_H_
-#define ANIMAT_THRESHOLD_H_
+#ifndef ANIMAT_LINEAR_THRESHOLD_H_
+#define ANIMAT_LINEAR_THRESHOLD_H_
 
 #include <vector>
 
 using std::vector;
 
-class Threshold {
+class LinearThreshold {
  public:
-    Threshold(vector<unsigned char> &genome, int start, const int numSensors,
-            const int numHidden, const int numMotors);
-    ~Threshold();
+    LinearThreshold(vector<unsigned char> &genome, int start, const int
+            numSensors, const int numHidden, const int numMotors);
+    ~LinearThreshold();
 
     int mNumHidden;
     int mNumMotors;
@@ -28,4 +28,4 @@ class Threshold {
     void update(unsigned char *currentStates, unsigned char *nextStates);
 };
 
-#endif  // ANIMAT_THRESHOLD_H_
+#endif  // ANIMAT_LINEAR_THRESHOLD_H_

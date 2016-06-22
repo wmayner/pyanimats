@@ -1,10 +1,10 @@
-// Threshold.cpp
+// LinearThreshold.cpp
 
-#include "./Threshold.hpp"
+#include "./LinearThreshold.hpp"
 
 
-Threshold::Threshold(vector<unsigned char> &genome, int start, const int
-        numSensors, const int numHidden, const int numMotors) {
+LinearThreshold::LinearThreshold(vector<unsigned char> &genome, int start,
+        const int numSensors, const int numHidden, const int numMotors) {
     inputs.clear();
 
     mNumSensors = numSensors;
@@ -37,7 +37,7 @@ Threshold::Threshold(vector<unsigned char> &genome, int start, const int
     threshold = genome[(scan++) % (int)genome.size()] % numInputs;
 }
 
-void Threshold::update(unsigned char *currentStates, unsigned char *nextStates) {
+void LinearThreshold::update(unsigned char *currentStates, unsigned char *nextStates) {
     // Count the number of inputs that are on
     int inputCount = 0;
     for (int i = 0; i < (int)inputs.size(); i++)
@@ -48,6 +48,6 @@ void Threshold::update(unsigned char *currentStates, unsigned char *nextStates) 
     }
 }
 
-Threshold::~Threshold() {
+LinearThreshold::~LinearThreshold() {
     inputs.clear();
 }
