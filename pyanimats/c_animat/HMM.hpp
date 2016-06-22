@@ -24,7 +24,7 @@ class HMM {
 
     vector< vector<unsigned char> > hmm;
     vector<unsigned int> sums;
-    vector<unsigned char> ins, outs;
+    vector<unsigned char> inputs, outputs;
     unsigned char numInputs, numOutputs;
 
     void update(unsigned char *currentStates, unsigned char *nextStates);

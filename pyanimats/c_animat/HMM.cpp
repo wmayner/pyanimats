@@ -5,8 +5,8 @@
 
 HMM::HMM(vector<unsigned char> &genome, int start, const int numSensors,
         const int numHidden, const int numMotors, const bool deterministic) {
-    ins.clear();
-    outs.clear();
+    inputs.clear();
+    outputs.clear();
 
     mNumSensors = numSensors;
     mNumHidden = numHidden;
@@ -19,16 +19,16 @@ HMM::HMM(vector<unsigned char> &genome, int start, const int numSensors,
 
     numInputs = 1 + (genome[(scan++) % (int)genome.size()] & 3);
     numOutputs = 1 + (genome[(scan++) % (int)genome.size()] & 3);
-    ins.resize(numInputs);
-    outs.resize(numOutputs);
+    inputs.resize(numInputs);
+    outputs.resize(numOutputs);
 
     for (int i = 0; i < numInputs; i++)
         // Exclude motors from possible inputs.
-        ins[i] = genome[(scan + i) % (int)genome.size()]
+        inputs[i] = genome[(scan + i) % (int)genome.size()]
                 % (mNumNodes - mNumMotors);
     for (int i = 0; i < numOutputs; i++)
         // Exclude sensors from possible outputs.
-        outs[i] = (genome[(scan + 4 + i) % (int)genome.size()]
+        outputs[i] = (genome[(scan + 4 + i) % (int)genome.size()]
                 % (mNumNodes - mNumSensors)) + mNumSensors;
 
     // Probabilities begin after the input and output codons, which are maximum
@@ -77,8 +77,8 @@ HMM::HMM(vector<unsigned char> &genome, int start, const int numSensors,
 void HMM::update(unsigned char *currentStates, unsigned char *nextStates) {
     // Encode the given states as an integer to index into the TPM
     int pastStateIndex = 0;
-    for (int i = 0; i < (int)ins.size(); i++)
-        pastStateIndex = (pastStateIndex << 1) + ((currentStates[ins[i]]) & 1);
+    for (int i = 0; i < (int)inputs.size(); i++)
+        pastStateIndex = (pastStateIndex << 1) + ((currentStates[inputs[i]]) & 1);
     // Get the next state
     int nextStateIndex = 0;
     if (mDeterministic) {
@@ -101,14 +101,14 @@ void HMM::update(unsigned char *currentStates, unsigned char *nextStates) {
     }
     // The index of the column we chose is the next state (we take the its bits
     // as the next states of individual nodes)
-    for (int i = 0; i < (int)outs.size(); i++) {
-        nextStates[outs[i]] |= (nextStateIndex >> i) & 1;
+    for (int i = 0; i < (int)outputs.size(); i++) {
+        nextStates[outputs[i]] |= (nextStateIndex >> i) & 1;
     }
 }
 
 HMM::~HMM() {
     hmm.clear();
     sums.clear();
-    ins.clear();
-    outs.clear();
+    inputs.clear();
+    outputs.clear();
 }
