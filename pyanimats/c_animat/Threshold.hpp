@@ -28,4 +28,4 @@ class Threshold {
     void update(unsigned char *currentStates, unsigned char *nextStates);
 };
 
-#endif  // THRESHOLD_HMM_H_
+#endif  // ANIMAT_THRESHOLD_H_
