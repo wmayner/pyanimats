@@ -31,8 +31,9 @@ HMM::HMM(vector<unsigned char> &genome, int start, const int numSensors,
         outs[i] = (genome[(scan + 4 + i) % (int)genome.size()]
                 % (mNumNodes - mNumSensors)) + mNumSensors;
 
-    // Probabilities begin after the input and output codons, which are
-    // `mNumNodes` long each
+    // Probabilities begin after the input and output codons, which are maximum
+    // 4 nucleotides long each, and an "intron" region of length 8 (for
+    // consistency with previous versions.)
     scan += 16;
 
     // Number of rows
