@@ -12,7 +12,7 @@ import random
 from . import c_animat
 
 HMM_GATE = 'hmm'
-LINEAR_THRESHOLD_GATE = 'linear_threshold'
+LINEAR_THRESHOLD_GATE = 'lt'
 MIN_BODY_LENGTH = c_animat.MIN_BODY_LENGTH
 DEFAULT_RNG = random.Random()
 NAT_TO_BIT_CONVERSION_FACTOR = 1 / math.log(2)
