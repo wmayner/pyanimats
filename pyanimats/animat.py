@@ -229,6 +229,13 @@ class Animat:
                 yield ancestor
             ancestor = ancestor.parent
 
+    def inject_start_codons(self, n):
+        """Inject ``n`` start codons into the animat's genome.
+
+        This also randomizes the next 18 nucleotides after each codon.
+        """
+        self._c_animat.injectStartCodons(n)
+
     def mutate(self):
         """Mutate the animat's genome in-place."""
         self._c_animat.mutate(self.mutation_prob, self.duplication_prob,

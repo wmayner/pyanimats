@@ -103,13 +103,9 @@ def _derive_params(d):
             # generation.
             init_genome = lineages[0][0].genome
     else:
-        # Use the default genome and inject start codons.
+        # Use the default genome.
         init_genome = ([d['default_init_genome_value']] *
                        d['default_init_genome_length'])
-        if d['init_start_codons']:
-            gap = len(init_genome) // d['init_start_codons']
-            for i in range(d['init_start_codons']):
-                init_genome[(i * gap):(i * gap + 1)] = constants.START_CODON
     fitness_transform = (d['fitness_transform'] if 'fitness_transform' in d
                          else False)
     sensor_indices = list(range(d['num_sensors']))

@@ -192,6 +192,10 @@ class Evolution:
         # Initial evalutation.
         if self.generation == 0:
             self.population = self.new_gen(self.population, self.generation)
+            # Inject start codons.
+            if self.experiment.init_start_codons:
+                for a in self.population:
+                    a.inject_start_codons(self.experiment.init_start_codons)
             # Print first lines of the logbook.
             if 0 < self.simulation.status_interval < float('inf'):
                 first_lines = str(self.logbook).split('\n')
