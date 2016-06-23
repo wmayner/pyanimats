@@ -6,10 +6,11 @@
 #include <vector>
 
 #include "./rng.hpp"
+#include "./Gate.hpp"
 
 using std::vector;
 
-class HMM {
+class HMM: public Gate {
  public:
     HMM(vector<unsigned char> &genome, int start, const int numSensors,
             const int numHidden, const int numMotors,
@@ -27,7 +28,8 @@ class HMM {
     vector<unsigned char> inputs, outputs;
     unsigned char numInputs, numOutputs;
 
-    void update(unsigned char *currentStates, unsigned char *nextStates);
+    void update(vector<unsigned char> &currentStates, vector<unsigned char>
+            &nextStates);
 };
 
 #endif  // ANIMAT_HMM_H_

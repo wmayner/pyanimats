@@ -5,18 +5,22 @@
 
 #include <vector>
 
+#include "./Gate.hpp"
+
 using std::vector;
 
-class LinearThreshold {
+class LinearThreshold: public Gate {
  public:
     LinearThreshold(vector<unsigned char> &genome, int start, const int
-            numSensors, const int numHidden, const int numMotors);
+            numSensors, const int numHidden, const int numMotors,
+            const bool deterministic);
     ~LinearThreshold();
 
     int mNumHidden;
     int mNumMotors;
     int mNumSensors;
     int mNumNodes;
+    bool mDeterministic;
 
     unsigned char numInputs;
     vector<unsigned char> inputs;
@@ -25,7 +29,8 @@ class LinearThreshold {
 
     int threshold;
 
-    void update(unsigned char *currentStates, unsigned char *nextStates);
+    void update(vector<unsigned char> &currentStates,
+            vector<unsigned char> &nextStates);
 };
 
 #endif  // ANIMAT_LINEAR_THRESHOLD_H_

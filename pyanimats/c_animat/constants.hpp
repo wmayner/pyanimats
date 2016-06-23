@@ -9,10 +9,6 @@
 // Agent parameters
 #define MIN_BODY_LENGTH 3
 
-// Evolution parameters
-#define START_CODON_NUCLEOTIDE_ONE 42
-#define START_CODON_NUCLEOTIDE_TWO 213
-
 // Enumeration constants
 #define CORRECT 0
 #define INCORRECT 1

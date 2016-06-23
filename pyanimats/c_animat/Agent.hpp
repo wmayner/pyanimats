@@ -7,11 +7,14 @@
 #include <vector>
 
 #include "./constants.hpp"
-#include "./HMM.hpp"
 #include "./rng.hpp"
+#include "./Gate.hpp"
+#include "./HMM.hpp"
+#include "./LinearThreshold.hpp"
 
 using std::vector;
 
+// Base class
 class Agent {
  public:
     Agent(vector<unsigned char> genome, int numSensors, int numHidden,
@@ -27,22 +30,49 @@ class Agent {
     int mBodyLength;
     bool mDeterministic;
 
-    vector<HMM*> hmms;
+    vector<Gate*> gates;
+
     vector<unsigned char> genome;
     // TODO(wmayner) change these to bool?
     vector<unsigned char> states;
     vector<unsigned char> newStates;
 
     int getAction();
-    void injectStartCodons(int n);
     void resetState();
-    void updateStates();
-    void generatePhenotype();
+    void injectStartCodons(int n, unsigned char codon_one,
+            unsigned char codon_two);
     void mutateGenome(double mutProb, double dupProb, double delProb, int
         minGenomeLength, int maxGenomeLength, int minDupDelLength,
         int maxDupDelLength);
     vector< vector<int> > getEdges();
     vector< vector<bool> > getTransitions();
+
+    virtual void updateStates() = 0;
+    virtual void generatePhenotype() = 0;
+};
+
+
+class HMMAgent: public Agent {
+ public:
+    using Agent::Agent;
+
+    using Agent::injectStartCodons;
+    void injectStartCodons(int n);
+
+    void updateStates();
+    void generatePhenotype();
+};
+
+
+class LinearThresholdAgent: public Agent {
+ public:
+    using Agent::Agent;
+
+    using Agent::injectStartCodons;
+    void injectStartCodons(int n);
+
+    void updateStates();
+    void generatePhenotype();
 };
 
 #endif  // ANIMAT_AGENT_H_

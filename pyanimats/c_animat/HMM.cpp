@@ -5,6 +5,10 @@
 
 HMM::HMM(vector<unsigned char> &genome, int start, const int numSensors,
         const int numHidden, const int numMotors, const bool deterministic) {
+    // Define start codon pair for this gate
+    START_CODON_ONE = 42;
+    START_CODON_TWO = 255 - START_CODON_ONE;
+
     inputs.clear();
     outputs.clear();
 
@@ -74,7 +78,8 @@ HMM::HMM(vector<unsigned char> &genome, int start, const int numSensors,
     }
 }
 
-void HMM::update(unsigned char *currentStates, unsigned char *nextStates) {
+void HMM::update(vector<unsigned char> &currentStates,
+        vector<unsigned char> &nextStates) {
     // Encode the given states as an integer to index into the TPM
     int pastStateIndex = 0;
     for (int i = 0; i < (int)inputs.size(); i++)
