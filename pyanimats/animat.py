@@ -63,14 +63,14 @@ class Animat:
             game has been played yet.
     """
 
-    def __init__(self, experiment, genome, gate=constants.HMM_GATE):
+    def __init__(self, experiment, genome):
         self._experiment = experiment
-        if gate == constants.HMM_GATE:
+        if self._experiment.gate == constants.HMM_GATE:
             self._c_animat = pyHMMAgent(genome, experiment.num_sensors,
                                         experiment.num_hidden,
                                         experiment.num_motors,
                                         experiment.deterministic)
-        elif gate == constants.LINEAR_THRESHOLD_GATE:
+        elif self._experiment.gate == constants.LINEAR_THRESHOLD_GATE:
             self._c_animat = pyLinearThresholdAgent(genome,
                                                     experiment.num_sensors,
                                                     experiment.num_hidden,
