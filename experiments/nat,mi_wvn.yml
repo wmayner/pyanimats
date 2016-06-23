@@ -63,6 +63,11 @@ experiment:
 
     # Animat
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # The type of gate used to implement the animat's network logic.
+    # Options:
+    #   - 'hmm': Hidden Markov Model
+    #   - 'lt': Linear Threshold units
+    gate: 'hmm'
     # The number of sensors in an animat.
     num_sensors: 3
     # The number of hidden units in an animat.
