@@ -45,6 +45,17 @@ void Agent::resetState() {
         states[i] = 0;
 }
 
+void Agent::updateStates() {
+    for (int i = 0; i < (int)gates.size(); i++) {
+        gates[i]->update(states, newStates);
+    }
+    for (int i = 0; i < mNumNodes; i++) {
+        states[i] = newStates[i];
+        newStates[i] = 0;
+    }
+}
+
+
 void Agent::mutateGenome(double mutProb, double dupProb, double delProb,
         int minGenomeLength, int maxGenomeLength, int minDupDelLength,
         int maxDupDelLength) {
@@ -141,16 +152,6 @@ vector< vector<bool> > Agent::getTransitions() {
 // HMMAgent
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-void HMMAgent::updateStates() {
-    for (int i = 0; i < (int)gates.size(); i++) {
-        gates[i]->update(states, newStates);
-    }
-    for (int i = 0; i < mNumNodes; i++) {
-        states[i] = newStates[i];
-        newStates[i] = 0;
-    }
-}
-
 void HMMAgent::generatePhenotype() {
     if (gates.size() != 0) {
         for (int i = 0; i < (int)gates.size(); i++) {
@@ -177,16 +178,6 @@ void HMMAgent::injectStartCodons(int n) {
 
 // LinearThresholdAgent
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-void LinearThresholdAgent::updateStates() {
-    for (int i = 0; i < (int)gates.size(); i++) {
-        gates[i]->update(states, newStates);
-    }
-    for (int i = 0; i < mNumNodes; i++) {
-        states[i] = newStates[i];
-        newStates[i] = 0;
-    }
-}
 
 void LinearThresholdAgent::generatePhenotype() {
     if (gates.size() != 0) {

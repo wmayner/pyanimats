@@ -39,6 +39,7 @@ class Agent {
 
     int getAction();
     void resetState();
+    void updateStates();
     void injectStartCodons(int n, unsigned char codon_one,
             unsigned char codon_two);
     void mutateGenome(double mutProb, double dupProb, double delProb, int
@@ -47,7 +48,6 @@ class Agent {
     vector< vector<int> > getEdges();
     vector< vector<bool> > getTransitions();
 
-    virtual void updateStates() = 0;
     virtual void generatePhenotype() = 0;
 };
 
@@ -59,7 +59,6 @@ class HMMAgent: public Agent {
     using Agent::injectStartCodons;
     void injectStartCodons(int n);
 
-    void updateStates();
     void generatePhenotype();
 };
 
@@ -71,7 +70,6 @@ class LinearThresholdAgent: public Agent {
     using Agent::injectStartCodons;
     void injectStartCodons(int n);
 
-    void updateStates();
     void generatePhenotype();
 };
 
