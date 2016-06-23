@@ -17,7 +17,7 @@ import numpy as np
 import pyphi
 
 from . import constants, utils, validate
-from .c_animat import cAnimat
+from .c_animat import pyHMMAgent, pyLinearThresholdAgent
 from .experiment import Experiment
 
 Game = namedtuple('Game', ['animat_states', 'world_states', 'animat_positions',
@@ -63,13 +63,19 @@ class Animat:
             game has been played yet.
     """
 
-    def __init__(self, experiment, genome):
+    def __init__(self, experiment, genome, gate=constants.HMM_GATE):
         self._experiment = experiment
-        self._c_animat = cAnimat(genome,
-                                 experiment.num_sensors,
-                                 experiment.num_hidden,
-                                 experiment.num_motors,
-                                 experiment.deterministic)
+        if gate == constants.HMM_GATE:
+            self._c_animat = pyHMMAgent(genome, experiment.num_sensors,
+                                        experiment.num_hidden,
+                                        experiment.num_motors,
+                                        experiment.deterministic)
+        elif gate == constants.LINEAR_THRESHOLD_GATE:
+            self._c_animat = pyLinearThresholdAgent(genome,
+                                                    experiment.num_sensors,
+                                                    experiment.num_hidden,
+                                                    experiment.num_motors,
+                                                    experiment.deterministic)
         self.parent = None
         self.gen = 0
         self.fitness = 1.0
