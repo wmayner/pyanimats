@@ -21,7 +21,7 @@ that you've provided the same experiment parameters.
 REQUIRED_PARAM_FILE_KEYS = {'simulation', 'experiment'}
 REQUIRED_EXPERIMENT_KEYS = {
     'rng_seed', 'fitness_function', 'popsize', 'init_genome_path',
-    'init_start_codons', 'num_sensors', 'num_hidden', 'num_motors',
+    'init_start_codons', 'gate', 'num_sensors', 'num_hidden', 'num_motors',
     'body_length', 'world_width', 'world_height', 'task', 'mutation_prob',
     'duplication_prob', 'deletion_prob', 'min_genome_length',
     'max_genome_length', 'min_dup_del_width', 'max_dup_del_width',
@@ -30,6 +30,8 @@ REQUIRED_SIMULATION_KEYS = {
     'ngen', 'checkpoint_interval', 'status_interval', 'logbook_interval',
     'sample_interval', 'all_lineages'}
 REQUIRED_FITNESS_TRANSFORM_KEYS = {'base', 'scale', 'add'}
+
+GATE_TYPES = ['hmm', 'lt']
 
 
 def json_animat(animat, dictionary):
@@ -125,6 +127,10 @@ def experiment(d):
     # TODO validate fitness_ranges
     # TODO validate init_genome_path
     # Animat
+    if d['gate'] not in GATE_TYPES:
+        raise ValueError(
+            'invalid experiment: `gate` must be one of {}'.format(GATE_TYPES))
+    _assert_ge(d, name, 'num_sensors', 1)
     _assert_ge(d, name, 'num_sensors', 1)
     _assert_ge(d, name, 'num_hidden', 0)
     if d['num_motors'] not in [0, 2]:
