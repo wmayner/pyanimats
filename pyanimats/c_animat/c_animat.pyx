@@ -102,7 +102,7 @@ cdef extern from 'Agent.hpp':
 
         vector[uchar] genome
 
-        void injectStartCodons(int n)
+        void injectStartCodons(int n, uchar codon_one, uchar codon_two)
         void generatePhenotype();
         void mutateGenome(
             double mutProb, double dupProb, double delProb, int
@@ -117,7 +117,7 @@ cdef extern from 'Agent.hpp':
             bool deterministic
         ) except +
 
-        void updateStates();
+        void injectStartCodons(int n);
         void generatePhenotype();
 
 
@@ -127,7 +127,7 @@ cdef extern from 'Agent.hpp':
             bool deterministic
         ) except +
 
-        void updateStates();
+        void injectStartCodons(int n);
         void generatePhenotype();
 
 
