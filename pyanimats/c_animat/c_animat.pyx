@@ -11,7 +11,6 @@
 from libcpp.vector cimport vector
 from libcpp.string cimport string
 from libcpp cimport bool, string
-from libc.stdlib cimport free
 
 cimport cython
 
@@ -28,15 +27,11 @@ cdef extern from 'constants.hpp':
     cdef int _CORRECT_AVOID 'CORRECT_AVOID'
     cdef int _WRONG_AVOID 'WRONG_AVOID'
     cdef int _MIN_BODY_LENGTH 'MIN_BODY_LENGTH'
-    cdef int _START_CODON_NUCLEOTIDE_ONE 'START_CODON_NUCLEOTIDE_ONE'
-    cdef int _START_CODON_NUCLEOTIDE_TWO 'START_CODON_NUCLEOTIDE_TWO'
 CORRECT_CATCH = _CORRECT_CATCH
 WRONG_CATCH = _WRONG_CATCH
 CORRECT_AVOID = _CORRECT_AVOID
 WRONG_AVOID = _WRONG_AVOID
 MIN_BODY_LENGTH = _MIN_BODY_LENGTH
-START_CODON_NUCLEOTIDE_ONE = _START_CODON_NUCLEOTIDE_ONE
-START_CODON_NUCLEOTIDE_TWO = _START_CODON_NUCLEOTIDE_TWO
 
 
 cdef extern from 'rng.hpp':
@@ -92,8 +87,10 @@ def set_rng_state(state):
 
 cdef extern from 'Agent.hpp':
     cdef cppclass Agent:
-        Agent(vector[uchar] genome, int numSensors, int numHidden, int
-              numMotors, bool deterministic)
+        Agent(
+            vector[uchar] genome, int numSensors, int numHidden, int numMotors,
+            bool deterministic
+        ) except +
 
         int mNumSensors
         int mNumHidden
@@ -106,13 +103,33 @@ cdef extern from 'Agent.hpp':
         vector[uchar] genome
 
         void injectStartCodons(int n)
-        void generatePhenotype()
+        void generatePhenotype();
         void mutateGenome(
             double mutProb, double dupProb, double delProb, int
             minGenomeLength, int maxGenomeLength, int minDupDelLength, 
             int maxDupDelLength)
         vector[vector[int]] getEdges()
         vector[vector[bool]] getTransitions()
+
+    cdef cppclass HMMAgent(Agent):
+        HMMAgent(
+            vector[uchar] genome, int numSensors, int numHidden, int numMotors,
+            bool deterministic
+        ) except +
+
+        void updateStates();
+        void generatePhenotype();
+
+
+    cdef cppclass LinearThresholdAgent(Agent):
+        LinearThresholdAgent(
+            vector[uchar] genome, int numSensors, int numHidden, int numMotors,
+            bool deterministic
+        ) except +
+
+        void updateStates();
+        void generatePhenotype();
+
 
 
 cdef extern from 'Game.hpp':
@@ -197,26 +214,21 @@ cdef class Int32Wrapper:
         return np.asarray(base) 
 
 
-cdef class cAnimat:
+cdef class pyAgent:
     # Hold the C++ instance that we're wrapping.
     cdef Agent *thisptr
     cdef bool _dirty_phenotype
 
     def __cinit__(self, genome, numSensors, numHidden, numMotors,
                   deterministic):
-        self.thisptr = new Agent(genome, numSensors, numHidden, numMotors,
-                                 deterministic)
-        self._dirty_phenotype = True
-
-    def __dealloc__(self):
-        del self.thisptr
+        pass
 
     def __reduce__(self):
         # When pickling or copying, simply regenerate an instance.
-        # NOTE: This means that changes in the implementation of cAnimat that
+        # NOTE: This means that changes in the implementation of pyAgent that
         # occur between pickling and unpickling can cause a SILENT change in
         # behavior!
-        return (cAnimat, (self.genome, self.num_sensors, self.num_hidden,
+        return (pyAgent, (self.genome, self.num_sensors, self.num_hidden,
                           self.num_motors, self.deterministic))
 
     property genome:
@@ -299,3 +311,26 @@ cdef class cAnimat:
         return (animat_states.asarray(), world_states.asarray(),
                 animat_positions.asarray(), trial_results.asarray(), correct,
                 incorrect)
+
+
+cdef class pyHMMAgent(pyAgent):
+    cdef HMMAgent *derivedptr
+
+    def __cinit__(self, genome, numSensors, numHidden, numMotors,
+                  deterministic):
+        self.derivedptr = new HMMAgent(genome, numSensors, numHidden,
+                                       numMotors, deterministic)
+        self.thisptr = self.derivedptr
+        self._dirty_phenotype = True
+
+
+cdef class pyLinearThresholdAgent(pyAgent):
+    cdef LinearThresholdAgent *derivedptr
+
+    def __cinit__(self, genome, numSensors, numHidden, numMotors,
+                  deterministic):
+        self.derivedptr = new LinearThresholdAgent(genome, numSensors,
+                                                   numHidden, numMotors,
+                                                   deterministic)
+        self.thisptr = self.derivedptr
+        self._dirty_phenotype = True
