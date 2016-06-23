@@ -17,6 +17,10 @@ class HMM: public Gate {
             const bool deterministic);
     ~HMM();
 
+    // Start codon pair for this gate
+    static unsigned char START_CODON_ONE;
+    static unsigned char START_CODON_TWO;
+
     int mNumHidden;
     int mNumMotors;
     int mNumSensors;

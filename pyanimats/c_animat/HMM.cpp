@@ -2,13 +2,13 @@
 
 #include "./HMM.hpp"
 
+// Define start codon pair for this gate
+unsigned char HMM::START_CODON_ONE = 42;
+unsigned char HMM::START_CODON_TWO = 255 - START_CODON_ONE;
+
 
 HMM::HMM(vector<unsigned char> &genome, int start, const int numSensors,
         const int numHidden, const int numMotors, const bool deterministic) {
-    // Define start codon pair for this gate
-    START_CODON_ONE = 42;
-    START_CODON_TWO = 255 - START_CODON_ONE;
-
     inputs.clear();
     outputs.clear();
 

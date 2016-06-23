@@ -14,10 +14,6 @@ class Gate {
 
     vector<unsigned char> inputs, outputs;
 
-    // Start codon pair for this gate
-    static unsigned char START_CODON_ONE;
-    static unsigned char START_CODON_TWO;
-
     virtual void update(vector<unsigned char> &currentStates,
             vector<unsigned char> &nextStates) = 0;
 };

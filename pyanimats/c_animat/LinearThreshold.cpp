@@ -3,14 +3,15 @@
 #include "./LinearThreshold.hpp"
 
 
+// Define start codon pair for this gate
+// (Using 11, because 42 onward are used by Adami lab's MABE software)
+unsigned char LinearThreshold::START_CODON_ONE = 11;
+unsigned char LinearThreshold::START_CODON_TWO = 255 - START_CODON_ONE;
+
+
 LinearThreshold::LinearThreshold(vector<unsigned char> &genome, int start,
         const int numSensors, const int numHidden, const int numMotors, const
         bool deterministic) {
-    // Define start codon pair for this gate
-    // (Using 11, because 42 onward are used by Adami lab's MABE software)
-    START_CODON_ONE = 11;
-    START_CODON_TWO = 255 - START_CODON_ONE;
-
     inputs.clear();
     outputs.clear();
 

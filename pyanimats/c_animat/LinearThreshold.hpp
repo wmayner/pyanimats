@@ -16,6 +16,10 @@ class LinearThreshold: public Gate {
             const bool deterministic);
     ~LinearThreshold();
 
+    // Start codon pair for this gate
+    static unsigned char START_CODON_ONE;
+    static unsigned char START_CODON_TWO;
+
     int mNumHidden;
     int mNumMotors;
     int mNumSensors;
