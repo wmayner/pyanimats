@@ -312,7 +312,6 @@ cdef class pyAgent:
                 animat_positions.asarray(), trial_results.asarray(), correct,
                 incorrect)
 
-
 cdef class pyHMMAgent(pyAgent):
     cdef HMMAgent *derivedptr
 
@@ -322,6 +321,9 @@ cdef class pyHMMAgent(pyAgent):
                                        numMotors, deterministic)
         self.thisptr = self.derivedptr
         self._dirty_phenotype = True
+
+    def injectStartCodons(self, n):
+        self.derivedptr.injectStartCodons(n)
 
 
 cdef class pyLinearThresholdAgent(pyAgent):
@@ -334,3 +336,6 @@ cdef class pyLinearThresholdAgent(pyAgent):
                                                    deterministic)
         self.thisptr = self.derivedptr
         self._dirty_phenotype = True
+
+    def injectStartCodons(self, n):
+        self.derivedptr.injectStartCodons(n)
