@@ -141,12 +141,6 @@ vector< vector<bool> > Agent::getTransitions() {
     return tpm;
 }
 
-Agent::~Agent() {
-    for (int i = 0; i < (int)gates.size(); i++) {
-        delete gates[i];
-    }
-}
-
 
 // HMMAgent
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -172,6 +166,12 @@ void HMMAgent::generatePhenotype() {
 
 void HMMAgent::injectStartCodons(int n) {
     injectStartCodons(n, HMM::START_CODON_ONE, HMM::START_CODON_TWO);
+}
+
+HMMAgent::~HMMAgent() {
+    for (int i = 0; i < (int)gates.size(); i++) {
+        delete gates[i];
+    }
 }
 
 
@@ -200,4 +200,10 @@ void LinearThresholdAgent::generatePhenotype() {
 void LinearThresholdAgent::injectStartCodons(int n) {
     injectStartCodons(n, LinearThreshold::START_CODON_ONE,
             LinearThreshold::START_CODON_TWO);
+}
+
+LinearThresholdAgent::~LinearThresholdAgent() {
+    for (int i = 0; i < (int)gates.size(); i++) {
+        delete gates[i];
+    }
 }

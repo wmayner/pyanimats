@@ -19,7 +19,7 @@ class Agent {
  public:
     Agent(vector<unsigned char> genome, int numSensors, int numHidden, int
             numMotors, bool deterministic);
-    ~Agent();
+    virtual ~Agent() = default;
 
     // Note on naming: the `m` prefix indicates a member variable
     int mNumSensors;
@@ -58,7 +58,7 @@ class HMMAgent: public Agent {
             numMotors, bool deterministic)
     : Agent(genome, numSensors, numHidden, numMotors, deterministic)
     {}
-    ~HMMAgent() = default;
+    ~HMMAgent();
 
     using Agent::injectStartCodons;
     void injectStartCodons(int n);
@@ -73,7 +73,7 @@ class LinearThresholdAgent: public Agent {
             numHidden, int numMotors, bool deterministic)
     : Agent(genome, numSensors, numHidden, numMotors, deterministic)
     {}
-    ~LinearThresholdAgent() = default;
+    ~LinearThresholdAgent();
 
     using Agent::injectStartCodons;
     void injectStartCodons(int n);
