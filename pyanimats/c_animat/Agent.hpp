@@ -17,8 +17,8 @@ using std::vector;
 // Base class
 class Agent {
  public:
-    Agent(vector<unsigned char> genome, int numSensors, int numHidden,
-        int numMotors, bool deterministic);
+    Agent(vector<unsigned char> genome, int numSensors, int numHidden, int
+            numMotors, bool deterministic);
     ~Agent();
 
     // Note on naming: the `m` prefix indicates a member variable
@@ -54,7 +54,11 @@ class Agent {
 
 class HMMAgent: public Agent {
  public:
-    using Agent::Agent;
+    HMMAgent(vector<unsigned char> genome, int numSensors, int numHidden, int
+            numMotors, bool deterministic)
+    : Agent(genome, numSensors, numHidden, numMotors, deterministic)
+    {}
+    ~HMMAgent() = default;
 
     using Agent::injectStartCodons;
     void injectStartCodons(int n);
@@ -65,7 +69,11 @@ class HMMAgent: public Agent {
 
 class LinearThresholdAgent: public Agent {
  public:
-    using Agent::Agent;
+    LinearThresholdAgent(vector<unsigned char> genome, int numSensors, int
+            numHidden, int numMotors, bool deterministic)
+    : Agent(genome, numSensors, numHidden, numMotors, deterministic)
+    {}
+    ~LinearThresholdAgent() = default;
 
     using Agent::injectStartCodons;
     void injectStartCodons(int n);
