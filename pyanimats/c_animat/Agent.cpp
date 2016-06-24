@@ -172,7 +172,7 @@ void HMMAgent::generatePhenotype() {
 }
 
 void HMMAgent::injectStartCodons(int n) {
-    this->injectStartCodons(n, HMM::START_CODON_ONE, HMM::START_CODON_TWO);
+    injectStartCodons(n, HMM::START_CODON_ONE, HMM::START_CODON_TWO);
 }
 
 
@@ -199,6 +199,6 @@ void LinearThresholdAgent::generatePhenotype() {
 }
 
 void LinearThresholdAgent::injectStartCodons(int n) {
-    this->injectStartCodons(n, LinearThreshold::START_CODON_ONE,
+    injectStartCodons(n, LinearThreshold::START_CODON_ONE,
             LinearThreshold::START_CODON_TWO);
 }
