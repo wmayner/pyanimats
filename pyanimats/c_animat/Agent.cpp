@@ -27,12 +27,6 @@ Agent::Agent(vector<unsigned char> genome, int numSensors, int numHidden,
     gates.clear();
 }
 
-Agent::~Agent() {
-    for (int i = 0; i < (int)gates.size(); i++) {
-        delete gates[i];
-    }
-}
-
 int Agent::getAction() {
     if (mNumMotors > 0) {
         return (states[mNumNodes - 2] << 1) + states[mNumNodes - 1];
@@ -118,7 +112,6 @@ vector< vector<int> > Agent::getEdges() {
     return edgeList;
 }
 
-
 vector< vector<bool> > Agent::getTransitions() {
     // Save animat's original state.
     unsigned char initial_states[mNumNodes];
@@ -146,6 +139,12 @@ vector< vector<bool> > Agent::getTransitions() {
         states[i] = initial_states[i];
     }
     return tpm;
+}
+
+Agent::~Agent() {
+    for (int i = 0; i < (int)gates.size(); i++) {
+        delete gates[i];
+    }
 }
 
 
