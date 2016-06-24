@@ -68,8 +68,6 @@ experiment:
     #   - 'hmm': Hidden Markov Model
     #   - 'lt': Linear Threshold units
     gate: 'lt'
-    # Either 'hmm' or 'linear_threshold'.
-    gate: 'linear_threshold'
     # The number of sensors in an animat.
     num_sensors: 2
     # The number of hidden units in an animat.
