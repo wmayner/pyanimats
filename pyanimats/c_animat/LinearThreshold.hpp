@@ -9,10 +9,11 @@
 
 using std::vector;
 
+
 class LinearThreshold: public Gate {
  public:
-    LinearThreshold(vector<unsigned char> &genome, int start, const int
-            numSensors, const int numHidden, const int numMotors,
+    LinearThreshold(vector<unsigned char> &genome, int start,
+            const int numSensors, const int numHidden, const int numMotors,
             const bool deterministic);
     ~LinearThreshold();
 
