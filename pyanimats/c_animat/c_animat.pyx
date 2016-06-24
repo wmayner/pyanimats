@@ -219,10 +219,6 @@ cdef class pyAgent:
     cdef Agent *thisptr
     cdef bool _dirty_phenotype
 
-    def __cinit__(self, genome, numSensors, numHidden, numMotors,
-                  deterministic):
-        pass
-
     def __reduce__(self):
         # When pickling or copying, simply regenerate an instance.
         # NOTE: This means that changes in the implementation of pyAgent that
@@ -312,6 +308,7 @@ cdef class pyAgent:
                 animat_positions.asarray(), trial_results.asarray(), correct,
                 incorrect)
 
+
 cdef class pyHMMAgent(pyAgent):
     cdef HMMAgent *derivedptr
 
@@ -321,6 +318,9 @@ cdef class pyHMMAgent(pyAgent):
                                        numMotors, deterministic)
         self.thisptr = self.derivedptr
         self._dirty_phenotype = True
+
+    def __dealloc__(self):
+        del self.derivedptr
 
     def injectStartCodons(self, n):
         self.derivedptr.injectStartCodons(n)
@@ -336,6 +336,9 @@ cdef class pyLinearThresholdAgent(pyAgent):
                                                    deterministic)
         self.thisptr = self.derivedptr
         self._dirty_phenotype = True
+
+    def __dealloc__(self):
+        del self.derivedptr
 
     def injectStartCodons(self, n):
         self.derivedptr.injectStartCodons(n)
