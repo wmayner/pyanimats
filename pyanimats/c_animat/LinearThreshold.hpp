@@ -34,7 +34,7 @@ class LinearThreshold: public Gate {
     int threshold;
 
     void update(vector<unsigned char> &currentStates,
-            vector<unsigned char> &nextStates);
+            vector<unsigned char> &nextStates) override;
 };
 
 #endif  // ANIMAT_LINEAR_THRESHOLD_H_

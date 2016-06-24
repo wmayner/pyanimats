@@ -32,8 +32,8 @@ class HMM: public Gate {
     vector<unsigned char> inputs, outputs;
     unsigned char numInputs, numOutputs;
 
-    void update(vector<unsigned char> &currentStates, vector<unsigned char>
-            &nextStates);
+    void update(vector<unsigned char> &currentStates,
+            vector<unsigned char> &nextStates) override;
 };
 
 #endif  // ANIMAT_HMM_H_
