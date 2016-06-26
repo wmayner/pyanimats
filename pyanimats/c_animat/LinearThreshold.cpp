@@ -57,11 +57,14 @@ void LinearThreshold::update(
     for (int i = 0; i < (int)inputs.size(); i++)
         inputCount += (currentStates[inputs[i]] & 1);
     // Activate output if count exceeds threshold
+    // NOTE: Overwriting the output, rather than merging it with an OR,
+    // ensures that each node effectively only recieves input from one
+    // threshold gate (the last one in the genome that outputs to it)
     if (inputCount > threshold) {
-        // NOTE: Overwriting the output, rather than merging it with an OR,
-        // ensures that each node effectively only recieves input from one
-        // threshold gate (the last one in the genome that outputs to it)
         nextStates[outputs[0]] = 1;
+    }
+    else {
+        nextStates[outputs[0]] = 0;
     }
 }
 
