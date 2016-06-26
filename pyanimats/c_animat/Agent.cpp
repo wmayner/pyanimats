@@ -94,24 +94,6 @@ void Agent::injectStartCodons(int n, unsigned char codon_one,
     }
 }
 
-vector< vector<int> > Agent::getEdges() {
-    vector< vector<int> > edgeList;
-    edgeList.clear();
-    vector<int> edge;
-    for (int i = 0; i < (int)gates.size(); i++) {
-        for (int j = 0; j < (int)gates[i]->inputs.size(); j++) {
-            for (int k = 0; k < (int)gates[i]->outputs.size(); k++) {
-                edge.clear();
-                edge.resize(2);
-                edge[0] = gates[i]->inputs[j];
-                edge[1] = gates[i]->outputs[k];
-                edgeList.push_back(edge);
-            }
-        }
-    }
-    return edgeList;
-}
-
 vector< vector<bool> > Agent::getTransitions() {
     // Save animat's original state.
     unsigned char initial_states[mNumNodes];
@@ -164,6 +146,24 @@ void HMMAgent::generatePhenotype() {
     }
 }
 
+vector< vector<int> > HMMAgent::getEdges() {
+    vector< vector<int> > edgeList;
+    edgeList.clear();
+    vector<int> edge;
+    for (int i = 0; i < (int)gates.size(); i++) {
+        for (int j = 0; j < (int)gates[i]->inputs.size(); j++) {
+            for (int k = 0; k < (int)gates[i]->outputs.size(); k++) {
+                edge.clear();
+                edge.resize(2);
+                edge[0] = gates[i]->inputs[j];
+                edge[1] = gates[i]->outputs[k];
+                edgeList.push_back(edge);
+            }
+        }
+    }
+    return edgeList;
+}
+
 void HMMAgent::injectStartCodons(int n) {
     injectStartCodons(n, HMM::START_CODON_ONE, HMM::START_CODON_TWO);
 }
@@ -195,6 +195,24 @@ void LinearThresholdAgent::generatePhenotype() {
             gates.push_back(gate);
         }
     }
+}
+
+// TODO(wmayner) refactor this properly
+vector< vector<int> > LinearThresholdAgent::getEdges() {
+    vector< vector<int> > edgeList;
+    edgeList.clear();
+    vector<int> edge;
+    for (int i = 0; i < (int)gates.size(); i++) {
+        for (int j = 0; j < (int)gates[i]->inputs.size(); j++) {
+            // Only the first output is used
+            edge.clear();
+            edge.resize(2);
+            edge[0] = gates[i]->inputs[j];
+            edge[1] = gates[i]->outputs[0];
+            edgeList.push_back(edge);
+        }
+    }
+    return edgeList;
 }
 
 void LinearThresholdAgent::injectStartCodons(int n) {

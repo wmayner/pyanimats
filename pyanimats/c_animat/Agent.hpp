@@ -45,7 +45,6 @@ class Agent {
     void mutateGenome(double mutProb, double dupProb, double delProb, int
         minGenomeLength, int maxGenomeLength, int minDupDelLength,
         int maxDupDelLength);
-    vector< vector<int> > getEdges();
     vector< vector<bool> > getTransitions();
 
     virtual void generatePhenotype() = 0;
@@ -62,6 +61,7 @@ class HMMAgent: public Agent {
 
     using Agent::injectStartCodons;
     void injectStartCodons(int n);
+    vector< vector<int> > getEdges();
 
     void generatePhenotype();
 };
@@ -77,6 +77,7 @@ class LinearThresholdAgent: public Agent {
 
     using Agent::injectStartCodons;
     void injectStartCodons(int n);
+    vector< vector<int> > getEdges();
 
     void generatePhenotype();
 };
