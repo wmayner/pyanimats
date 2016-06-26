@@ -59,11 +59,11 @@ class HMMAgent: public Agent {
     {}
     ~HMMAgent();
 
-    using Agent::injectStartCodons;
-    void injectStartCodons(int n);
+    void generatePhenotype();
     vector< vector<int> > getEdges();
 
-    void generatePhenotype();
+    using Agent::injectStartCodons;
+    void injectStartCodons(int n);
 };
 
 
@@ -75,11 +75,12 @@ class LinearThresholdAgent: public Agent {
     {}
     ~LinearThresholdAgent();
 
-    using Agent::injectStartCodons;
-    void injectStartCodons(int n);
+    void generatePhenotype();
     vector< vector<int> > getEdges();
 
-    void generatePhenotype();
+    using Agent::injectStartCodons;
+    void injectStartCodons(int n);
+
 };
 
 #endif  // ANIMAT_AGENT_H_

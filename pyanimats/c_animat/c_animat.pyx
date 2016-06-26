@@ -108,7 +108,6 @@ cdef extern from 'Agent.hpp':
             double mutProb, double dupProb, double delProb, int
             minGenomeLength, int maxGenomeLength, int minDupDelLength, 
             int maxDupDelLength)
-        vector[vector[int]] getEdges()
         vector[vector[bool]] getTransitions()
 
     cdef cppclass HMMAgent(Agent):
@@ -117,8 +116,10 @@ cdef extern from 'Agent.hpp':
             bool deterministic
         ) except +
 
-        void injectStartCodons(int n);
+        vector[vector[int]] getEdges()
         void generatePhenotype();
+
+        void injectStartCodons(int n);
 
 
     cdef cppclass LinearThresholdAgent(Agent):
@@ -127,9 +128,10 @@ cdef extern from 'Agent.hpp':
             bool deterministic
         ) except +
 
-        void injectStartCodons(int n);
+        vector[vector[int]] getEdges()
         void generatePhenotype();
 
+        void injectStartCodons(int n);
 
 
 cdef extern from 'Game.hpp':
@@ -259,12 +261,6 @@ cdef class pyAgent:
         def __get__(self):
             return self.thisptr.mBodyLength
 
-    property edges:
-        def __get__(self):
-            # Update the phenotype if necessary before getting the edge list.
-            self._update_phenotype()
-            return self.thisptr.getEdges()
-
     property tpm:
         def __get__(self):
             # Update the phenotype if necessary before getting the TPM.
@@ -322,6 +318,12 @@ cdef class pyHMMAgent(pyAgent):
     def __dealloc__(self):
         del self.derivedptr
 
+    property edges:
+        def __get__(self):
+            # Update the phenotype if necessary before getting the edge list.
+            self._update_phenotype()
+            return self.derivedptr.getEdges()
+
     def injectStartCodons(self, n):
         self.derivedptr.injectStartCodons(n)
 
@@ -340,5 +342,12 @@ cdef class pyLinearThresholdAgent(pyAgent):
     def __dealloc__(self):
         del self.derivedptr
 
+    property edges:
+        def __get__(self):
+            # Update the phenotype if necessary before getting the edge list.
+            self._update_phenotype()
+            return self.derivedptr.getEdges()
+
     def injectStartCodons(self, n):
         self.derivedptr.injectStartCodons(n)
+
