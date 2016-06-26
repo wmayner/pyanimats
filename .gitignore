@@ -10,6 +10,7 @@ __pycache__
 .ipynb_checkpoints
 **/*.so
 **/*.o
+**/*.cpython*
 __pyphi_cache__
 pyphi.log
 build
