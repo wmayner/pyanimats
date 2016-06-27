@@ -72,3 +72,17 @@ LinearThreshold::~LinearThreshold() {
     inputs.clear();
     outputs.clear();
 }
+
+void LinearThreshold::print() {
+    printf("\n--------------------");
+    printf("\nLinearThreshold gate");
+    printf("\n--------------------");
+    printf("\n   numInputs:\t%i", numInputs);
+    printf("\n      inputs:\t[");
+    for (int i = 0; i < ((int)inputs.size() - 1); i++) {
+        printf("%i, ", inputs[i]);
+    }
+    printf("%i]", inputs[(int)inputs.size() - 1]);
+    printf("\n      output:\t%i", outputs[0]);
+    printf("\n   threshold:\t%i", threshold);
+}

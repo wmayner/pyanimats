@@ -16,6 +16,7 @@ class Gate {
 
     virtual void update(vector<unsigned char> &currentStates,
             vector<unsigned char> &nextStates) = 0;
+    virtual void print() = 0;
 };
 
 #endif  // ANIMAT_GATE_H_
