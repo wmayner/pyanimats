@@ -174,6 +174,9 @@ HMMAgent::~HMMAgent() {
     }
 }
 
+unsigned char HMMAgent::START_CODON_ONE = HMMAgent::START_CODON_ONE;
+unsigned char HMMAgent::START_CODON_TWO = HMMAgent::START_CODON_TWO;
+
 
 // LinearThresholdAgent
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -225,3 +228,6 @@ LinearThresholdAgent::~LinearThresholdAgent() {
         delete gates[i];
     }
 }
+
+unsigned char LinearThresholdAgent::START_CODON_ONE = LinearThreshold::START_CODON_ONE;
+unsigned char LinearThresholdAgent::START_CODON_TWO = LinearThreshold::START_CODON_TWO;

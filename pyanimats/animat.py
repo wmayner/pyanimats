@@ -268,9 +268,10 @@ class Animat:
 
     def start_codons(self):
         """Return the locations of start codons in the genome, if any."""
+        codons = [self.START_CODON_ONE, self.START_CODON_TWO]
         genome = np.array(self.genome)
-        window = utils.rolling_window(genome, len(constants.START_CODON))
-        occurrences = np.all((window == constants.START_CODON), axis=1)
+        window = utils.rolling_window(genome)
+        occurrences = np.all((window == codons), axis=1)
         return np.where(occurrences)[0]
 
     def as_subsystem(self, state=None):
@@ -330,7 +331,8 @@ def _c_animat_getter(name):
 # A list of animat attributes to expose as read-only properties
 _c_animat_properties = ['genome', 'num_sensors', 'num_hidden', 'num_motors',
                         'num_nodes', 'num_states', 'deterministic',
-                        'body_length', 'edges']
+                        'body_length', 'edges', 'START_CODON_ONE',
+                        'START_CODON_TWO']
 
 # Add underlying animat properties to the Animat class
 for name in _c_animat_properties:

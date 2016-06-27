@@ -59,6 +59,9 @@ class HMMAgent: public Agent {
     {}
     ~HMMAgent();
 
+    static unsigned char START_CODON_ONE;
+    static unsigned char START_CODON_TWO;
+
     void generatePhenotype();
     vector< vector<int> > getEdges();
 
@@ -74,6 +77,9 @@ class LinearThresholdAgent: public Agent {
     : Agent(genome, numSensors, numHidden, numMotors, deterministic)
     {}
     ~LinearThresholdAgent();
+
+    static unsigned char START_CODON_ONE;
+    static unsigned char START_CODON_TWO;
 
     void generatePhenotype();
     vector< vector<int> > getEdges();

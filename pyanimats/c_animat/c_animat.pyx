@@ -116,6 +116,9 @@ cdef extern from 'Agent.hpp':
             bool deterministic
         ) except +
 
+        uchar START_CODON_ONE;
+        uchar START_CODON_TWO;
+
         vector[vector[int]] getEdges()
         void generatePhenotype();
 
@@ -127,6 +130,9 @@ cdef extern from 'Agent.hpp':
             vector[uchar] genome, int numSensors, int numHidden, int numMotors,
             bool deterministic
         ) except +
+
+        uchar START_CODON_ONE;
+        uchar START_CODON_TWO;
 
         vector[vector[int]] getEdges()
         void generatePhenotype();
@@ -318,6 +324,14 @@ cdef class pyHMMAgent(pyAgent):
     def __dealloc__(self):
         del self.derivedptr
 
+    property START_CODON_ONE:
+        def __get__(self):
+            return self.derivedptr.START_CODON_ONE
+
+    property START_CODON_TWO:
+        def __get__(self):
+            return self.derivedptr.START_CODON_TWO
+
     property edges:
         def __get__(self):
             # Update the phenotype if necessary before getting the edge list.
@@ -338,6 +352,14 @@ cdef class pyLinearThresholdAgent(pyAgent):
                                                    deterministic)
         self.thisptr = self.derivedptr
         self._dirty_phenotype = True
+
+    property START_CODON_ONE:
+        def __get__(self):
+            return self.derivedptr.START_CODON_ONE
+
+    property START_CODON_TWO:
+        def __get__(self):
+            return self.derivedptr.START_CODON_TWO
 
     def __dealloc__(self):
         del self.derivedptr
