@@ -10,6 +10,7 @@ param_file=$1
 output_dir=$2
 seed_start=$3
 num_seeds=$4
+shift 4
 
 echo "Writing results to '$output_dir'."
 echo ""
@@ -21,7 +22,7 @@ do
   # Ensure the output directory exists.
   mkdir -p $cur_output_dir
   # Build the command.
-  cmd="python -m pyanimats run $param_file $cur_output_dir/output.json -r $seed"
+  cmd="python -m pyanimats run $param_file $cur_output_dir/output.json -r $seed $@"
   # Display command.
   echo "Executing command:"
   echo $cmd
