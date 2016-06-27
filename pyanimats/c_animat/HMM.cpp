@@ -122,14 +122,12 @@ void HMM::print() {
     printf("\n--------------------");
     printf("\nHMM gate");
     printf("\n--------------------");
-    printf("\n   numInputs:\t%i", numInputs);
-    printf("\n      inputs:\t[");
+    printf("\n   inputs: %i:\t[", numInputs);
     for (int i = 0; i < ((int)inputs.size() - 1); i++) {
         printf("%i, ", inputs[i]);
     }
     printf("%i]", inputs[(int)inputs.size() - 1]);
-    printf("\n  numOutputs:\t%i", numOutputs);
-    printf("\n     outputs:\t[");
+    printf("\n  outputs: %i:\t[", numOutputs);
     for (int i = 0; i < ((int)outputs.size() - 1); i++) {
         printf("%i, ", outputs[i]);
     }

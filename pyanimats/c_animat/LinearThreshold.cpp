@@ -29,26 +29,40 @@ LinearThreshold::LinearThreshold(vector<unsigned char> &genome, int start,
     // Number of possible outputs is the number of non-sensor nodes
     int maxOutputs = mNumNodes - mNumSensors;
 
+    // Get the threshold
+    threshold = genome[(scan++) % (int)genome.size()] % maxInputs;
 
     // At least one input is guaranteed
     numInputs = 1 + (genome[(scan++) % (int)genome.size()] % (maxInputs - 1));
-
     inputs.resize(numInputs);
+    // TODO check that this actually works
+    // At least one output is guaranteed
+    numOutputs = 1 + (genome[(scan++) % (int)genome.size()] % (maxOutputs - 1));
+    outputs.resize(numOutputs);
+
+    // This vector keeps track of which inputs we have not already chosen, so
+    // we don't get duplicated inputs
+    // NOTE: This excludes motors from possible inputs by considering only
+    // values between 0 and `maxInputs`
+    vector<int> available;
+    available.clear();
+    available.resize(maxInputs);
+    for (int i = 0; i < maxInputs; i++)
+        available[i] = i;
+
+    int input;
     for (int i = 0; i < numInputs; i++) {
-        // Exclude motors from possible inputs
-        inputs[i] = genome[(scan + i) % (int)genome.size()] % maxInputs;
+        input = genome[(scan + i) % (int)genome.size()] % (int)available.size();
+        inputs[i] = available[input];
+        available.erase(available.begin() + input);
     }
     // Move past the input codon
     scan += maxInputs;
 
-    // There's always just 1 output
-    outputs.resize(1);
-    outputs[0] = mNumSensors + (genome[(scan + 1) % (int)genome.size()] % maxOutputs);
-    // Move past the output codons
-    scan += maxOutputs;
-
-    // Get the threshold
-    threshold = genome[(scan++) % (int)genome.size()] % numInputs;
+    for (int i = 0; i < numOutputs; i++)
+        // Exclude sensors from possible outputs.
+        outputs[i] = (genome[(scan + i) % (int)genome.size()] % maxOutputs)
+            + mNumSensors;
 }
 
 void LinearThreshold::update(
@@ -85,6 +99,9 @@ void LinearThreshold::print() {
         printf("%i, ", inputs[i]);
     }
     printf("%i]", inputs[(int)inputs.size() - 1]);
-    printf("\n      output:\t%i", outputs[0]);
-    printf("\n   threshold:\t%i", threshold);
+    printf("\n    outputs: %i:\t[", numOutputs);
+    for (int i = 0; i < ((int)outputs.size() - 1); i++) {
+        printf("%i, ", outputs[i]);
+    }
+    printf("%i]", outputs[(int)outputs.size() - 1]);
 }
