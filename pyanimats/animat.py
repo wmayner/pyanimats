@@ -332,7 +332,7 @@ def _c_animat_getter(name):
 _c_animat_properties = ['genome', 'num_sensors', 'num_hidden', 'num_motors',
                         'num_nodes', 'num_states', 'deterministic',
                         'body_length', 'edges', 'START_CODON_ONE',
-                        'START_CODON_TWO']
+                        'START_CODON_TWO', 'print_gates']
 
 # Add underlying animat properties to the Animat class
 for name in _c_animat_properties:

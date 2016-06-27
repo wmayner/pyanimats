@@ -47,6 +47,7 @@ class Agent {
         int maxDupDelLength);
     vector< vector<int> > getEdges();
     vector< vector<bool> > getTransitions();
+    void printGates();
 
     virtual void generatePhenotype() = 0;
 };

@@ -109,6 +109,7 @@ cdef extern from 'Agent.hpp':
             minGenomeLength, int maxGenomeLength, int minDupDelLength, 
             int maxDupDelLength)
         vector[vector[bool]] getTransitions()
+        void printGates()
 
     cdef cppclass HMMAgent(Agent):
         HMMAgent(
@@ -277,6 +278,9 @@ cdef class pyAgent:
         if self._dirty_phenotype:
             self.thisptr.generatePhenotype()
             self._dirty_phenotype = False
+
+    def print_gates(self):
+        self.thisptr.printGates()
 
     def mutate(self, mutProb, dupProb, delProb, minGenomeLength,
                maxGenomeLength, minDupDelLength, maxDupDelLength):

@@ -141,6 +141,13 @@ vector< vector<bool> > Agent::getTransitions() {
     return tpm;
 }
 
+void Agent::printGates() {
+    for (int i = 0; i < (int)gates.size(); i++) {
+        gates[i]->print();
+    }
+    printf("\n");
+}
+
 
 // HMMAgent
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
