@@ -29,13 +29,15 @@ LinearThreshold::LinearThreshold(vector<unsigned char> &genome, int start,
     // Number of possible outputs is the number of non-sensor nodes
     int maxOutputs = mNumNodes - mNumSensors;
 
+
     // At least one input is guaranteed
     numInputs = 1 + (genome[(scan++) % (int)genome.size()] % (maxInputs - 1));
+
     inputs.resize(numInputs);
-    for (int i = 0; i < numInputs; i++)
+    for (int i = 0; i < numInputs; i++) {
         // Exclude motors from possible inputs
-        inputs[i] = genome[(scan + i) % (int)genome.size()]
-            % (mNumNodes - mNumMotors);
+        inputs[i] = genome[(scan + i) % (int)genome.size()] % maxInputs;
+    }
     // Move past the input codon
     scan += maxInputs;
 
