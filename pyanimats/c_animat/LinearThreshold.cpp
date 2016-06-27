@@ -33,13 +33,14 @@ LinearThreshold::LinearThreshold(vector<unsigned char> &genome, int start,
     threshold = genome[(scan++) % (int)genome.size()] % maxInputs;
 
     // At least one input is guaranteed
-    numInputs = 1 + (genome[(scan++) % (int)genome.size()] % (maxInputs - 1));
+    numInputs = 1 + (genome[(scan++) % (int)genome.size()] % maxInputs);
     inputs.resize(numInputs);
-    // TODO check that this actually works
     // At least one output is guaranteed
-    numOutputs = 1 + (genome[(scan++) % (int)genome.size()] % (maxOutputs - 1));
+    numOutputs = 1 + (genome[(scan++) % (int)genome.size()] % maxOutputs);
     outputs.resize(numOutputs);
 
+    // Get inputs
+    //
     // This vector keeps track of which inputs we have not already chosen, so
     // we don't get duplicated inputs
     // NOTE: This excludes motors from possible inputs by considering only
@@ -49,7 +50,6 @@ LinearThreshold::LinearThreshold(vector<unsigned char> &genome, int start,
     available.resize(maxInputs);
     for (int i = 0; i < maxInputs; i++)
         available[i] = i;
-
     int input;
     for (int i = 0; i < numInputs; i++) {
         input = genome[(scan + i) % (int)genome.size()] % (int)available.size();
@@ -59,6 +59,7 @@ LinearThreshold::LinearThreshold(vector<unsigned char> &genome, int start,
     // Move past the input codon
     scan += maxInputs;
 
+    // Get outputs
     for (int i = 0; i < numOutputs; i++)
         // Exclude sensors from possible outputs.
         outputs[i] = (genome[(scan + i) % (int)genome.size()] % maxOutputs)
