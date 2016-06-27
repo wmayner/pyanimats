@@ -12,6 +12,13 @@ class Gate {
  public:
     virtual ~Gate() = default;
 
+    int mNumHidden;
+    int mNumMotors;
+    int mNumSensors;
+    int mNumNodes;
+    bool mDeterministic;
+
+    unsigned char numInputs, numOutputs;
     vector<unsigned char> inputs, outputs;
 
     virtual void update(vector<unsigned char> &currentStates,

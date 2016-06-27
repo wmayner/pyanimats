@@ -20,13 +20,6 @@ class LinearThreshold: public Gate {
     // Start codon pair for this gate
     static unsigned char START_CODON_ONE, START_CODON_TWO;
 
-    int mNumHidden;
-    int mNumMotors;
-    int mNumSensors;
-    int mNumNodes;
-    bool mDeterministic;
-
-    unsigned char numInputs;
     int threshold;
 
     void update(vector<unsigned char> &currentStates,

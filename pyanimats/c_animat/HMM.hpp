@@ -20,15 +20,8 @@ class HMM: public Gate {
     // Start codon pair for this gate
     static unsigned char START_CODON_ONE, START_CODON_TWO;
 
-    int mNumHidden;
-    int mNumMotors;
-    int mNumSensors;
-    int mNumNodes;
-    bool mDeterministic;
-
     vector< vector<unsigned char> > hmm;
     vector<unsigned int> sums;
-    unsigned char numInputs, numOutputs;
 
     void update(vector<unsigned char> &currentStates,
             vector<unsigned char> &nextStates) override;
