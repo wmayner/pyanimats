@@ -270,7 +270,7 @@ class Animat:
         """Return the locations of start codons in the genome, if any."""
         codons = [self.START_CODON_ONE, self.START_CODON_TWO]
         genome = np.array(self.genome)
-        window = utils.rolling_window(genome)
+        window = utils.rolling_window(genome, len(codons))
         occurrences = np.all((window == codons), axis=1)
         return np.where(occurrences)[0]
 
