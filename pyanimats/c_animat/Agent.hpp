@@ -59,6 +59,8 @@ class HMMAgent: public Agent {
     {}
     ~HMMAgent();
 
+    vector<HMM*> gates;
+
     static unsigned char START_CODON_ONE;
     static unsigned char START_CODON_TWO;
 
@@ -77,6 +79,8 @@ class LinearThresholdAgent: public Agent {
     : Agent(genome, numSensors, numHidden, numMotors, deterministic)
     {}
     ~LinearThresholdAgent();
+
+    vector<LinearThreshold*> gates;
 
     static unsigned char START_CODON_ONE;
     static unsigned char START_CODON_TWO;
