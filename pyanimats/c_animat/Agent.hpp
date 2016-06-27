@@ -1,4 +1,4 @@
-// Agent.h
+// Agent.hpp
 
 #ifndef ANIMAT_AGENT_H_
 #define ANIMAT_AGENT_H_
@@ -45,6 +45,7 @@ class Agent {
     void mutateGenome(double mutProb, double dupProb, double delProb, int
         minGenomeLength, int maxGenomeLength, int minDupDelLength,
         int maxDupDelLength);
+    vector< vector<int> > getEdges();
     vector< vector<bool> > getTransitions();
 
     virtual void generatePhenotype() = 0;
@@ -59,13 +60,10 @@ class HMMAgent: public Agent {
     {}
     ~HMMAgent();
 
-    vector<HMM*> gates;
-
     static unsigned char START_CODON_ONE;
     static unsigned char START_CODON_TWO;
 
     void generatePhenotype();
-    vector< vector<int> > getEdges();
 
     using Agent::injectStartCodons;
     void injectStartCodons(int n);
@@ -80,13 +78,10 @@ class LinearThresholdAgent: public Agent {
     {}
     ~LinearThresholdAgent();
 
-    vector<LinearThreshold*> gates;
-
     static unsigned char START_CODON_ONE;
     static unsigned char START_CODON_TWO;
 
     void generatePhenotype();
-    vector< vector<int> > getEdges();
 
     using Agent::injectStartCodons;
     void injectStartCodons(int n);
