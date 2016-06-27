@@ -94,8 +94,8 @@ void LinearThreshold::print() {
     printf("\n--------------------");
     printf("\nLinearThreshold gate");
     printf("\n--------------------");
-    printf("\n   numInputs:\t%i", numInputs);
-    printf("\n      inputs:\t[");
+    printf("\n  threshold: %i", threshold);
+    printf("\n     inputs: %i:\t[", numInputs);
     for (int i = 0; i < ((int)inputs.size() - 1); i++) {
         printf("%i, ", inputs[i]);
     }
