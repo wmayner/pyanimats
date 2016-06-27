@@ -18,8 +18,7 @@ class HMM: public Gate {
     ~HMM();
 
     // Start codon pair for this gate
-    static unsigned char START_CODON_ONE;
-    static unsigned char START_CODON_TWO;
+    static unsigned char START_CODON_ONE, START_CODON_TWO;
 
     int mNumHidden;
     int mNumMotors;
