@@ -1,4 +1,4 @@
-// Threshold.hpp
+// LinearThreshold.hpp
 
 #ifndef ANIMAT_LINEAR_THRESHOLD_H_
 #define ANIMAT_LINEAR_THRESHOLD_H_
