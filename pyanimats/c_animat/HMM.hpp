@@ -28,7 +28,6 @@ class HMM: public Gate {
 
     vector< vector<unsigned char> > hmm;
     vector<unsigned int> sums;
-    vector<unsigned char> inputs, outputs;
     unsigned char numInputs, numOutputs;
 
     void update(vector<unsigned char> &currentStates,

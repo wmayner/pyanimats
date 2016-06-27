@@ -27,7 +27,6 @@ class LinearThreshold: public Gate {
     bool mDeterministic;
 
     unsigned char numInputs;
-    vector<unsigned char> inputs, outputs;
     int threshold;
 
     void update(vector<unsigned char> &currentStates,
