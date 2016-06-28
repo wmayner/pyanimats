@@ -8,7 +8,7 @@
 
 #include "./constants.hpp"
 #include "./rng.hpp"
-#include "./Gate.hpp"
+#include "./AbstractGate.hpp"
 #include "./HMM.hpp"
 #include "./LinearThreshold.hpp"
 
@@ -30,7 +30,7 @@ class Agent {
     int mBodyLength;
     bool mDeterministic;
 
-    vector<Gate*> gates;
+    vector<AbstractGate*> gates;
 
     vector<unsigned char> genome;
     // TODO(wmayner) change these to bool?

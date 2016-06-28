@@ -6,11 +6,11 @@
 #include <vector>
 
 #include "./rng.hpp"
-#include "./Gate.hpp"
+#include "./AbstractGate.hpp"
 
 using std::vector;
 
-class HMM: public Gate {
+class HMM: public AbstractGate {
  public:
     HMM(vector<unsigned char> &genome, int start, const int numSensors,
             const int numHidden, const int numMotors,

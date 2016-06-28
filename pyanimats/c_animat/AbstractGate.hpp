@@ -1,7 +1,7 @@
-// Gate.hpp
+// AbstractGate.hpp
 
-#ifndef ANIMAT_GATE_H_
-#define ANIMAT_GATE_H_
+#ifndef ANIMAT_ABSTRACTGATE_H_
+#define ANIMAT_ABSTRACTGATE_H_
 
 #include <stdio.h>
 
@@ -10,9 +10,9 @@
 using std::vector;
 
 // Abstract base class for different types of gates
-class Gate {
+class AbstractGate {
  public:
-    virtual ~Gate() = default;
+    virtual ~AbstractGate() = default;
 
     int mNumHidden;
     int mNumMotors;
@@ -28,4 +28,4 @@ class Gate {
     virtual void print() = 0;
 };
 
-#endif  // ANIMAT_GATE_H_
+#endif  // ANIMAT_ABSTRACTGATE_H_

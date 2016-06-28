@@ -5,12 +5,12 @@
 
 #include <vector>
 
-#include "./Gate.hpp"
+#include "./AbstractGate.hpp"
 
 using std::vector;
 
 
-class LinearThreshold: public Gate {
+class LinearThreshold: public AbstractGate {
  public:
     LinearThreshold(vector<unsigned char> &genome, int start,
             const int numSensors, const int numHidden, const int numMotors,
