@@ -14,8 +14,9 @@ int wrap(int i, int width) {
  */
 vector<int> executeGame(vector<unsigned char> &allAnimatStates, vector<int>
         &allWorldStates, vector<int> &allAnimatPositions, vector<int>
-        &trialResults, Agent* agent, vector<int> hitMultipliers, vector<int>
-        patterns, int worldWidth, int worldHeight, bool scrambleWorld) {
+        &trialResults, AbstractAgent* agent, vector<int> hitMultipliers,
+        vector<int> patterns, int worldWidth, int worldHeight,
+        bool scrambleWorld) {
     // Holds the correct/incorrect counts; this is returned
     vector<int> totals;
     totals.resize(2, 0);

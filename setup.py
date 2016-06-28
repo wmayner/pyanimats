@@ -21,11 +21,13 @@ extensions = [
     Extension('pyanimats/c_animat',
               sources=[
                   'pyanimats/c_animat/c_animat.pyx',
-                  'pyanimats/c_animat/Agent.cpp',
-                  'pyanimats/c_animat/HMM.cpp',
-                  'pyanimats/c_animat/LinearThreshold.cpp',
-                  'pyanimats/c_animat/Game.cpp',
                   'pyanimats/c_animat/rng.cpp',
+                  'pyanimats/c_animat/Game.cpp',
+                  'pyanimats/c_animat/AbstractAgent.cpp',
+                  'pyanimats/c_animat/HMM.cpp',
+                  'pyanimats/c_animat/HiddenMarkovAgent.cpp',
+                  'pyanimats/c_animat/LinearThreshold.cpp',
+                  'pyanimats/c_animat/LinearThresholdAgent.cpp',
               ],
               language='c++',
               extra_compile_args=['-std=c++11'])

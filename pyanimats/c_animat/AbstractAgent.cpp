@@ -1,13 +1,10 @@
-// Agent.cpp
+// AbstractAgent.cpp
 
-#include "./Agent.hpp"
+#include "./AbstractAgent.hpp"
 
 
-// Agent base class
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Agent::Agent(vector<unsigned char> genome, int numSensors, int numHidden,
-        int numMotors, bool deterministic) : genome(genome) {
+AbstractAgent::AbstractAgent(vector<unsigned char> genome, int numSensors,
+        int numHidden, int numMotors, bool deterministic) : genome(genome) {
     mNumSensors = numSensors;
     mNumHidden = numHidden;
     // Note: only the last 2 motors have an effect. There must be > 2 motors or
@@ -27,19 +24,19 @@ Agent::Agent(vector<unsigned char> genome, int numSensors, int numHidden,
     gates.clear();
 }
 
-int Agent::getAction() {
+int AbstractAgent::getAction() {
     if (mNumMotors > 0) {
         return (states[mNumNodes - 2] << 1) + states[mNumNodes - 1];
     }
     else return 0;
 }
 
-void Agent::resetState() {
+void AbstractAgent::resetState() {
     for (int i = 0; i < mNumNodes; i++)
         states[i] = 0;
 }
 
-void Agent::updateStates() {
+void AbstractAgent::updateStates() {
     for (int i = 0; i < (int)gates.size(); i++) {
         gates[i]->update(states, newStates);
     }
@@ -50,9 +47,9 @@ void Agent::updateStates() {
 }
 
 
-void Agent::mutateGenome(double mutProb, double dupProb, double delProb,
-        int minGenomeLength, int maxGenomeLength, int minDupDelLength,
-        int maxDupDelLength) {
+void AbstractAgent::mutateGenome(double mutProb, double dupProb,
+        double delProb, int minGenomeLength, int maxGenomeLength,
+        int minDupDelLength, int maxDupDelLength) {
     // Mutation
     for (int i = 0; i < (int)genome.size(); i++) {
         if (randDouble() < mutProb) {
@@ -78,7 +75,7 @@ void Agent::mutateGenome(double mutProb, double dupProb, double delProb,
     }
 }
 
-void Agent::injectStartCodons(int n, unsigned char codon_one,
+void AbstractAgent::injectStartCodons(int n, unsigned char codon_one,
         unsigned char codon_two) {
     for (int i = 0; i < (int)genome.size(); i++)
         genome[i] = randCharInt();
@@ -94,7 +91,8 @@ void Agent::injectStartCodons(int n, unsigned char codon_one,
     }
 }
 
-vector< vector<int> > Agent::getEdges() {
+// TODO Fix for LTUs
+vector< vector<int> > AbstractAgent::getEdges() {
     vector< vector<int> > edgeList;
     edgeList.clear();
     vector<int> edge;
@@ -112,7 +110,7 @@ vector< vector<int> > Agent::getEdges() {
     return edgeList;
 }
 
-vector< vector<bool> > Agent::getTransitions() {
+vector< vector<bool> > AbstractAgent::getTransitions() {
     // Save animat's original state.
     unsigned char initial_states[mNumNodes];
     for (int i = 0; i < mNumNodes; i++) {
@@ -141,82 +139,9 @@ vector< vector<bool> > Agent::getTransitions() {
     return tpm;
 }
 
-void Agent::printGates() {
+void AbstractAgent::printGates() {
     for (int i = 0; i < (int)gates.size(); i++) {
         gates[i]->print();
     }
     printf("\n");
 }
-
-
-// HMMAgent
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-void HMMAgent::generatePhenotype() {
-    if (gates.size() != 0) {
-        for (int i = 0; i < (int)gates.size(); i++) {
-            delete gates[i];
-        }
-    }
-    gates.clear();
-    HMM *gate;
-    for (int i = 0; i < (int)genome.size(); i++) {
-        if ((genome[i] == HMM::START_CODON_ONE) &&
-                (genome[(i + 1) % (int)genome.size()] ==
-                 HMM::START_CODON_TWO)) {
-            gate = new HMM(genome, i, mNumSensors, mNumHidden, mNumMotors,
-                    mDeterministic);
-            gates.push_back(gate);
-        }
-    }
-}
-
-void HMMAgent::injectStartCodons(int n) {
-    injectStartCodons(n, HMM::START_CODON_ONE, HMM::START_CODON_TWO);
-}
-
-HMMAgent::~HMMAgent() {
-    for (int i = 0; i < (int)gates.size(); i++) {
-        delete gates[i];
-    }
-}
-
-unsigned char HMMAgent::START_CODON_ONE = HMMAgent::START_CODON_ONE;
-unsigned char HMMAgent::START_CODON_TWO = HMMAgent::START_CODON_TWO;
-
-
-// LinearThresholdAgent
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-void LinearThresholdAgent::generatePhenotype() {
-    if (gates.size() != 0) {
-        for (int i = 0; i < (int)gates.size(); i++) {
-            delete gates[i];
-        }
-    }
-    gates.clear();
-    LinearThreshold *gate;
-    for (int i = 0; i < (int)genome.size(); i++) {
-        if ((genome[i] == LinearThreshold::START_CODON_ONE) &&
-                (genome[(i + 1) % (int)genome.size()] ==
-                 LinearThreshold::START_CODON_TWO)) {
-            gate = new LinearThreshold(genome, i, mNumSensors, mNumHidden,
-                    mNumMotors, mDeterministic);
-            gates.push_back(gate);
-        }
-    }
-}
-
-void LinearThresholdAgent::injectStartCodons(int n) {
-    injectStartCodons(n, LinearThreshold::START_CODON_ONE,
-            LinearThreshold::START_CODON_TWO);
-}
-
-LinearThresholdAgent::~LinearThresholdAgent() {
-    for (int i = 0; i < (int)gates.size(); i++) {
-        delete gates[i];
-    }
-}
-
-unsigned char LinearThresholdAgent::START_CODON_ONE = LinearThreshold::START_CODON_ONE;
-unsigned char LinearThresholdAgent::START_CODON_TWO = LinearThreshold::START_CODON_TWO;

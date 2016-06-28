@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # distutils: language = c++
-# sources: Agent.cpp, HMM.cpp, Game.cpp, rng.cpp
 # cython: boundscheck=False
 # cython: wraparound=False
 
@@ -85,9 +84,9 @@ def set_rng_state(state):
     setState(state)
 
 
-cdef extern from 'Agent.hpp':
-    cdef cppclass Agent:
-        Agent(
+cdef extern from 'AbstractAgent.hpp':
+    cdef cppclass AbstractAgent:
+        AbstractAgent(
             vector[uchar] genome, int numSensors, int numHidden, int numMotors,
             bool deterministic
         ) except +
@@ -111,7 +110,8 @@ cdef extern from 'Agent.hpp':
         vector[vector[bool]] getTransitions()
         void printGates()
 
-    cdef cppclass HMMAgent(Agent):
+cdef extern from 'HiddenMarkovAgent.hpp':
+    cdef cppclass HMMAgent(AbstractAgent):
         HMMAgent(
             vector[uchar] genome, int numSensors, int numHidden, int numMotors,
             bool deterministic
@@ -126,7 +126,8 @@ cdef extern from 'Agent.hpp':
         void injectStartCodons(int n);
 
 
-    cdef cppclass LinearThresholdAgent(Agent):
+cdef extern from 'LinearThresholdAgent.hpp':
+    cdef cppclass LinearThresholdAgent(AbstractAgent):
         LinearThresholdAgent(
             vector[uchar] genome, int numSensors, int numHidden, int numMotors,
             bool deterministic
@@ -144,9 +145,9 @@ cdef extern from 'Agent.hpp':
 cdef extern from 'Game.hpp':
     cdef vector[int] executeGame(
         vector[uchar] animatStates, vector[int] worldStates, 
-        vector[int] animatPositions, vector[int] trialResults, Agent* agent,
-        vector[int] hitMultipliers, vector[int] patterns, int worldWidth, 
-        int worldHeight, bool scrambleWorld)
+        vector[int] animatPositions, vector[int] trialResults, 
+        AbstractAgent* agent, vector[int] hitMultipliers, vector[int] patterns,
+        int worldWidth, int worldHeight, bool scrambleWorld)
 
 
 cdef extern from 'asvoid.hpp':
@@ -223,18 +224,19 @@ cdef class Int32Wrapper:
         return np.asarray(base) 
 
 
-cdef class pyAgent:
+cdef class pyAbstractAgent:
     # Hold the C++ instance that we're wrapping.
-    cdef Agent *thisptr
+    cdef AbstractAgent *thisptr
     cdef bool _dirty_phenotype
 
     def __reduce__(self):
         # When pickling or copying, simply regenerate an instance.
-        # NOTE: This means that changes in the implementation of pyAgent that
-        # occur between pickling and unpickling can cause a SILENT change in
-        # behavior!
-        return (pyAgent, (self.genome, self.num_sensors, self.num_hidden,
-                          self.num_motors, self.deterministic))
+        # NOTE: This means that changes in the implementation of
+        # pyAbstractAgent that occur between pickling and unpickling can cause
+        # a SILENT change in behavior!
+        return (pyAbstractAgent, (self.genome, self.num_sensors,
+                                  self.num_hidden, self.num_motors,
+                                  self.deterministic))
 
     property genome:
         def __get__(self):
@@ -315,7 +317,7 @@ cdef class pyAgent:
                 incorrect)
 
 
-cdef class pyHMMAgent(pyAgent):
+cdef class pyHMMAgent(pyAbstractAgent):
     cdef HMMAgent *derivedptr
 
     def __cinit__(self, genome, numSensors, numHidden, numMotors,
@@ -346,7 +348,7 @@ cdef class pyHMMAgent(pyAgent):
         self.derivedptr.injectStartCodons(n)
 
 
-cdef class pyLinearThresholdAgent(pyAgent):
+cdef class pyLinearThresholdAgent(pyAbstractAgent):
     cdef LinearThresholdAgent *derivedptr
 
     def __cinit__(self, genome, numSensors, numHidden, numMotors,
