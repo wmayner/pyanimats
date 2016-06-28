@@ -3,6 +3,8 @@
 #ifndef ANIMAT_GATE_H_
 #define ANIMAT_GATE_H_
 
+#include <stdio.h>
+
 #include <vector>
 
 using std::vector;
