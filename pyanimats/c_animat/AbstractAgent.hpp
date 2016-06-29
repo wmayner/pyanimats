@@ -2,8 +2,6 @@
 
 #pragma once
 
-// TODO remove
-#include <stdlib.h>  // srand, rand
 #include <vector>
 
 #include "./constants.hpp"
