@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "./AbstractAgent.hpp"
-#include "./HMM.hpp"
+#include "./HiddenMarkovGate.hpp"
 
 using std::vector;
 

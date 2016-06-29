@@ -1,7 +1,7 @@
-// HMM.h
+// HiddenMarkovGate.hpp
 
-#ifndef ANIMAT_HMM_H_
-#define ANIMAT_HMM_H_
+#ifndef ANIMAT_HIDDENMARKOVGATE_H_
+#define ANIMAT_HIDDENMARKOVGATE_H_
 
 #include <vector>
 
@@ -10,12 +10,12 @@
 
 using std::vector;
 
-class HMM: public AbstractGate {
+class HiddenMarkovGate: public AbstractGate {
  public:
-    HMM(vector<unsigned char> &genome, int start, const int numSensors,
-            const int numHidden, const int numMotors,
+    HiddenMarkovGate(vector<unsigned char> &genome, int start,
+            const int numSensors, const int numHidden, const int numMotors,
             const bool deterministic);
-    ~HMM();
+    ~HiddenMarkovGate();
 
     // Start codon pair for this gate
     static unsigned char START_CODON_ONE, START_CODON_TWO;
@@ -28,4 +28,4 @@ class HMM: public AbstractGate {
     void print() override;
 };
 
-#endif  // ANIMAT_HMM_H_
+#endif  // ANIMAT_HIDDENMARKOVGATE_H_

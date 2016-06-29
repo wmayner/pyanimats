@@ -1,13 +1,13 @@
-// HMM.cpp
+// HiddenMarkovGate.cpp
 
-#include "./HMM.hpp"
+#include "./HiddenMarkovGate.hpp"
 
 // Define start codon pair for this gate
-unsigned char HMM::START_CODON_ONE = 42;
-unsigned char HMM::START_CODON_TWO = 255 - START_CODON_ONE;
+unsigned char HiddenMarkovGate::START_CODON_ONE = 42;
+unsigned char HiddenMarkovGate::START_CODON_TWO = 255 - START_CODON_ONE;
 
 
-HMM::HMM(vector<unsigned char> &genome, int start, const int numSensors,
+HiddenMarkovGate::HiddenMarkovGate(vector<unsigned char> &genome, int start, const int numSensors,
         const int numHidden, const int numMotors, const bool deterministic) {
     inputs.clear();
     outputs.clear();
@@ -78,7 +78,7 @@ HMM::HMM(vector<unsigned char> &genome, int start, const int numSensors,
     }
 }
 
-void HMM::update(vector<unsigned char> &currentStates,
+void HiddenMarkovGate::update(vector<unsigned char> &currentStates,
         vector<unsigned char> &nextStates) {
     // Encode the given states as an integer to index into the TPM
     int pastStateIndex = 0;
@@ -111,16 +111,16 @@ void HMM::update(vector<unsigned char> &currentStates,
     }
 }
 
-HMM::~HMM() {
+HiddenMarkovGate::~HiddenMarkovGate() {
     hmm.clear();
     sums.clear();
     inputs.clear();
     outputs.clear();
 }
 
-void HMM::print() {
+void HiddenMarkovGate::print() {
     printf("\n--------------------");
-    printf("\nHMM gate");
+    printf("\nHidden Markov Gate");
     printf("\n--------------------");
     printf("\n   inputs: %i:\t[", numInputs);
     for (int i = 0; i < ((int)inputs.size() - 1); i++) {

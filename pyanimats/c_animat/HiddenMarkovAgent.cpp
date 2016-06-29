@@ -10,20 +10,21 @@ void HiddenMarkovAgent::generatePhenotype() {
         }
     }
     gates.clear();
-    HMM *gate;
+    HiddenMarkovGate *gate;
     for (int i = 0; i < (int)genome.size(); i++) {
-        if ((genome[i] == HMM::START_CODON_ONE) &&
+        if ((genome[i] == HiddenMarkovGate::START_CODON_ONE) &&
                 (genome[(i + 1) % (int)genome.size()] ==
-                 HMM::START_CODON_TWO)) {
-            gate = new HMM(genome, i, mNumSensors, mNumHidden, mNumMotors,
-                    mDeterministic);
+                 HiddenMarkovGate::START_CODON_TWO)) {
+            gate = new HiddenMarkovGate(genome, i, mNumSensors, mNumHidden,
+                    mNumMotors, mDeterministic);
             gates.push_back(gate);
         }
     }
 }
 
 void HiddenMarkovAgent::injectStartCodons(int n) {
-    injectStartCodons(n, HMM::START_CODON_ONE, HMM::START_CODON_TWO);
+    injectStartCodons(n, HiddenMarkovGate::START_CODON_ONE,
+            HiddenMarkovGate::START_CODON_TWO);
 }
 
 HiddenMarkovAgent::~HiddenMarkovAgent() {
