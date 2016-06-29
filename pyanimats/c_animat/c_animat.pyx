@@ -111,8 +111,8 @@ cdef extern from 'AbstractAgent.hpp':
         void printGates()
 
 cdef extern from 'HiddenMarkovAgent.hpp':
-    cdef cppclass HMMAgent(AbstractAgent):
-        HMMAgent(
+    cdef cppclass HiddenMarkovAgent(AbstractAgent):
+        HiddenMarkovAgent(
             vector[uchar] genome, int numSensors, int numHidden, int numMotors,
             bool deterministic
         ) except +
@@ -317,12 +317,12 @@ cdef class pyAbstractAgent:
                 incorrect)
 
 
-cdef class pyHMMAgent(pyAbstractAgent):
-    cdef HMMAgent *derivedptr
+cdef class pyHiddenMarkovAgent(pyAbstractAgent):
+    cdef HiddenMarkovAgent *derivedptr
 
     def __cinit__(self, genome, numSensors, numHidden, numMotors,
                   deterministic):
-        self.derivedptr = new HMMAgent(genome, numSensors, numHidden,
+        self.derivedptr = new HiddenMarkovAgent(genome, numSensors, numHidden,
                                        numMotors, deterministic)
         self.thisptr = self.derivedptr
         self._dirty_phenotype = True

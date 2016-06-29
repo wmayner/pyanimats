@@ -17,7 +17,7 @@ import numpy as np
 import pyphi
 
 from . import constants, utils, validate
-from .c_animat import pyHMMAgent, pyLinearThresholdAgent
+from .c_animat import pyHiddenMarkovAgent, pyLinearThresholdAgent
 from .experiment import Experiment
 
 Game = namedtuple('Game', ['animat_states', 'world_states', 'animat_positions',
@@ -66,10 +66,11 @@ class Animat:
     def __init__(self, experiment, genome):
         self._experiment = experiment
         if self._experiment.gate == constants.HMM_GATE:
-            self._c_animat = pyHMMAgent(genome, experiment.num_sensors,
-                                        experiment.num_hidden,
-                                        experiment.num_motors,
-                                        experiment.deterministic)
+            self._c_animat = pyHiddenMarkovAgent(genome,
+                                                 experiment.num_sensors,
+                                                 experiment.num_hidden,
+                                                 experiment.num_motors,
+                                                 experiment.deterministic)
         elif self._experiment.gate == constants.LINEAR_THRESHOLD_GATE:
             self._c_animat = pyLinearThresholdAgent(genome,
                                                     experiment.num_sensors,

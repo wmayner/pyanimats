@@ -10,13 +10,13 @@
 
 using std::vector;
 
-class HMMAgent: public AbstractAgent {
+class HiddenMarkovAgent: public AbstractAgent {
  public:
-    HMMAgent(vector<unsigned char> genome, int numSensors, int numHidden, int
-            numMotors, bool deterministic)
+    HiddenMarkovAgent(vector<unsigned char> genome, int numSensors,
+            int numHidden, int numMotors, bool deterministic)
     : AbstractAgent(genome, numSensors, numHidden, numMotors, deterministic)
     {}
-    ~HMMAgent();
+    ~HiddenMarkovAgent();
 
     static unsigned char START_CODON_ONE;
     static unsigned char START_CODON_TWO;

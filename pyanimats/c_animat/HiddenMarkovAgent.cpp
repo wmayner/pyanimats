@@ -3,7 +3,7 @@
 #include "./HiddenMarkovAgent.hpp"
 
 
-void HMMAgent::generatePhenotype() {
+void HiddenMarkovAgent::generatePhenotype() {
     if (gates.size() != 0) {
         for (int i = 0; i < (int)gates.size(); i++) {
             delete gates[i];
@@ -22,15 +22,15 @@ void HMMAgent::generatePhenotype() {
     }
 }
 
-void HMMAgent::injectStartCodons(int n) {
+void HiddenMarkovAgent::injectStartCodons(int n) {
     injectStartCodons(n, HMM::START_CODON_ONE, HMM::START_CODON_TWO);
 }
 
-HMMAgent::~HMMAgent() {
+HiddenMarkovAgent::~HiddenMarkovAgent() {
     for (int i = 0; i < (int)gates.size(); i++) {
         delete gates[i];
     }
 }
 
-unsigned char HMMAgent::START_CODON_ONE = HMMAgent::START_CODON_ONE;
-unsigned char HMMAgent::START_CODON_TWO = HMMAgent::START_CODON_TWO;
+unsigned char HiddenMarkovAgent::START_CODON_ONE = HiddenMarkovAgent::START_CODON_ONE;
+unsigned char HiddenMarkovAgent::START_CODON_TWO = HiddenMarkovAgent::START_CODON_TWO;
