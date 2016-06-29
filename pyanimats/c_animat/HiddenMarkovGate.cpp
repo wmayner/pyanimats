@@ -119,9 +119,9 @@ HiddenMarkovGate::~HiddenMarkovGate() {
 }
 
 void HiddenMarkovGate::print() {
-    printf("\n--------------------");
+    printf("\n------------------");
     printf("\nHidden Markov Gate");
-    printf("\n--------------------");
+    printf("\n------------------");
     printf("\n   inputs: %i:\t[", numInputs);
     for (int i = 0; i < ((int)inputs.size() - 1); i++) {
         printf("%i, ", inputs[i]);

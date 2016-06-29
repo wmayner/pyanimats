@@ -26,7 +26,7 @@ extensions = [
                   'pyanimats/c_animat/AbstractAgent.cpp',
                   'pyanimats/c_animat/HiddenMarkovGate.cpp',
                   'pyanimats/c_animat/HiddenMarkovAgent.cpp',
-                  'pyanimats/c_animat/LinearThreshold.cpp',
+                  'pyanimats/c_animat/LinearThresholdGate.cpp',
                   'pyanimats/c_animat/LinearThresholdAgent.cpp',
               ],
               language='c++',

@@ -1,17 +1,17 @@
-// LinearThreshold.cpp
+// LinearThresholdGate.cpp
 
-#include "./LinearThreshold.hpp"
+#include "./LinearThresholdGate.hpp"
 
 
 // Define start codon pair for this gate
 // (Using 11, because 42 onward are used by Adami lab's MABE software)
-unsigned char LinearThreshold::START_CODON_ONE = 11;
-unsigned char LinearThreshold::START_CODON_TWO = 255 - START_CODON_ONE;
+unsigned char LinearThresholdGate::START_CODON_ONE = 11;
+unsigned char LinearThresholdGate::START_CODON_TWO = 255 - START_CODON_ONE;
 
 
-LinearThreshold::LinearThreshold(vector<unsigned char> &genome, int start,
-        const int numSensors, const int numHidden, const int numMotors, const
-        bool deterministic) {
+LinearThresholdGate::LinearThresholdGate(vector<unsigned char> &genome,
+        int start, const int numSensors, const int numHidden,
+        const int numMotors, const bool deterministic) {
     inputs.clear();
     outputs.clear();
 
@@ -66,7 +66,7 @@ LinearThreshold::LinearThreshold(vector<unsigned char> &genome, int start,
             + mNumSensors;
 }
 
-void LinearThreshold::update(
+void LinearThresholdGate::update(
         vector<unsigned char> &currentStates,
         vector<unsigned char> &nextStates) {
     // Count the number of inputs that are on
@@ -85,15 +85,15 @@ void LinearThreshold::update(
     }
 }
 
-LinearThreshold::~LinearThreshold() {
+LinearThresholdGate::~LinearThresholdGate() {
     inputs.clear();
     outputs.clear();
 }
 
-void LinearThreshold::print() {
-    printf("\n--------------------");
-    printf("\nLinearThreshold gate");
-    printf("\n--------------------");
+void LinearThresholdGate::print() {
+    printf("\n---------------------");
+    printf("\nLinear Threshold Gate");
+    printf("\n---------------------");
     printf("\n  threshold: %i", threshold);
     printf("\n     inputs: %i:\t[", numInputs);
     for (int i = 0; i < ((int)inputs.size() - 1); i++) {

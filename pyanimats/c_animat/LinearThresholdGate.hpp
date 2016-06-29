@@ -1,7 +1,7 @@
-// LinearThreshold.hpp
+// LinearThresholdGate.hpp
 
-#ifndef ANIMAT_LINEAR_THRESHOLD_H_
-#define ANIMAT_LINEAR_THRESHOLD_H_
+#ifndef ANIMAT_LINEARTHRESHOLDGATE_H_
+#define ANIMAT_LINEARTHRESHOLDGATE_H_
 
 #include <vector>
 
@@ -10,12 +10,12 @@
 using std::vector;
 
 
-class LinearThreshold: public AbstractGate {
+class LinearThresholdGate: public AbstractGate {
  public:
-    LinearThreshold(vector<unsigned char> &genome, int start,
+    LinearThresholdGate(vector<unsigned char> &genome, int start,
             const int numSensors, const int numHidden, const int numMotors,
             const bool deterministic);
-    ~LinearThreshold();
+    ~LinearThresholdGate();
 
     // Start codon pair for this gate
     static unsigned char START_CODON_ONE, START_CODON_TWO;
@@ -27,4 +27,4 @@ class LinearThreshold: public AbstractGate {
     void print() override;
 };
 
-#endif  // ANIMAT_LINEAR_THRESHOLD_H_
+#endif  // ANIMAT_LINEARTHRESHOLDGATE_H_

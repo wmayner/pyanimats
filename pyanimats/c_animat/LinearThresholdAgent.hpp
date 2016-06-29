@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "./AbstractAgent.hpp"
-#include "./LinearThreshold.hpp"
+#include "./LinearThresholdGate.hpp"
 
 using std::vector;
 

@@ -10,12 +10,12 @@ void LinearThresholdAgent::generatePhenotype() {
         }
     }
     gates.clear();
-    LinearThreshold *gate;
+    LinearThresholdGate *gate;
     for (int i = 0; i < (int)genome.size(); i++) {
-        if ((genome[i] == LinearThreshold::START_CODON_ONE) &&
+        if ((genome[i] == LinearThresholdGate::START_CODON_ONE) &&
                 (genome[(i + 1) % (int)genome.size()] ==
-                 LinearThreshold::START_CODON_TWO)) {
-            gate = new LinearThreshold(genome, i, mNumSensors, mNumHidden,
+                 LinearThresholdGate::START_CODON_TWO)) {
+            gate = new LinearThresholdGate(genome, i, mNumSensors, mNumHidden,
                     mNumMotors, mDeterministic);
             gates.push_back(gate);
         }
@@ -23,8 +23,8 @@ void LinearThresholdAgent::generatePhenotype() {
 }
 
 void LinearThresholdAgent::injectStartCodons(int n) {
-    injectStartCodons(n, LinearThreshold::START_CODON_ONE,
-            LinearThreshold::START_CODON_TWO);
+    injectStartCodons(n, LinearThresholdGate::START_CODON_ONE,
+            LinearThresholdGate::START_CODON_TWO);
 }
 
 LinearThresholdAgent::~LinearThresholdAgent() {
@@ -33,5 +33,5 @@ LinearThresholdAgent::~LinearThresholdAgent() {
     }
 }
 
-unsigned char LinearThresholdAgent::START_CODON_ONE = LinearThreshold::START_CODON_ONE;
-unsigned char LinearThresholdAgent::START_CODON_TWO = LinearThreshold::START_CODON_TWO;
+unsigned char LinearThresholdAgent::START_CODON_ONE = LinearThresholdGate::START_CODON_ONE;
+unsigned char LinearThresholdAgent::START_CODON_TWO = LinearThresholdGate::START_CODON_TWO;
