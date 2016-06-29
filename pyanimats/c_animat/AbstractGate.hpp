@@ -1,7 +1,6 @@
 // AbstractGate.hpp
 
-#ifndef _PyAnimats_AbstractGate_H
-#define _PyAnimats_AbstractGate_H
+#pragma once
 
 #include <stdio.h>
 
@@ -27,5 +26,3 @@ class AbstractGate {
             vector<unsigned char> &nextStates) = 0;
     virtual void print() = 0;
 };
-
-#endif  // _PyAnimats_AbstractGate_H

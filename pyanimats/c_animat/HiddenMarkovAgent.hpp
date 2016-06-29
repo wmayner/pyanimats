@@ -1,7 +1,6 @@
 // HiddenMarkovAgent.hpp
 
-#ifndef _PyAnimats_HiddenMarkovAgent_H
-#define _PyAnimats_HiddenMarkovAgent_H
+#pragma once
 
 #include <vector>
 
@@ -26,5 +25,3 @@ class HiddenMarkovAgent: public AbstractAgent {
     using AbstractAgent::injectStartCodons;
     void injectStartCodons(int n);
 };
-
-#endif  // _PyAnimats_HiddenMarkovAgent_H

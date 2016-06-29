@@ -1,7 +1,6 @@
 // AbstractAgent.hpp
 
-#ifndef _PyAnimats_AbstractAgent_H
-#define _PyAnimats_AbstractAgent_H
+#pragma once
 
 // TODO remove
 #include <stdlib.h>  // srand, rand
@@ -50,5 +49,3 @@ class AbstractAgent {
 
     virtual void generatePhenotype() = 0;
 };
-
-#endif  // _PyAnimats_AbstractAgent_H

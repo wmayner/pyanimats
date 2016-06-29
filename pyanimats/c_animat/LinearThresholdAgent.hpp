@@ -1,7 +1,6 @@
 // LinearThresholdAgent.hpp
 
-#ifndef _PyAnimats_LinearThresholdAgent_H
-#define _PyAnimats_LinearThresholdAgent_H
+#pragma once
 
 #include <vector>
 
@@ -27,5 +26,3 @@ class LinearThresholdAgent: public AbstractAgent {
     void injectStartCodons(int n);
 
 };
-
-#endif  // _PyAnimats_LinearThresholdAgent_H

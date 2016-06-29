@@ -1,7 +1,6 @@
 // HiddenMarkovGate.hpp
 
-#ifndef _PyAnimats_HiddenMarkovGate_H
-#define _PyAnimats_HiddenMarkovGate_H
+#pragma once
 
 #include <vector>
 
@@ -27,5 +26,3 @@ class HiddenMarkovGate: public AbstractGate {
             vector<unsigned char> &nextStates) override;
     void print() override;
 };
-
-#endif  // _PyAnimats_HiddenMarkovGate_H

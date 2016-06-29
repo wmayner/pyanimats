@@ -1,7 +1,6 @@
-// Game.h
+// Game.hpp
 
-#ifndef _PyAnimats_Game_H
-#define _PyAnimats_Game_H
+#pragma once
 
 #include <vector>
 
@@ -16,5 +15,3 @@ vector<int> executeGame(std::vector<unsigned char> &allAnimatStates,
         vector<int> &trialResults, AbstractAgent* agent,
         vector<int> hit_multipliers, vector<int> patterns, int worldWidth,
         int worldHeight, bool scrambleWorld);
-
-#endif  // _PyAnimats_Game_H

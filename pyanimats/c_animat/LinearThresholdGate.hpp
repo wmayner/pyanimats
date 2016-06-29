@@ -1,7 +1,6 @@
 // LinearThresholdGate.hpp
 
-#ifndef _PyAnimats_LinearThresholdGate_H
-#define _PyAnimats_LinearThresholdGate_H
+#pragma once
 
 #include <vector>
 
@@ -26,5 +25,3 @@ class LinearThresholdGate: public AbstractGate {
             vector<unsigned char> &nextStates) override;
     void print() override;
 };
-
-#endif  // _PyAnimats_LinearThresholdGate_H
