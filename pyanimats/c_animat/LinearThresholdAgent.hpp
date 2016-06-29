@@ -1,7 +1,7 @@
 // LinearThresholdAgent.hpp
 
-#ifndef ANIMAT_LINEARTHRESHOLDAGENT_H_
-#define ANIMAT_LINEARTHRESHOLDAGENT_H_
+#ifndef _PyAnimats_LinearThresholdAgent_H
+#define _PyAnimats_LinearThresholdAgent_H
 
 #include <vector>
 
@@ -28,4 +28,4 @@ class LinearThresholdAgent: public AbstractAgent {
 
 };
 
-#endif  // ANIMAT_LINEARTHRESHOLDAGENT_H_
+#endif  // _PyAnimats_LinearThresholdAgent_H

@@ -1,7 +1,7 @@
 // LinearThresholdGate.hpp
 
-#ifndef ANIMAT_LINEARTHRESHOLDGATE_H_
-#define ANIMAT_LINEARTHRESHOLDGATE_H_
+#ifndef _PyAnimats_LinearThresholdGate_H
+#define _PyAnimats_LinearThresholdGate_H
 
 #include <vector>
 
@@ -27,4 +27,4 @@ class LinearThresholdGate: public AbstractGate {
     void print() override;
 };
 
-#endif  // ANIMAT_LINEARTHRESHOLDGATE_H_
+#endif  // _PyAnimats_LinearThresholdGate_H

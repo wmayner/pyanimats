@@ -1,8 +1,7 @@
 // AbstractAgent.hpp
 
-//TODO change to PYANIMATS
-#ifndef ANIMAT_ABSTRACTAGENT_H_
-#define ANIMAT_ABSTRACTAGENT_H_
+#ifndef _PyAnimats_AbstractAgent_H
+#define _PyAnimats_AbstractAgent_H
 
 // TODO remove
 #include <stdlib.h>  // srand, rand
@@ -52,4 +51,4 @@ class AbstractAgent {
     virtual void generatePhenotype() = 0;
 };
 
-#endif  // ANIMAT_ABSTRACTAGENT_H_
+#endif  // _PyAnimats_AbstractAgent_H

@@ -1,7 +1,7 @@
 // AbstractGate.hpp
 
-#ifndef ANIMAT_ABSTRACTGATE_H_
-#define ANIMAT_ABSTRACTGATE_H_
+#ifndef _PyAnimats_AbstractGate_H
+#define _PyAnimats_AbstractGate_H
 
 #include <stdio.h>
 
@@ -28,4 +28,4 @@ class AbstractGate {
     virtual void print() = 0;
 };
 
-#endif  // ANIMAT_ABSTRACTGATE_H_
+#endif  // _PyAnimats_AbstractGate_H
