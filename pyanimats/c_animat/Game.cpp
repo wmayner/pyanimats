@@ -118,8 +118,14 @@ vector<int> executeGame(vector<unsigned char> &allAnimatStates, vector<int>
 
                     #ifdef _DEBUG
                         // Print the world
-                        for (int i = 0; i < worldWidth; i++)
-                            printf("%i", (worldState >> i) & 1);
+                        int cell;
+                        for (int i = 0; i < worldWidth; i++) {
+                            cell = (worldState >> i) & 1;
+                            if (cell == 0)
+                                printf("_");
+                            if (cell == 1)
+                                printf("1");
+                        }
                         printf("\n");
 
                         // Print the animat
@@ -144,7 +150,7 @@ vector<int> executeGame(vector<unsigned char> &allAnimatStates, vector<int>
                                 printf(" ");
                             }
                         }
-                        printf("\n");
+                        printf("\n\n");
                     #endif
 
                     // TODO(wmayner) parameterize changing sensors mid-evolution
