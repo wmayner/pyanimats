@@ -160,7 +160,7 @@ vector<int> executeGame(vector<unsigned char> &allAnimatStates, vector<int>
                     for (int n = 0; n < agent->mNumSensors; n++)
                         allAnimatStates[allAnimatStatesIndex++] = agent->states[n];
 
-                    for (int i = 0; i < 2; i++)
+                    for (int i = 0; i < 3; i++)
                         agent->updateStates();
 
                     // Record state of hidden units and motors after updating animat
