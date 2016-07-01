@@ -41,7 +41,6 @@ class AbstractAgent {
     void mutateGenome(double mutProb, double dupProb, double delProb, int
         minGenomeLength, int maxGenomeLength, int minDupDelLength,
         int maxDupDelLength);
-    vector< vector<int> > getEdges();
     vector< vector<bool> > getTransitions();
     void printGates();
 

@@ -25,4 +25,5 @@ class LinearThresholdAgent: public AbstractAgent {
     using AbstractAgent::injectStartCodons;
     void injectStartCodons(int n);
 
+    vector< vector<int> > getEdges();
 };

@@ -91,25 +91,6 @@ void AbstractAgent::injectStartCodons(int n, unsigned char codon_one,
     }
 }
 
-// TODO Fix for LTUs
-vector< vector<int> > AbstractAgent::getEdges() {
-    vector< vector<int> > edgeList;
-    edgeList.clear();
-    vector<int> edge;
-    for (int i = 0; i < (int)gates.size(); i++) {
-        for (int j = 0; j < (int)gates[i]->inputs.size(); j++) {
-            for (int k = 0; k < (int)gates[i]->outputs.size(); k++) {
-                edge.clear();
-                edge.resize(2);
-                edge[0] = gates[i]->inputs[j];
-                edge[1] = gates[i]->outputs[k];
-                edgeList.push_back(edge);
-            }
-        }
-    }
-    return edgeList;
-}
-
 vector< vector<bool> > AbstractAgent::getTransitions() {
     // Save animat's original state.
     unsigned char initial_states[mNumNodes];

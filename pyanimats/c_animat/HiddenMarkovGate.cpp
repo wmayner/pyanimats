@@ -7,8 +7,9 @@ unsigned char HiddenMarkovGate::START_CODON_ONE = 42;
 unsigned char HiddenMarkovGate::START_CODON_TWO = 255 - START_CODON_ONE;
 
 
-HiddenMarkovGate::HiddenMarkovGate(vector<unsigned char> &genome, int start, const int numSensors,
-        const int numHidden, const int numMotors, const bool deterministic) {
+HiddenMarkovGate::HiddenMarkovGate(vector<unsigned char> &genome, int start,
+        const int numSensors, const int numHidden, const int numMotors,
+        const bool deterministic) {
     inputs.clear();
     outputs.clear();
 

@@ -110,6 +110,7 @@ cdef extern from 'AbstractAgent.hpp':
         vector[vector[bool]] getTransitions()
         void printGates()
 
+
 cdef extern from 'HiddenMarkovAgent.hpp':
     cdef cppclass HiddenMarkovAgent(AbstractAgent):
         HiddenMarkovAgent(
