@@ -131,5 +131,3 @@ experiment:
     default_init_genome_length: 5
     # Interpret the genome as specifying a deterministic TPM.
     deterministic: true
-    # TODO parametrize this in the C++?
-    # start_codon: [42, 213]
