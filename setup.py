@@ -23,6 +23,7 @@ extensions = [
                   'pyanimats/c_animat/c_animat.pyx',
                   'pyanimats/c_animat/rng.cpp',
                   'pyanimats/c_animat/Game.cpp',
+                  'pyanimats/c_animat/AbstractGate.cpp',
                   'pyanimats/c_animat/AbstractAgent.cpp',
                   'pyanimats/c_animat/HiddenMarkovGate.cpp',
                   'pyanimats/c_animat/HiddenMarkovAgent.cpp',

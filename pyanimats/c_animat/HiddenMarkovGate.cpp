@@ -9,15 +9,8 @@ unsigned char HiddenMarkovGate::START_CODON_TWO = 255 - START_CODON_ONE;
 
 HiddenMarkovGate::HiddenMarkovGate(vector<unsigned char> &genome, int start,
         const int numSensors, const int numHidden, const int numMotors,
-        const bool deterministic) {
-    inputs.clear();
-    outputs.clear();
-
-    mNumSensors = numSensors;
-    mNumHidden = numHidden;
-    mNumMotors = numMotors;
-    mNumNodes = numSensors + numHidden + numMotors;
-    mDeterministic = deterministic;
+        const bool deterministic)
+    : AbstractGate(numSensors, numHidden, numMotors, deterministic) {
 
     // This keeps track of where we are in the genome.
     int scan = (start + 2) % (int)genome.size();

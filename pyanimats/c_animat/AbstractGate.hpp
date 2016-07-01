@@ -11,6 +11,8 @@ using std::vector;
 // Abstract base class for different types of gates
 class AbstractGate {
  public:
+    AbstractGate(const int numSensors, const int numHidden,
+            const int numMotors, const bool deterministic);
     virtual ~AbstractGate() = default;
 
     int mNumHidden;
