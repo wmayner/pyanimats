@@ -331,6 +331,15 @@ cdef class pyHiddenMarkovAgent(pyAbstractAgent):
     def __dealloc__(self):
         del self.derivedptr
 
+    def __reduce__(self):
+        # When pickling or copying, simply regenerate an instance.
+        # NOTE: This means that changes in the implementation of this class
+        # that occur between pickling and unpickling can cause a SILENT change
+        # in behavior!
+        return (pyHiddenMarkovAgent, (self.genome, self.num_sensors,
+                                      self.num_hidden, self.num_motors,
+                                      self.deterministic))
+
     property START_CODON_ONE:
         def __get__(self):
             return self.derivedptr.START_CODON_ONE
@@ -363,6 +372,15 @@ cdef class pyLinearThresholdAgent(pyAbstractAgent):
     def __dealloc__(self):
         del self.derivedptr
 
+    def __reduce__(self):
+        # When pickling or copying, simply regenerate an instance.
+        # NOTE: This means that changes in the implementation of this class
+        # that occur between pickling and unpickling can cause a SILENT change
+        # in behavior!
+        return (pyLinearThresholdAgent, (self.genome, self.num_sensors,
+                                         self.num_hidden, self.num_motors,
+                                         self.deterministic))
+
     property START_CODON_ONE:
         def __get__(self):
             return self.derivedptr.START_CODON_ONE
@@ -382,4 +400,3 @@ cdef class pyLinearThresholdAgent(pyAbstractAgent):
 
     def injectStartCodons(self, n):
         self.derivedptr.injectStartCodons(n)
-
