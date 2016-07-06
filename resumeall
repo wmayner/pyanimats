@@ -6,10 +6,10 @@ echo "Rebuilding C++..."
 make
 echo "...finished."
 
-param_file=$1
-output_dir=$2
-seed_start=$3
-num_seeds=$4
+output_dir=$1
+seed_start=$2
+num_seeds=$3
+shift 3
 
 echo "Writing results to '$output_dir'."
 echo ""
@@ -21,7 +21,7 @@ do
   # Ensure the output directory exists.
   mkdir -p $cur_output_dir
   # Build the command.
-  cmd="python -m pyanimats resume $cur_output_dir/checkpoint.pkl.gz $cur_output_dir/output.json -F"
+  cmd="python -m pyanimats resume $cur_output_dir/checkpoint.pkl.gz $cur_output_dir/output.json $@"
   # Display command.
   echo "Executing command:"
   echo $cmd
