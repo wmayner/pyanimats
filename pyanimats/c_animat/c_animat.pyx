@@ -360,6 +360,9 @@ cdef class pyLinearThresholdAgent(pyAbstractAgent):
         self.thisptr = self.derivedptr
         self._dirty_phenotype = True
 
+    def __dealloc__(self):
+        del self.derivedptr
+
     property START_CODON_ONE:
         def __get__(self):
             return self.derivedptr.START_CODON_ONE
