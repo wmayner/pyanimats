@@ -31,6 +31,8 @@ do
   cmd="python -m pyanimats $cur_output_dir/output.json $action"
   if [ "$action" == "resume" ]; then
     cmd="$cmd $cur_output_dir/checkpoint.pkl.gz"
+  else
+    cmd="$cmd -r $seed"
   fi
   cmd="$cmd $@"
   # Record command.
