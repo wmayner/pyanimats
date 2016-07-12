@@ -8,8 +8,8 @@ PyAnimats
 Evolve animats.
 
 Usage:
-    pyanimats run <experiment.yml> <output_file> [options]
-    pyanimats resume <checkpoint.pkl> <output_file> [options]
+    pyanimats <output_file> run <experiment.yml> [options]
+    pyanimats <output_file> resume <checkpoint.pkl> [options]
     pyanimats list
     pyanimats -h | --help
     pyanimats -v | --version
@@ -17,9 +17,9 @@ Usage:
 Arguments:
     <output_file>            File where the output should be stored
     run <experiment.yml>     Run an experiment
-    resume <checkpoint.pkl>  Resume from a checkpoint file. New checkpoints
+    resume <checkpoint.pkl>  Resume from a checkpoint file (new checkpoints
                              will overwrite this unless a different file is
-                             specified with the `--checkpoint-file` option.
+                             specified with the `--checkpoint-file` option)
     list                     List available fitness functions
 
 Command-line options override the parameters given in the experiment file.
