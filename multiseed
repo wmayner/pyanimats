@@ -1,0 +1,44 @@
+#!/bin/bash
+
+header="PyAnimats multi-seed simulation ($(date))"
+echo $header
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+echo "Rebuilding C++..."
+make
+echo "...finished."
+
+seed_start=$1
+num_seeds=$2
+output_dir=$3
+action=$4
+shift 4
+
+echo "Writing results to '$output_dir'."
+echo ""
+
+for ((seed=$seed_start; seed < $(($seed_start + $num_seeds)); seed++))
+do
+  # Get the output with the seed directory included and ensure it exists.
+  cur_output_dir="$output_dir/seed-$seed"
+  mkdir -p $cur_output_dir
+  # Get the log file name and ensure it exists.
+  log_file="$cur_output_dir/output.log"
+  touch $log_file
+  # Write header to log file.
+  echo $header >> $log_file
+  echo $header >> $log_file
+  # Build the command.
+  cmd="python -m pyanimats $cur_output_dir/output.json $action"
+  if [ "$action" == "resume" ]; then
+    cmd="$cmd $cur_output_dir/checkpoint.pkl.gz"
+  fi
+  cmd="$cmd $@"
+  # Record command.
+  echo -e "Command:\n$cmd\n" >> $log_file
+  # Display command.
+  echo "Executing command:"
+  echo $cmd
+  echo ""
+  # Run it!
+  unbuffer $cmd 2>&1 | tee -a $log_file && echo -e "---\n" >> $log_file && echo "[Seed $seed] Wrote results to '$cur_output_dir'." &
+done
