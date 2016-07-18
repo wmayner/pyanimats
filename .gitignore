@@ -10,7 +10,7 @@ __pycache__
 .ipynb_checkpoints
 **/*.so
 **/*.o
-**/*.cpp
+**/*.cpython*
 __pyphi_cache__
 pyphi.log
 build
@@ -29,3 +29,5 @@ notebooks
 *.txt
 *.py
 !pyanimats/*.py
+pyanimats/c_animat/main.cpp
+pyanimats/c_animat/c_animat.cpp

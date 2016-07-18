@@ -1,7 +1,6 @@
 // rng.hpp
 
-#ifndef ANIMAT_RNG_H_
-#define ANIMAT_RNG_H_
+#pragma once
 
 #include <iostream>
 #include <iterator>
@@ -24,6 +23,3 @@ void seedRNG(int s);
 
 std::string getState();
 void setState(std::string state);
-
-
-#endif  // ANIMAT_RNG_H_

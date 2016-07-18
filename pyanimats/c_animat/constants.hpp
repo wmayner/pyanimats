@@ -1,17 +1,12 @@
-// constants.h
+// constants.hpp
 
-#ifndef ANIMAT_CONSTANTS_H_
-#define ANIMAT_CONSTANTS_H_
+#pragma once
 
 // Debug flag (comment-out to disable debugging output)
 /* #define _DEBUG */
 
 // Agent parameters
 #define MIN_BODY_LENGTH 3
-
-// Evolution parameters
-#define START_CODON_NUCLEOTIDE_ONE 42
-#define START_CODON_NUCLEOTIDE_TWO 213
 
 // Enumeration constants
 #define CORRECT 0
@@ -20,6 +15,3 @@
 #define WRONG_CATCH 1
 #define CORRECT_AVOID 2
 #define CORRECT_CATCH 3
-
-
-#endif  // ANIMAT_CONSTANTS_H_

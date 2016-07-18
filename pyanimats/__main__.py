@@ -8,8 +8,8 @@ PyAnimats
 Evolve animats.
 
 Usage:
-    pyanimats run <experiment.yml> <output_file> [options]
-    pyanimats resume <checkpoint.pkl> <output_file> [options]
+    pyanimats <output_file> run <experiment.yml> [options]
+    pyanimats <output_file> resume <checkpoint.pkl> [options]
     pyanimats list
     pyanimats -h | --help
     pyanimats -v | --version
@@ -17,9 +17,9 @@ Usage:
 Arguments:
     <output_file>            File where the output should be stored
     run <experiment.yml>     Run an experiment
-    resume <checkpoint.pkl>  Resume from a checkpoint file. New checkpoints
+    resume <checkpoint.pkl>  Resume from a checkpoint file (new checkpoints
                              will overwrite this unless a different file is
-                             specified with the `--checkpoint-file` option.
+                             specified with the `--checkpoint-file` option)
     list                     List available fitness functions
 
 Command-line options override the parameters given in the experiment file.
@@ -55,10 +55,11 @@ Evolution options:
     -r --rng-seed=INT          Random number generator seed
     -f --fitness=FUNC          Fitness function
     -p --pop-size=INT          Population size
-    -g --init-genome=PATH      Path to a lineage file for an intial genome
+    -G --init-genome=PATH      Path to a lineage file for an intial genome
     -j --jumpstart=INT         Begin with this many start codons
 
 Animat options:
+    -g --gate=GATE             The gate with which to implement network logic
     -e --num-sensors=INT       The number of sensors in an animat
     -i --num-hidden=INT        The number of hidden units in an animat
     -t --num-motors=INT        The number of motors in an animat
@@ -111,6 +112,7 @@ cli_opt_to_experiment = {
     '--pop-size':         ('popsize', int),
     '--init-genome':      ('init_genome', str),
     '--jumpstart':        ('init_start_codons', int),
+    '--gate':             ('gate', str),
     '--num-sensors':      ('num_sensors', int),
     '--num-hidden':       ('num_hidden', int),
     '--num-motors':       ('num_motors', int),

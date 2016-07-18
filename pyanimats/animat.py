@@ -17,7 +17,7 @@ import numpy as np
 import pyphi
 
 from . import constants, utils, validate
-from .c_animat import cAnimat
+from .c_animat import pyHiddenMarkovAgent, pyLinearThresholdAgent
 from .experiment import Experiment
 
 Game = namedtuple('Game', ['animat_states', 'world_states', 'animat_positions',
@@ -65,11 +65,18 @@ class Animat:
 
     def __init__(self, experiment, genome):
         self._experiment = experiment
-        self._c_animat = cAnimat(genome,
-                                 experiment.num_sensors,
-                                 experiment.num_hidden,
-                                 experiment.num_motors,
-                                 experiment.deterministic)
+        if self._experiment.gate == constants.HMM_GATE:
+            self._c_animat = pyHiddenMarkovAgent(genome,
+                                                 experiment.num_sensors,
+                                                 experiment.num_hidden,
+                                                 experiment.num_motors,
+                                                 experiment.deterministic)
+        elif self._experiment.gate == constants.LINEAR_THRESHOLD_GATE:
+            self._c_animat = pyLinearThresholdAgent(genome,
+                                                    experiment.num_sensors,
+                                                    experiment.num_hidden,
+                                                    experiment.num_motors,
+                                                    experiment.deterministic)
         self.parent = None
         self.gen = 0
         self.fitness = 1.0
@@ -223,6 +230,13 @@ class Animat:
                 yield ancestor
             ancestor = ancestor.parent
 
+    def inject_start_codons(self, n):
+        """Inject ``n`` start codons into the animat's genome.
+
+        This also randomizes the next 18 nucleotides after each codon.
+        """
+        self._c_animat.injectStartCodons(n)
+
     def mutate(self):
         """Mutate the animat's genome in-place."""
         self._c_animat.mutate(self.mutation_prob, self.duplication_prob,
@@ -255,9 +269,10 @@ class Animat:
 
     def start_codons(self):
         """Return the locations of start codons in the genome, if any."""
+        codons = [self.START_CODON_ONE, self.START_CODON_TWO]
         genome = np.array(self.genome)
-        window = utils.rolling_window(genome, len(constants.START_CODON))
-        occurrences = np.all((window == constants.START_CODON), axis=1)
+        window = utils.rolling_window(genome, len(codons))
+        occurrences = np.all((window == codons), axis=1)
         return np.where(occurrences)[0]
 
     def as_subsystem(self, state=None):
@@ -317,7 +332,8 @@ def _c_animat_getter(name):
 # A list of animat attributes to expose as read-only properties
 _c_animat_properties = ['genome', 'num_sensors', 'num_hidden', 'num_motors',
                         'num_nodes', 'num_states', 'deterministic',
-                        'body_length', 'edges']
+                        'body_length', 'edges', 'START_CODON_ONE',
+                        'START_CODON_TWO', 'print_gates']
 
 # Add underlying animat properties to the Animat class
 for name in _c_animat_properties:

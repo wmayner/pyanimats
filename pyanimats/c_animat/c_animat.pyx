@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # distutils: language = c++
-# sources: Agent.cpp, HMM.cpp, Game.cpp, rng.cpp
 # cython: boundscheck=False
 # cython: wraparound=False
 
@@ -11,7 +10,6 @@
 from libcpp.vector cimport vector
 from libcpp.string cimport string
 from libcpp cimport bool, string
-from libc.stdlib cimport free
 
 cimport cython
 
@@ -28,15 +26,11 @@ cdef extern from 'constants.hpp':
     cdef int _CORRECT_AVOID 'CORRECT_AVOID'
     cdef int _WRONG_AVOID 'WRONG_AVOID'
     cdef int _MIN_BODY_LENGTH 'MIN_BODY_LENGTH'
-    cdef int _START_CODON_NUCLEOTIDE_ONE 'START_CODON_NUCLEOTIDE_ONE'
-    cdef int _START_CODON_NUCLEOTIDE_TWO 'START_CODON_NUCLEOTIDE_TWO'
 CORRECT_CATCH = _CORRECT_CATCH
 WRONG_CATCH = _WRONG_CATCH
 CORRECT_AVOID = _CORRECT_AVOID
 WRONG_AVOID = _WRONG_AVOID
 MIN_BODY_LENGTH = _MIN_BODY_LENGTH
-START_CODON_NUCLEOTIDE_ONE = _START_CODON_NUCLEOTIDE_ONE
-START_CODON_NUCLEOTIDE_TWO = _START_CODON_NUCLEOTIDE_TWO
 
 
 cdef extern from 'rng.hpp':
@@ -90,10 +84,12 @@ def set_rng_state(state):
     setState(state)
 
 
-cdef extern from 'Agent.hpp':
-    cdef cppclass Agent:
-        Agent(vector[uchar] genome, int numSensors, int numHidden, int
-              numMotors, bool deterministic)
+cdef extern from 'AbstractAgent.hpp':
+    cdef cppclass AbstractAgent:
+        AbstractAgent(
+            vector[uchar] genome, int numSensors, int numHidden, int numMotors,
+            bool deterministic
+        ) except +
 
         int mNumSensors
         int mNumHidden
@@ -105,22 +101,54 @@ cdef extern from 'Agent.hpp':
 
         vector[uchar] genome
 
-        void injectStartCodons(int n)
-        void generatePhenotype()
+        void injectStartCodons(int n, uchar codon_one, uchar codon_two)
+        void generatePhenotype();
         void mutateGenome(
             double mutProb, double dupProb, double delProb, int
             minGenomeLength, int maxGenomeLength, int minDupDelLength, 
             int maxDupDelLength)
-        vector[vector[int]] getEdges()
         vector[vector[bool]] getTransitions()
+        void printGates()
+
+
+cdef extern from 'HiddenMarkovAgent.hpp':
+    cdef cppclass HiddenMarkovAgent(AbstractAgent):
+        HiddenMarkovAgent(
+            vector[uchar] genome, int numSensors, int numHidden, int numMotors,
+            bool deterministic
+        ) except +
+
+        uchar START_CODON_ONE;
+        uchar START_CODON_TWO;
+
+        vector[vector[int]] getEdges()
+        void generatePhenotype();
+
+        void injectStartCodons(int n);
+
+
+cdef extern from 'LinearThresholdAgent.hpp':
+    cdef cppclass LinearThresholdAgent(AbstractAgent):
+        LinearThresholdAgent(
+            vector[uchar] genome, int numSensors, int numHidden, int numMotors,
+            bool deterministic
+        ) except +
+
+        uchar START_CODON_ONE;
+        uchar START_CODON_TWO;
+
+        vector[vector[int]] getEdges()
+        void generatePhenotype();
+
+        void injectStartCodons(int n);
 
 
 cdef extern from 'Game.hpp':
     cdef vector[int] executeGame(
         vector[uchar] animatStates, vector[int] worldStates, 
-        vector[int] animatPositions, vector[int] trialResults, Agent* agent,
-        vector[int] hitMultipliers, vector[int] patterns, int worldWidth, 
-        int worldHeight, bool scrambleWorld)
+        vector[int] animatPositions, vector[int] trialResults, 
+        AbstractAgent* agent, vector[int] hitMultipliers, vector[int] patterns,
+        int worldWidth, int worldHeight, bool scrambleWorld)
 
 
 cdef extern from 'asvoid.hpp':
@@ -197,27 +225,19 @@ cdef class Int32Wrapper:
         return np.asarray(base) 
 
 
-cdef class cAnimat:
+cdef class pyAbstractAgent:
     # Hold the C++ instance that we're wrapping.
-    cdef Agent *thisptr
+    cdef AbstractAgent *thisptr
     cdef bool _dirty_phenotype
-
-    def __cinit__(self, genome, numSensors, numHidden, numMotors,
-                  deterministic):
-        self.thisptr = new Agent(genome, numSensors, numHidden, numMotors,
-                                 deterministic)
-        self._dirty_phenotype = True
-
-    def __dealloc__(self):
-        del self.thisptr
 
     def __reduce__(self):
         # When pickling or copying, simply regenerate an instance.
-        # NOTE: This means that changes in the implementation of cAnimat that
-        # occur between pickling and unpickling can cause a SILENT change in
-        # behavior!
-        return (cAnimat, (self.genome, self.num_sensors, self.num_hidden,
-                          self.num_motors, self.deterministic))
+        # NOTE: This means that changes in the implementation of
+        # pyAbstractAgent that occur between pickling and unpickling can cause
+        # a SILENT change in behavior!
+        return (pyAbstractAgent, (self.genome, self.num_sensors,
+                                  self.num_hidden, self.num_motors,
+                                  self.deterministic))
 
     property genome:
         def __get__(self):
@@ -251,12 +271,6 @@ cdef class cAnimat:
         def __get__(self):
             return self.thisptr.mBodyLength
 
-    property edges:
-        def __get__(self):
-            # Update the phenotype if necessary before getting the edge list.
-            self._update_phenotype()
-            return self.thisptr.getEdges()
-
     property tpm:
         def __get__(self):
             # Update the phenotype if necessary before getting the TPM.
@@ -267,6 +281,9 @@ cdef class cAnimat:
         if self._dirty_phenotype:
             self.thisptr.generatePhenotype()
             self._dirty_phenotype = False
+
+    def print_gates(self):
+        self.thisptr.printGates()
 
     def mutate(self, mutProb, dupProb, delProb, minGenomeLength,
                maxGenomeLength, minDupDelLength, maxDupDelLength):
@@ -299,3 +316,87 @@ cdef class cAnimat:
         return (animat_states.asarray(), world_states.asarray(),
                 animat_positions.asarray(), trial_results.asarray(), correct,
                 incorrect)
+
+
+cdef class pyHiddenMarkovAgent(pyAbstractAgent):
+    cdef HiddenMarkovAgent *derivedptr
+
+    def __cinit__(self, genome, numSensors, numHidden, numMotors,
+                  deterministic):
+        self.derivedptr = new HiddenMarkovAgent(genome, numSensors, numHidden,
+                                       numMotors, deterministic)
+        self.thisptr = self.derivedptr
+        self._dirty_phenotype = True
+
+    def __dealloc__(self):
+        del self.derivedptr
+
+    def __reduce__(self):
+        # When pickling or copying, simply regenerate an instance.
+        # NOTE: This means that changes in the implementation of this class
+        # that occur between pickling and unpickling can cause a SILENT change
+        # in behavior!
+        return (pyHiddenMarkovAgent, (self.genome, self.num_sensors,
+                                      self.num_hidden, self.num_motors,
+                                      self.deterministic))
+
+    property START_CODON_ONE:
+        def __get__(self):
+            return self.derivedptr.START_CODON_ONE
+
+    property START_CODON_TWO:
+        def __get__(self):
+            return self.derivedptr.START_CODON_TWO
+
+    property edges:
+        def __get__(self):
+            # Update the phenotype if necessary before getting the edge list.
+            self._update_phenotype()
+            return self.derivedptr.getEdges()
+
+    def injectStartCodons(self, n):
+        self.derivedptr.injectStartCodons(n)
+
+
+cdef class pyLinearThresholdAgent(pyAbstractAgent):
+    cdef LinearThresholdAgent *derivedptr
+
+    def __cinit__(self, genome, numSensors, numHidden, numMotors,
+                  deterministic):
+        self.derivedptr = new LinearThresholdAgent(genome, numSensors,
+                                                   numHidden, numMotors,
+                                                   deterministic)
+        self.thisptr = self.derivedptr
+        self._dirty_phenotype = True
+
+    def __dealloc__(self):
+        del self.derivedptr
+
+    def __reduce__(self):
+        # When pickling or copying, simply regenerate an instance.
+        # NOTE: This means that changes in the implementation of this class
+        # that occur between pickling and unpickling can cause a SILENT change
+        # in behavior!
+        return (pyLinearThresholdAgent, (self.genome, self.num_sensors,
+                                         self.num_hidden, self.num_motors,
+                                         self.deterministic))
+
+    property START_CODON_ONE:
+        def __get__(self):
+            return self.derivedptr.START_CODON_ONE
+
+    property START_CODON_TWO:
+        def __get__(self):
+            return self.derivedptr.START_CODON_TWO
+
+    def __dealloc__(self):
+        del self.derivedptr
+
+    property edges:
+        def __get__(self):
+            # Update the phenotype if necessary before getting the edge list.
+            self._update_phenotype()
+            return self.derivedptr.getEdges()
+
+    def injectStartCodons(self, n):
+        self.derivedptr.injectStartCodons(n)

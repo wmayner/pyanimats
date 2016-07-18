@@ -11,11 +11,11 @@ import random
 
 from . import c_animat
 
+HMM_GATE = 'hmm'
+LINEAR_THRESHOLD_GATE = 'lt'
 MIN_BODY_LENGTH = c_animat.MIN_BODY_LENGTH
 DEFAULT_RNG = random.Random()
 NAT_TO_BIT_CONVERSION_FACTOR = 1 / math.log(2)
-START_CODON = [c_animat.START_CODON_NUCLEOTIDE_ONE,
-               c_animat.START_CODON_NUCLEOTIDE_TWO]
 HIT_TYPE = {c_animat.CORRECT_CATCH: 'CORRECT_CATCH',
             c_animat.WRONG_CATCH: 'WRONG_CATCH',
             c_animat.CORRECT_AVOID: 'CORRECT_AVOID',

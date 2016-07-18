@@ -63,6 +63,11 @@ experiment:
 
     # Animat
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # The type of gate used to implement the animat's network logic.
+    # Options:
+    #   - 'hmm': Hidden Markov Model
+    #   - 'lt': Linear Threshold units
+    gate: 'hmm'
     # The number of sensors in an animat.
     num_sensors: 3
     # The number of hidden units in an animat.
@@ -126,5 +131,3 @@ experiment:
     default_init_genome_length: 5
     # Interpret the genome as specifying a deterministic TPM.
     deterministic: true
-    # TODO parametrize this in the C++?
-    # start_codon: [42, 213]
