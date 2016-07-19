@@ -27,7 +27,7 @@ DEFAULT_RANGES = {
     'bp_wvn': (0, 4),
     'sd_wvn': (0, 8),
     'mat':    (0, 1),
-    'food':   (0, 36864),
+    'food':   (0, 14400),
 }
 # We want the exponential fitness function to look roughly like 1.02^X where X
 # ranges from 64–128, so after normalizing to 0–1 we need to transform the
