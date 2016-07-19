@@ -144,7 +144,7 @@ def _derive_params(d):
         # Convert task-strings into integers. Note that in the C++
         # implementation, the world is mirrored; hence the reversal of the
         # string.
-        'block_patterns': [int(condition[1][::-1], 2)
+        'block_patterns': [int(condition[1].replace('_', '0')[::-1], 2)
                            for condition in d['task']],
         'sensor_indices': sensor_indices,
         'hidden_indices': hidden_indices,

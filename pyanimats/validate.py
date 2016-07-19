@@ -148,10 +148,10 @@ def experiment(d):
             'task must be the same length as `world_width`.')
     try:
         # Try to cast the block patterns to integers.
-        [int(pattern[1], 2) for pattern in d['task']]
+        [int(pattern[1].replace('_', '0'), 2) for pattern in d['task']]
     except ValueError:
-        raise ValueError('invalid experiment: malformed task: block patterns '
-                         'must be strings consisting only of 0s and 1s.')
+        raise ValueError("invalid experiment: malformed task: block patterns "
+                         "must contain only '1' and '_'.")
     # Mutation
     _assert_ge(d, name, 'mutation_prob', 0)
     _assert_le(d, name, 'mutation_prob', 1)

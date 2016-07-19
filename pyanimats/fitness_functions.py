@@ -16,6 +16,7 @@ from sklearn.metrics import mutual_info_score
 
 from . import constants
 from .utils import unique_rows
+from c_animat import CORRECT_CATCH, WRONG_CATCH
 
 _WRAPPER_WIDTH = 72
 _base_wrapper = textwrap.TextWrapper(width=_WRAPPER_WIDTH)
@@ -541,3 +542,54 @@ def mat(ind, iterations=20, precomputed_complexes=None):
             raw_matching_weighted.mean(),
             existence * raw_matching.mean())
 _register(data_function=main_complex)(mat)
+
+
+def food(ind):
+    """Food: Animats are evaluated based on their ability to obtain energy.
+    Some blocks are designated as food (with the hit multiplier in the task
+    specification), others are poison. Catching food blocks yields energy;
+    catching poison blocks costs energy. The animat uses energy at a baseline
+    rate, and hidden/motor unit activity depletes energy faster.
+
+    Parameters:
+        0: Initial energy
+        1: Baseline consumption rate (per timestep)
+        2: Activity penalty (per hidden/motor unit firing)
+        3: Food block energy gain
+        4: Poison block energy penalty
+    """
+    (init_energy, baseline_rate, activity_penalty, food_value, poison_penalty
+     ) = ind.function_params
+    H = ind.world_height
+    num_timesteps = ind.num_trials * H
+
+    game = ind.play_game()
+    animat_states, trial_results = game[0], game[3]
+
+    # Initial energy
+    energy = np.empty(num_timesteps)
+    energy.fill(init_energy)
+    # Cumulative food reward
+    where_caught_food = H * np.where(trial_results == CORRECT_CATCH)[0]
+    food = np.zeros(num_timesteps)
+    food[where_caught_food] = food_value
+    food = np.cumsum(food)
+    # Cumulative Baseline consumption
+    baseline = np.arange(0, num_timesteps*baseline_rate, baseline_rate)
+    # Cumulative Poison penalty
+    where_caught_poison = H * np.where(trial_results == WRONG_CATCH)[0]
+    poison = np.zeros(num_timesteps)
+    poison[where_caught_poison] = poison_penalty
+    poison = np.cumsum(poison)
+    # Cumulative activity penalty
+    activity = animat_states.astype(float).reshape(-1, animat_states.shape[-1])
+    activity = activity[:, list(ind.hidden_motor_indices)].sum(1)
+    activity *= activity_penalty
+    activity = np.cumsum(activity)
+
+    energy += (food - baseline - poison - activity)
+
+    if np.any(energy <= 0):
+        return 0
+    return energy.mean()
+_register()(food)
