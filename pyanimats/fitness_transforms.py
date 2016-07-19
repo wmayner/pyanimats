@@ -16,17 +16,18 @@ from . import utils, fitness_functions
 # Theoretical minima and theoretical (or in unbounded cases, practical) maxima
 # fitness function values.
 DEFAULT_RANGES = {
-    'nat':        (64, 128),
-    'mi':         (0, 2),
-    'mi_wvn':     (0, 1),
-    'ex':         (0, 4),
-    'ex_wvn':     (0, 1),
-    'sp':         (0, 4),
-    'sp_wvn':     (0, 1),
-    'bp':         (0, 4),
-    'bp_wvn':     (0, 4),
-    'sd_wvn':     (0, 8),
-    'mat':        (0, 1),
+    'nat':    (64, 128),
+    'mi':     (0, 2),
+    'mi_wvn': (0, 1),
+    'ex':     (0, 4),
+    'ex_wvn': (0, 1),
+    'sp':     (0, 4),
+    'sp_wvn': (0, 1),
+    'bp':     (0, 4),
+    'bp_wvn': (0, 4),
+    'sd_wvn': (0, 8),
+    'mat':    (0, 1),
+    'food':   (0, 36864),
 }
 # We want the exponential fitness function to look roughly like 1.02^X where X
 # ranges from 64–128, so after normalizing to 0–1 we need to transform the
