@@ -588,7 +588,6 @@ def food(ind):
     activity = np.cumsum(activity)
 
     energy += (food - baseline - poison - activity)
-    import ipdb; ipdb.set_trace()  # XXX BREAKPOINT
 
     if np.any(energy <= 0):
         return 0
