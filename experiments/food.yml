@@ -49,7 +49,7 @@ experiment:
         288, # 8 trials
         # Poison block penalty 
         # (positive; will be subtracted)
-        144, # 4 trials
+        288, # 8 trials
     ]
     # Theoretical (or practical) minimum and maximum values for each fitness
     # function; used in normalizing the fitness values.
