@@ -553,7 +553,7 @@ def food(ind):
 
     Parameters:
         0: Initial energy
-        1: Baseline consumption rate (per trial)
+        1: Baseline consumption rate (per timestep)
         2: Activity penalty (per hidden/motor unit firing)
         3: Food block energy gain
         4: Poison block energy penalty
