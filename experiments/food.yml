@@ -1,0 +1,148 @@
+# Example PyAnimats parameter file
+---
+# These parameters relate to the running of the simulation and can be changed
+# mid-evolution, e.g. between checkpoints.
+simulation:
+    # Simulation
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Number of generations to evolve.
+    ngen: 100000
+    # Length of checkpoint interval in minutes.
+    checkpoint_interval: 1440
+    # Generational interval at which to print evolution status to the screen. 
+    # NOTE: printing to the screen is a slow operation; setting a short interval
+    # can significantly impact performance if simulating a generation is fast.
+    status_interval: 100
+
+    # Data
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Generational interval at which to record fitness data into the logbook.
+    logbook_interval: 1
+    # Generational interval at which to sample genomes from the lineage(s) of
+    # the final animat(s).
+    sample_interval: 400
+    # Whether to save the lingeages of all animats in the final population, or
+    # just the lineage of the fittest.
+    all_lineages: false
+
+# These parameters specify the experiment to run, and cannot be changed after
+# evolution has begun.
+experiment:
+    # Evolution
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # The random number generator seed to use.
+    rng_seed: 0
+    # The fitness function(s) to evolve to. To specify multiple fitness
+    # functions, separate them with a comma.
+    fitness_function: 'food'
+    # The parameters, if any, for the fitness function.
+    function_params: [
+        # Initial energy
+        576, # 16 trials
+        # Baseline consumption per timestep 
+        # (positive; will be subtracted)
+        1,
+        # Activity penalty per hidden/motor unit firing 
+        # (positive; will be subtracted)
+        0.5,
+        # Food block reward
+        288, # 8 trials
+        # Poison block penalty 
+        # (positive; will be subtracted)
+        144, # 4 trials
+    ]
+    # Theoretical (or practical) minimum and maximum values for each fitness
+    # function; used in normalizing the fitness values.
+    fitness_ranges: 
+        # [
+        #     [64, 128],  # First fitness function's range
+        #     [0, 1.86]   # Second fitness function's range
+        # ]
+    # The first function's fitness value is scaled exponentially according to
+    # the formula, after being normalized to 0–1 from the range given above:
+    #   F(R) = B^(S*R + A)
+    # If no `fitness_transform` is set, then the default fitness transform for
+    # is used.
+    fitness_transform:
+        # Otherwise, the constants in the formula above are specified as
+        # follows:
+        # base: 1.02  # B
+        # scale: 64   # A
+        # add: 64     # S
+    # Size of the population.
+    popsize: 100
+    # Must be a path to the output file from a previous run, or `false`.
+    init_genome_path: false
+    # Number of start codons to inject into the initial genome.
+    # NOTE: this has no effect if loading from a checkpoint.
+    init_start_codons: 0
+
+    # Animat
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # The type of gate used to implement the animat's network logic.
+    # Options:
+    #   - 'hmm': Hidden Markov Model
+    #   - 'lt': Linear Threshold units
+    gate: 'hmm'
+    # The number of sensors in an animat.
+    num_sensors: 3
+    # The number of hidden units in an animat.
+    num_hidden: 5
+    # The number of motors in an animat.
+    # NOTE: changing this has not been tested and probably won't work!
+    num_motors: 2
+    # The length of the animat's body.
+    # NOTE: cannot be less than 3.
+    body_length: 3
+
+    # Environment
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # The width of the animats' environment.
+    world_width: 16
+    # The height of the animats' environment.
+    world_height: 36
+    # The task the animats will be presented width.
+    # - Each item in the list specifies a hit multiplier and a block
+    #   pattern. 
+    # - '1' indicates a block cell, '0' indicates empty space. 
+    # - The blocks fall toward the animat from the top of the environment to
+    #   the bottom.
+    # - Each block pattern is presented in each possible initial position
+    #   twice: once falling to the left (shifting one cell down and one cell
+    #   left), and once falling to the right (shifting one cell down and one
+    #   cell right).
+    # - If the animat overlaps with a block cell at the bottom, the trial is
+    #   counted as a 'hit'. 
+    # - The hit multiplier is added to the animat's score if there was a
+    #   hit, and subtracted if there wasn't.
+    task: 
+    - [ 1, '11111___________']
+    - [-1, '111111__________']
+    - [ 1, '11111___________']
+    - [-1, '111111__________']
+
+    # Mutation
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Probability of a point mutation at any point in the genome.
+    mutation_prob: 0.005
+    # Probability of a duplication.
+    duplication_prob: 0.05
+    # Probability of a deletion.
+    deletion_prob: 0.02
+    # Deletions will not occur if the genome is shorter than this.
+    min_genome_length: 1000
+    # Duplications will not occur if the genome is longer than this.
+    max_genome_length: 10000
+    # Minimum duplication or deletion section width.
+    min_dup_del_width: 15
+    # Maximum duplication or deletion section width.
+    max_dup_del_width: 511
+
+    # Genetics
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Value of every nucleotide initially.
+    default_init_genome_value: 127
+    # Initial length of the genome.
+    default_init_genome_length: 5000
+    # Interpret the genome as specifying a deterministic TPM.
+    deterministic: true
