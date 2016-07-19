@@ -544,7 +544,8 @@ def mat(ind, iterations=20, precomputed_complexes=None):
 _register(data_function=main_complex)(mat)
 
 
-def food(ind):
+def food(ind, init_energy=None, baseline_rate=None, activity_penalty=None,
+         food_value=None, poison_penalty=None):
     """Food: Animats are evaluated based on their ability to obtain energy.
     Some blocks are designated as food (with the hit multiplier in the task
     specification), others are poison. Catching food blocks yields energy;
@@ -558,8 +559,12 @@ def food(ind):
         3: Food block energy gain
         4: Poison block energy penalty
     """
-    (init_energy, baseline_rate, activity_penalty, food_value, poison_penalty
-     ) = ind.function_params
+    init_energy = init_energy or ind.function_params[0]
+    baseline_rate = baseline_rate or ind.function_params[1]
+    activity_penalty = activity_penalty or ind.function_params[2]
+    food_value = food_value or ind.function_params[3]
+    poison_penalty = poison_penalty or ind.function_params[4]
+
     H = ind.world_height
     num_timesteps = ind.num_trials * H
 
