@@ -205,6 +205,15 @@ def phi_sum(phi_objects):
     return sum(o.phi for o in phi_objects)
 
 
+# Zero fitness
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def zero(ind):
+    """Zero: animats are always given a fitness score of zero."""
+    return 0.0
+_register()(zero)
+
+
 # Natural fitness
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
