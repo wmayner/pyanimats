@@ -107,7 +107,7 @@ def _derive_params(d):
         init_genome = ([d['default_init_genome_value']] *
                        d['default_init_genome_length'])
     fitness_transform = (d['fitness_transform'] if 'fitness_transform' in d
-                         else False)
+                         else None)
     sensor_indices = list(range(d['num_sensors']))
     hidden_indices = list(range(
         d['num_sensors'], d['num_sensors'] + d['num_hidden']))
