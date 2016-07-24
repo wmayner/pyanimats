@@ -65,7 +65,7 @@ def contains_row(array, row):
     return (array == row).all(axis=1)
 
 
-def unique_rows(array, upto=[], indices=False, counts=False, sort=False):
+def unique_rows(array, upto=False, indices=False, counts=False, sort=False):
     """Return the unique rows of the last dimension of an array.
 
     Args:
