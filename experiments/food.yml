@@ -6,9 +6,9 @@ simulation:
     # Simulation
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Number of generations to evolve.
-    ngen: 100000
+    ngen: 500000
     # Length of checkpoint interval in minutes.
-    checkpoint_interval: 1440
+    checkpoint_interval: 180
     # Generational interval at which to print evolution status to the screen. 
     # NOTE: printing to the screen is a slow operation; setting a short interval
     # can significantly impact performance if simulating a generation is fast.
@@ -20,7 +20,7 @@ simulation:
     logbook_interval: 1
     # Generational interval at which to sample genomes from the lineage(s) of
     # the final animat(s).
-    sample_interval: 400
+    sample_interval: 500
     # Whether to save the lingeages of all animats in the final population, or
     # just the lineage of the fittest.
     all_lineages: false
@@ -38,26 +38,29 @@ experiment:
     # The parameters, if any, for the fitness function.
     function_params: [
         # Initial energy
-        576, # 16 trials
+        864, # 24 trials
         # Baseline consumption per timestep 
         # (positive; will be subtracted)
         1,
         # Activity penalty per hidden/motor unit firing 
         # (positive; will be subtracted)
-        0.5,
+        0.1,
         # Food block reward
         288, # 8 trials
         # Poison block penalty 
         # (positive; will be subtracted)
-        288, # 8 trials
+        360, # 10 trials
     ]
     # Theoretical (or practical) minimum and maximum values for each fitness
     # function; used in normalizing the fitness values.
     fitness_ranges: 
-        # [
-        #     [64, 128],  # First fitness function's range
-        #     [0, 1.86]   # Second fitness function's range
-        # ]
+        # Theoretical maximum fitness:
+        # Perfect catching/avoidance with no activity =
+        #   (initial energy) + (number of food blocks)*(food reward) 
+        #   - (total baseline consumption)
+        [
+          [0, 14688],
+        ]
     # The first function's fitness value is scaled exponentially according to
     # the formula, after being normalized to 0–1 from the range given above:
     #   F(R) = B^(S*R + A)
@@ -116,10 +119,10 @@ experiment:
     # - The hit multiplier is added to the animat's score if there was a
     #   hit, and subtracted if there wasn't.
     task: 
-    - [ 1, '11111___________']
-    - [-1, '111111__________']
-    - [ 1, '11111___________']
-    - [-1, '111111__________']
+    - [ 1, '111_____________']
+    - [-1, '1111____________']
+    - [ 1, '111111__________']
+    - [-1, '11111___________']
 
     # Mutation
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
