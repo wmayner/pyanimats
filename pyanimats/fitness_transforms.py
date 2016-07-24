@@ -16,6 +16,7 @@ from . import utils, fitness_functions
 # Theoretical minima and theoretical (or in unbounded cases, practical) maxima
 # fitness function values.
 DEFAULT_RANGES = {
+    'zero':   (64, 128),
     'nat':    (64, 128),
     'mi':     (0, 2),
     'mi_wvn': (0, 1),
