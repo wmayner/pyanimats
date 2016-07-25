@@ -47,7 +47,7 @@ experiment:
             [0, 8]  # First fitness function's range
         ]
     # The first function's fitness value is scaled exponentially according to
-    # the formula, after being normalized to 0–1 from the range given above:
+    # the formula, after being normalized to 0-1 from the range given above:
     #   F(R) = B^(S*R + A)
     # If no `fitness_transform` is set, then the default fitness transform for
     # is used.
