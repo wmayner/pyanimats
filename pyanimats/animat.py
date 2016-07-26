@@ -166,7 +166,7 @@ class Animat:
         copy._dirty_network = deepcopy(self._dirty_network)
         return copy
 
-    def serializable(self, compact=True, experiment=False, genome=True):
+    def serializable(self, compact=False, genome=True, experiment=False):
         """Return a serializable representation of the animat."""
         d = {
             'gen': self.gen,
@@ -176,10 +176,11 @@ class Animat:
             'raw_fitness': utils.rounder(self.raw_fitness)
         }
         if not compact:
-            d['tpm'] = self.tpm
-            d['cm'] = self.cm
             if genome:
                 d['genome'] = self.genome
+            else:
+                d['tpm'] = self.tpm
+                d['cm'] = self.cm
         if experiment:
             d['exp'] = self._experiment
         return d
