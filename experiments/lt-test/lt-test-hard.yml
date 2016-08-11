@@ -6,9 +6,9 @@ simulation:
     # Simulation
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Number of generations to evolve.
-    ngen: 500000
+    ngen: 100000
     # Length of checkpoint interval in minutes.
-    checkpoint_interval: 180
+    checkpoint_interval: 60000 # 6 hrs
     # Generational interval at which to print evolution status to the screen. 
     # NOTE: printing to the screen is a slow operation; setting a short interval
     # can significantly impact performance if simulating a generation is fast.
@@ -20,7 +20,7 @@ simulation:
     logbook_interval: 1
     # Generational interval at which to sample genomes from the lineage(s) of
     # the final animat(s).
-    sample_interval: 500
+    sample_interval: 400
     # Whether to save the lingeages of all animats in the final population, or
     # just the lineage of the fittest.
     all_lineages: false
@@ -34,33 +34,14 @@ experiment:
     rng_seed: 0
     # The fitness function(s) to evolve to. To specify multiple fitness
     # functions, separate them with a comma.
-    fitness_function: 'food'
-    # The parameters, if any, for the fitness function.
-    function_params: [
-        # Initial energy
-        864, # 24 trials
-        # Baseline consumption per timestep 
-        # (positive; will be subtracted)
-        1,
-        # Activity penalty per hidden/motor unit firing 
-        # (positive; will be subtracted)
-        0.1,
-        # Food block reward
-        288, # 8 trials
-        # Poison block penalty 
-        # (positive; will be subtracted)
-        360, # 10 trials
-    ]
+    fitness_function: 'nat'
     # Theoretical (or practical) minimum and maximum values for each fitness
     # function; used in normalizing the fitness values.
     fitness_ranges: 
-        # Theoretical maximum fitness:
-        # Perfect catching/avoidance with no activity =
-        #   (initial energy) + (number of food blocks)*(food reward) 
-        #   - (total baseline consumption)
-        [
-          [0, 14688],
-        ]
+        # [
+        #     [64, 128],  # First fitness function's range
+        #     [0, 1.86]   # Second fitness function's range
+        # ]
     # The first function's fitness value is scaled exponentially according to
     # the formula, after being normalized to 0-1 from the range given above:
     #   F(R) = B^(S*R + A)
@@ -86,11 +67,11 @@ experiment:
     # Options:
     #   - 'hmm': Hidden Markov Model
     #   - 'lt': Linear Threshold units
-    gate: 'hmm'
+    gate: 'lt'
     # The number of sensors in an animat.
-    num_sensors: 3
+    num_sensors: 2
     # The number of hidden units in an animat.
-    num_hidden: 5
+    num_hidden: 4
     # The number of motors in an animat.
     # NOTE: changing this has not been tested and probably won't work!
     num_motors: 2
