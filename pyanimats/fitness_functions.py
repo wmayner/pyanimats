@@ -553,7 +553,7 @@ def mat(ind, iterations=20, precomputed_complexes=None):
 _register(data_function=main_complex)(mat)
 
 
-def food(ind, baseline_penalty=None, activity_penalty=None,
+def food(ind, init_energy=None, baseline_rate=None, activity_penalty=None,
          block_values=None):
     """Food: Animats are evaluated based on their ability to obtain energy.
     Some blocks are designated as food (with the hit multiplier in the task
@@ -562,29 +562,48 @@ def food(ind, baseline_penalty=None, activity_penalty=None,
     rate, and hidden/motor unit activity depletes energy faster.
 
     Parameters:
-        0: Baseline penalty
-        1: Activity penalty (per hidden/motor unit firing)
-        2: Energy values per block type
+        0: Initial energy
+        1: Baseline consumption rate (per timestep)
+        2: Activity penalty (per hidden/motor unit firing)
+        3: Energy values per block type
     """
-    baseline_penalty = baseline_penalty or ind.function_params[0]
-    activity_penalty = activity_penalty or ind.function_params[1]
-    block_values = block_values or ind.function_params[2]
+    init_energy = init_energy or ind.function_params[0]
+    baseline_rate = baseline_rate or ind.function_params[1]
+    activity_penalty = activity_penalty or ind.function_params[2]
+    block_values = block_values or ind.function_params[3]
+
+    H = ind.world_height
+    num_timesteps = ind.num_trials * H
 
     game = ind.play_game()
     animat_states, trial_results = game[0], game[3]
 
-    num_trials_per_block = int(len(trial_results) / len(block_values))
-    block_values = np.concatenate([np.full(num_trials_per_block, val, int)
-                                   for val in block_values])
-
-    # Cumulative block consumption
-    food = np.zeros(ind.num_trials)
-    catches = np.where(np.logical_or(trial_results == CORRECT_CATCH,
-                                     trial_results == WRONG_CATCH))[0]
+    # Initial energy
+    energy = np.empty(num_timesteps)
+    energy.fill(init_energy)
+    # Cumulative food reward
+    num_timesteps_per_block = H * len(trial_results) / len(block_values)
+    block_values = np.concatenate(
+        [np.full(int(num_timesteps_per_block), val, int)
+         for val in block_values]
+    )
+    catches = H * np.where(np.logical_or(trial_results == CORRECT_CATCH,
+                                         trial_results == WRONG_CATCH))[0]
+    food = np.zeros(num_timesteps)
     food[catches] = 1
-    food = np.sum(food * block_values)
+    food *= block_values
+    food = np.cumsum(food)
+    # Cumulative baseline consumption
+    baseline = np.arange(0, num_timesteps*baseline_rate, baseline_rate)
     # Cumulative activity penalty
-    total_activity_penalty = activity_penalty * np.sum(animat_states)
+    activity = animat_states.astype(float).reshape(-1, animat_states.shape[-1])
+    activity = activity[:, list(ind.hidden_motor_indices)].sum(1)
+    activity *= activity_penalty
+    activity = np.cumsum(activity)
 
-    return sum([food, baseline_penalty, total_activity_penalty])
+    energy += (food - baseline - activity)
+
+    if np.any(energy <= 0):
+        return 0
+    return energy.mean()
 _register()(food)

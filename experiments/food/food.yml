@@ -37,14 +37,16 @@ experiment:
     fitness_function: 'food'
     # The parameters, if any, for the fitness function.
     function_params: [
-        # Baseline penalty
-        # (should be negative; will be added)
-        -2880,
+        # Initial energy
+        1728, # 48 trials
+        # Baseline consumption per timestep 
+        # (positive; will be subtracted)
+        1,
         # Activity penalty per hidden/motor unit firing 
-        # (should be negative; will be added)
-        -0.1,
+        # (positive; will be subtracted)
+        0.0,
         # Block values
-        [288, -360, 360, -360]  # 8, -10, 10, -10 trials
+        [288, -360, 288, -360]  # 8, -10, 10, -10 trials
     ]
     # Theoretical (or practical) minimum and maximum values for each fitness
     # function; used in normalizing the fitness values.
@@ -54,7 +56,7 @@ experiment:
         #   (initial energy) + (number of food blocks)*(food reward) 
         #   - (total baseline consumption)
         [
-          [-3988.8, 17856],
+          [0, 17856],
         ]
     # The first function's fitness value is scaled exponentially according to
     # the formula, after being normalized to 0-1 from the range given above:
