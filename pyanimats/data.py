@@ -39,3 +39,4 @@ def load_all(directory, pattern=os.path.join('output*.json*'), **kwargs):
         except Exception as e:
             print('\n  Error: {}'.format(e))
             print('  Could not load file; skipping...')
+    return d
