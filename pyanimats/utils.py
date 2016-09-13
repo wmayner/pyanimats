@@ -45,7 +45,8 @@ def normalizer(r, target_r=(0, 1)):
 def get_version():
     """Return repo description if available, otherwise version number."""
     try:
-        git_describe = subprocess.run(['git', 'describe'], stdout=subprocess.PIPE)
+        git_describe = subprocess.run(['git', 'describe'],
+                                      stdout=subprocess.PIPE)
     except FileNotFoundException:
         return __version__
     return (git_describe.stdout.decode(sys.stdout.encoding).strip()
