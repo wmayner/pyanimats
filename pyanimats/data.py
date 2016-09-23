@@ -12,10 +12,11 @@ from glob import glob
 from . import evolve
 
 
-def load(filepath, convert=True, compressed=False, quiet=False):
+def load(filepath, convert=True, compressed=False, quiet=False, last=False,
+         progress=False):
     if not quiet:
-        print('Loading {}...'.format(filepath), end="", flush=True)
-
+        prefix = '\r' if progress else ''
+        print(prefix + 'Loading {}...'.format(filepath), end='', flush=True)
     _, ext = os.path.splitext(filepath)
     if compressed or ext in ['.gz', '.gzip']:
         with gzip.open(filepath, 'rb') as f:
@@ -23,10 +24,10 @@ def load(filepath, convert=True, compressed=False, quiet=False):
     else:
         with open(filepath, 'rt') as f:
             d = json.load(f)
-
-    if convert:
+    if convert or last:
         d = evolve.from_json(d)
-    print('done.')
+        if last:
+            d = d['lineage'][0]
     return d
 
 
@@ -35,7 +36,7 @@ def load_all(directory, pattern=os.path.join('output*.json*'), **kwargs):
     d = []
     for path in glob(os.path.join(directory, pattern)):
         try:
-            d.append(load(path, **kwargs))
+            d.append(load(path, progress=True, **kwargs))
         except Exception as e:
             print('\n  Error: {}'.format(e))
             print('  Could not load file; skipping...')
