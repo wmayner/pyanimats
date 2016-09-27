@@ -9,14 +9,12 @@ import gzip
 import json
 from glob import glob
 
+from tqdm import tqdm
+
 from . import evolve
 
 
-def load(filepath, convert=True, compressed=False, quiet=False, last=False,
-         progress=False):
-    if not quiet:
-        prefix = '\r' if progress else ''
-        print(prefix + 'Loading {}...'.format(filepath), end='', flush=True)
+def load(filepath, convert=True, compressed=False, last=False):
     _, ext = os.path.splitext(filepath)
     if compressed or ext in ['.gz', '.gzip']:
         with gzip.open(filepath, 'rb') as f:
@@ -34,10 +32,7 @@ def load(filepath, convert=True, compressed=False, quiet=False, last=False,
 def load_all(directory, pattern=os.path.join('output*.json*'), **kwargs):
     """Recursively load files in ``directory`` matching ``pattern``."""
     d = []
-    for path in glob(os.path.join(directory, pattern)):
-        try:
-            d.append(load(path, progress=True, **kwargs))
-        except Exception as e:
-            print('\n  Error: {}'.format(e))
-            print('  Could not load file; skipping...')
+    paths = glob(os.path.join(directory, pattern))
+    for path in tqdm(paths, leave=False, dynamic_ncols=True):
+        d.append(load(path, **kwargs))
     return d
