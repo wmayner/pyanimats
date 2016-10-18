@@ -47,7 +47,7 @@ def get_version():
     try:
         git_describe = subprocess.run(['git', 'describe'],
                                       stdout=subprocess.PIPE)
-    except FileNotFoundException:
+    except OSError:
         return __version__
     return (git_describe.stdout.decode(sys.stdout.encoding).strip()
             if git_describe.returncode == 0 else __version__)
