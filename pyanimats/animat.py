@@ -125,8 +125,8 @@ class Animat:
         # Exclude the parent pointer, network attributes, dirty flags, and RNG,
         # from the pickled object.
         state = {k: v for k, v in self.__dict__.items()
-                 if k not in ['parent', 'random', '_network', '_dirty_network',
-                              '_cm', '_dirty_cm', '_tpm', '_dirty_tpm']}
+                 if k not in ['parent', '_network', '_dirty_network', '_cm',
+                              '_dirty_cm', '_tpm', '_dirty_tpm']}
         return state
 
     def __setstate__(self, state):
