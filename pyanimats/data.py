@@ -29,10 +29,18 @@ def load(filepath, convert=True, compressed=False, last=False):
     return d
 
 
-def load_all(directory, pattern=os.path.join('output*.json*'), **kwargs):
+def load_all(directory, pattern=os.path.join('output*.json*'), last=False,
+             **kwargs):
     """Recursively load files in ``directory`` matching ``pattern``."""
     d = []
     paths = glob(os.path.join(directory, pattern))
     for path in tqdm(paths, leave=False, dynamic_ncols=True):
-        d.append(load(path, **kwargs))
-    return sorted(d, key=lambda x: x.experiment.rng_seed)
+        d.append(load(path, last=last, **kwargs))
+
+    def sort_func(x):
+        if last:
+            return x.rng_seed
+        else:
+            return x.experiment.rng_seed
+
+    return sorted(d, key=sort_func)
