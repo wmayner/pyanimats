@@ -35,4 +35,4 @@ def load_all(directory, pattern=os.path.join('output*.json*'), **kwargs):
     paths = glob(os.path.join(directory, pattern))
     for path in tqdm(paths, leave=False, dynamic_ncols=True):
         d.append(load(path, **kwargs))
-    return d
+    return sorted(d, key=lambda x: x.experiment.rng_seed)
