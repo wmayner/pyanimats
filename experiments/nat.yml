@@ -100,6 +100,10 @@ experiment:
     - [-1, '1111____________']
     - [ 1, '111111__________']
     - [-1, '11111___________']
+    # The noise level of the environment. At each timestep, each sensor is
+    # independently flipped with this probability (it must be a value in the
+    # interval [0, 1]).
+    noise_level: 0.0
 
     # Mutation
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
