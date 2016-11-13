@@ -111,7 +111,7 @@ vector<int> executeGame(vector<unsigned char> &allAnimatStates, vector<int>
                             (worldState >> wrap(agentPos + 2, worldWidth)) & 1;
                     }
                     else {
-                        for (int i = 0; i < agent->mBodyLength; i++)
+                        for (int i = 0; i < agent->mNumSensors; i++) {
                             agent->states[i] =
                                 (worldState >> wrap(agentPos + i, worldWidth)) & 1;
                     }
