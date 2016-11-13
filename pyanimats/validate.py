@@ -25,7 +25,8 @@ REQUIRED_EXPERIMENT_KEYS = {
     'body_length', 'world_width', 'world_height', 'task', 'mutation_prob',
     'duplication_prob', 'deletion_prob', 'min_genome_length',
     'max_genome_length', 'min_dup_del_width', 'max_dup_del_width',
-    'default_init_genome_value', 'default_init_genome_length', 'deterministic'}
+    'default_init_genome_value', 'default_init_genome_length', 'deterministic',
+    'noise_level'}
 REQUIRED_SIMULATION_KEYS = {
     'ngen', 'checkpoint_interval', 'status_interval', 'logbook_interval',
     'sample_interval', 'all_lineages'}
@@ -152,6 +153,8 @@ def experiment(d):
     except ValueError:
         raise ValueError("invalid experiment: malformed task: block patterns "
                          "must contain only '1' and '_'.")
+    _assert_ge(d, name, 'noise_level', 0)
+    _assert_le(d, name, 'noise_level', 1)
     # Mutation
     _assert_ge(d, name, 'mutation_prob', 0)
     _assert_le(d, name, 'mutation_prob', 1)

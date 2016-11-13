@@ -148,7 +148,7 @@ cdef extern from 'Game.hpp':
         vector[uchar] animatStates, vector[int] worldStates, 
         vector[int] animatPositions, vector[int] trialResults, 
         AbstractAgent* agent, vector[int] hitMultipliers, vector[int] patterns,
-        int worldWidth, int worldHeight, bool scrambleWorld)
+        int worldWidth, int worldHeight, bool scrambleWorld, double noiseLevel)
 
 
 cdef extern from 'asvoid.hpp':
@@ -294,7 +294,7 @@ cdef class pyAbstractAgent:
         self._dirty_phenotype = True
 
     def play_game(self, hit_multipliers, patterns, worldWidth, worldHeight,
-                  scramble_world=False):
+                  scramble_world=False, noise_level=0.0):
         # Ensure the phenotype reflects the genome before playing the game.
         self._update_phenotype()
         # Calculate the size of the state transition vector, which has an entry
@@ -311,7 +311,7 @@ cdef class pyAbstractAgent:
         correct, incorrect = executeGame(
             animat_states.buf[0], world_states.buf[0], animat_positions.buf[0],
             trial_results.buf[0], self.thisptr, hit_multipliers, patterns,
-            worldWidth, worldHeight, scramble_world)
+            worldWidth, worldHeight, scramble_world, noise_level)
         # Return the state transitions and world states as NumPy arrays.
         return (animat_states.asarray(), world_states.asarray(),
                 animat_positions.asarray(), trial_results.asarray(), correct,

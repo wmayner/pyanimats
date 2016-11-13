@@ -1,7 +1,7 @@
 // Game.cpp
 
+#include "./rng.hpp"
 #include "./Game.hpp"
-
 
 int wrap(int i, int width) {
     // TODO This requires that width is a power of 2
@@ -16,7 +16,7 @@ vector<int> executeGame(vector<unsigned char> &allAnimatStates, vector<int>
         &allWorldStates, vector<int> &allAnimatPositions, vector<int>
         &trialResults, AbstractAgent* agent, vector<int> hitMultipliers,
         vector<int> patterns, int worldWidth, int worldHeight,
-        bool scrambleWorld) {
+        bool scrambleWorld, double noiseLevel) {
     // Holds the correct/incorrect counts; this is returned
     vector<int> totals;
     totals.resize(2, 0);
@@ -114,6 +114,19 @@ vector<int> executeGame(vector<unsigned char> &allAnimatStates, vector<int>
                         for (int i = 0; i < agent->mNumSensors; i++) {
                             agent->states[i] =
                                 (worldState >> wrap(agentPos + i, worldWidth)) & 1;
+                        }
+                    }
+
+                    // Independently flip sensor states according to noise level
+                    if (noiseLevel > 0.0) {
+                        for (int i = 0; i < agent->mNumSensors; i++) {
+                            if (randDouble() < noiseLevel) {
+                                agent->states[i] = ~agent->states[i] & 1;
+                                #ifdef _DEBUG
+                                    printf("! Flipped sensor %i\n", i);
+                                #endif
+                            }
+                        }
                     }
 
                     #ifdef _DEBUG
