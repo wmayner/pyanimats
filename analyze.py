@@ -21,11 +21,12 @@ from pyphi.jsonify import jsonify
 # import configure
 # import constants
 from pyanimats import fitness_functions, serialize
+from pyanimats.utils import unique_rows
 import scipy.stats
 # from individual import Individual
 from semantic_version import Version
 from sklearn.utils.extmath import cartesian
-# from utils import ensure_exists, unique_rows
+
 
 VERSION = Version('0.0.20')
 CASE_NAME = os.path.join(
@@ -453,6 +454,10 @@ def num_concepts(ind, state):
     mc = pyphi.compute.main_complex(ind.network, state)
     return len(mc.unpartitioned_constellation)
 
+def phi(ind, state):
+    mc = pyphi.compute.main_complex(ind.network, state)
+    return mc.phi
+
 get_avg_num_concepts_world = \
     fitness_functions.avg_over_visited_states(n=5)(num_concepts)
 get_avg_num_concepts_noise = \
@@ -463,15 +468,20 @@ get_avg_num_concepts_noise = \
 # Visual interface
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+get_phi = fitness_functions.avg_over_visited_states()(phi)
+get_num_concepts = fitness_functions.avg_over_visited_states()(num_concepts)
+
+
 def convert_evolution_to_json(evolution):
 
     lineage = []
-
     for animat in evolution.lineage:
         lineage.append({
             'fitness': animat.fitness,
-            'phi': 0,  # TODO
-            'numConcepts': 0,  # TODO
+            'phi': get_phi(animat),  # TODO
+            # TODO: fix this to properly average over all visited states;
+            # this is currently only over unique states
+            'numConcepts': get_num_concepts(animat),
             'cm': animat.cm,
             'mechanisms': animat.mechanisms(separate_on_off=True),
             'config': {
@@ -484,21 +494,6 @@ def convert_evolution_to_json(evolution):
         })
 
     return serialize.serializable(lineage)
-
-def get_phi_data(ind, game, config):
-    """Calculate the IIT properties of the given animat for every state.
-
-    The data function must take and individual and a state.
-    """
-    ff = config['FITNESS_FUNCTION']
-    # Get the function that returns the data (before condensing it into a
-    # simple fitness value).
-    data_func = fitness_functions.metadata[ff]['data_function']
-    if data_func is None:
-        return None
-    # Get the data for every state.
-    return {state: data_func(ind, state)
-            for state in map(tuple, unique_rows(game.animat_states))}
 
 
 def game_to_json(ind, gen, scrambled=False):
