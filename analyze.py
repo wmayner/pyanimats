@@ -472,15 +472,14 @@ get_phi = fitness_functions.avg_over_visited_states()(phi)
 get_num_concepts = fitness_functions.avg_over_visited_states()(num_concepts)
 
 
+# TODO: average over all visited states, not unique visited states?
 def convert_evolution_to_json(evolution):
 
     lineage = []
     for animat in evolution.lineage:
         lineage.append({
             'fitness': animat.fitness,
-            'phi': get_phi(animat),  # TODO
-            # TODO: fix this to properly average over all visited states;
-            # this is currently only over unique states
+            'phi': get_phi(animat),
             'numConcepts': get_num_concepts(animat),
             'cm': animat.cm,
             'mechanisms': animat.mechanisms(separate_on_off=True),
