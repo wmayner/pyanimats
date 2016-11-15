@@ -4,7 +4,6 @@
 
 """Animat analysis functions and data management."""
 
-import config
 import json
 import os
 import pickle
@@ -19,14 +18,14 @@ from pyphi.convert import loli_index2state as i2s
 from pyphi.convert import state2loli_index as s2i
 from pyphi.jsonify import jsonify
 
-import configure
-import constants
-import fitness_functions
+# import configure
+# import constants
+from pyanimats import fitness_functions, serialize
 import scipy.stats
-from individual import Individual
+# from individual import Individual
 from semantic_version import Version
 from sklearn.utils.extmath import cartesian
-from utils import ensure_exists, unique_rows
+# from utils import ensure_exists, unique_rows
 
 VERSION = Version('0.0.20')
 CASE_NAME = os.path.join(
@@ -463,6 +462,29 @@ get_avg_num_concepts_noise = \
 
 # Visual interface
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def convert_evolution_to_json(evolution):
+
+    lineage = []
+
+    for animat in evolution.lineage:
+        lineage.append({
+            'fitness': animat.fitness,
+            'phi': 0,  # TODO
+            'numConcepts': 0,  # TODO
+            'cm': animat.cm,
+            'mechanisms': {i: animat.mechanism(i, separate_on_off=True)
+                           for i in range(animat.num_nodes)},
+            'config': {
+                'NUM_NODES': animat.num_nodes,
+                'NUM_SENSORS': animat.num_sensors,
+                'SENSOR_INDICES': animat.sensor_indices,
+                'MOTOR_INDICES': animat.motor_indices,
+                'HIDDEN_INDICES': animat.hidden_indices,
+            }
+        })
+
+    return serialize.serializable(lineage)
 
 def get_phi_data(ind, game, config):
     """Calculate the IIT properties of the given animat for every state.
