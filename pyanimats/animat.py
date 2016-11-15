@@ -327,6 +327,11 @@ class Animat:
         mechanism = Mechanism(inputs=node.inputs, tpm=logical_function)
         return mechanism
 
+    def mechanisms(self, separate_on_off=False):
+        """The mechanisms in the animat."""
+        return {i: self.mechanism(i, separate_on_off)
+                for i in range(self.num_nodes)}
+
 
 def _c_animat_getter(name):
     """Returns a function that gets ``name`` from the underlying animat."""

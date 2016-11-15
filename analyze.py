@@ -473,8 +473,7 @@ def convert_evolution_to_json(evolution):
             'phi': 0,  # TODO
             'numConcepts': 0,  # TODO
             'cm': animat.cm,
-            'mechanisms': {i: animat.mechanism(i, separate_on_off=True)
-                           for i in range(animat.num_nodes)},
+            'mechanisms': animat.mechanisms(separate_on_off=True),
             'config': {
                 'NUM_NODES': animat.num_nodes,
                 'NUM_SENSORS': animat.num_sensors,
