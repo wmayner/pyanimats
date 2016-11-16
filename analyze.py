@@ -484,16 +484,20 @@ def convert_evolution_to_json(evolution):
             'numConcepts': get_num_concepts(animat),
             'cm': animat.cm,
             'mechanisms': animat.mechanisms(separate_on_off=True),
-            'config': {
-                'NUM_NODES': animat.num_nodes,
-                'NUM_SENSORS': animat.num_sensors,
-                'SENSOR_INDICES': animat.sensor_indices,
-                'MOTOR_INDICES': animat.motor_indices,
-                'HIDDEN_INDICES': animat.hidden_indices,
-            }
+            'config': get_config(animat),
         })
 
     return serialize.serializable(lineage)
+
+
+def get_config(animat):
+    return {
+        'NUM_NODES': animat.num_nodes,
+        'NUM_SENSORS': animat.num_sensors,
+        'SENSOR_INDICES': animat.sensor_indices,
+        'MOTOR_INDICES': animat.motor_indices,
+        'HIDDEN_INDICES': animat.hidden_indices,
+    }
 
 
 def game_to_json(ind, gen, scrambled=False):
