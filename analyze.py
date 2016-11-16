@@ -497,30 +497,60 @@ def get_config(animat):
         'SENSOR_INDICES': animat.sensor_indices,
         'MOTOR_INDICES': animat.motor_indices,
         'HIDDEN_INDICES': animat.hidden_indices,
+        'SENSOR_LOCATIONS': animat.sensor_locations,
+        'BODY_LENGTH': animat.body_length,
+        'SEED': animat.rng_seed,
+        'FITNESS_FUNCTION': animat.fitness_function,
+        'WORLD_HEIGHT': animat.world_height,
+        'WORLD_WIDTH': animat.world_width,
     }
 
 
-def game_to_json(ind, gen, scrambled=False):
-    # Get the full configuration dictionary, including derived constants.
-    config = configure.get_dict(full=True)
-    # Play the game.
-    game = ind.play_game(scrambled=scrambled)
+def get_phi_data(animat, game):
+    """Calculate the IIT properties of the given animat for every state.
+
+    The data function must take and individual and a state.
+    """
+    # # TODO: handle multiple fitness functions
+    # assert len(animat.fitness_function) == 1
+    # ff = animat.fitness_function[0]
+    #
+    # # Get the function that returns the data (before condensing it into a
+    # # simple fitness value).
+    # data_func = fitness_functions.metadata[ff]['data_function']
+    # if data_func is None:
+    #     return None
+
+    # Get the data for every state.
+    return {state: fitness_functions.main_complex(animat, state).to_json()
+            for state in map(tuple, unique_rows(game.animat_states))}
+
+
+def convert_animat_to_game_json(animat, scrambled=False):
+    """Convert an animat to the json format used by the game tab of
+    `animanimate`."""
+
+    # Play the game
+    game = animat.play_game(scrambled=scrambled)
+
+    phi_data = get_phi_data(animat, game)
+
+    world_width = animat.world_width
     # Convert world states from the integer encoding to explicit arrays.
     world_states = np.array(
-        list(map(lambda i: i2s(i, config['WORLD_WIDTH']),
+        list(map(lambda i: i2s(i, world_width),
                  game.world_states.flatten().tolist()))).reshape(
-                     game.world_states.shape + (config['WORLD_WIDTH'],))
-    phi_data = get_phi_data(ind, game, config)
-    # Generate the JSON-encodable dictionary.
-    json_dict = {
-        'config': config,
-        'generation': gen,
-        'genome': ind.genome,
-        'cm': ind.cm.tolist(),
-        'correct': ind.correct,
-        'incorrect': ind.incorrect,
-        'mechanisms': {i: ind.mechanism(i, separate_on_off=True)
-                       for i in range(config['NUM_NODES'])},
+                     game.world_states.shape + (world_width,))
+
+    return serialize.serializable({
+        'config': get_config(animat),
+        'generation': animat.gen,
+        'fitness': animat.fitness,
+        'correct': animat.correct,
+        'incorrect': animat.incorrect,
+        'cm': animat.cm,
+        'mechanisms': animat.mechanisms(separate_on_off=True),
+        'notes': None,
         'trials': [
             {
                 'num': trialnum,
@@ -531,9 +561,9 @@ def game_to_json(ind, gen, scrambled=False):
                 'timesteps': [
                     {
                         'num': t,
-                        'world': world_states[trialnum, t].tolist(),
-                        'animat': game.animat_states[trialnum, t].tolist(),
-                        'pos': game.animat_positions[trialnum, t].tolist(),
+                        'world': world_states[trialnum, t],
+                        'animat': game.animat_states[trialnum, t],
+                        'pos': game.animat_positions[trialnum, t],
                         'phidata': ((
                             phi_data[tuple(game.animat_states[trialnum, t])] if
                             tuple(game.animat_states[trialnum, t]) in phi_data
@@ -544,10 +574,7 @@ def game_to_json(ind, gen, scrambled=False):
                 ],
             } for trialnum in range(game.animat_states.shape[0])
         ],
-    }
-    assert(ind.correct == sum(trial['correct'] for trial in
-                              json_dict['trials']))
-    return json_dict
+    })
 
 
 def export_game_to_json(case_name=CASE_NAME, seed=SEED, lineage=0,
