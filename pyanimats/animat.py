@@ -350,18 +350,6 @@ for name in _c_animat_properties:
     setattr(Animat, name, property(_c_animat_getter(name)))
 
 
-def _derived_experiment_getter(name):
-    def getter(self):
-        return getattr(self.experiment._derived, name)
-    return getter
-
-_derived_experiment_properties = ['sensor_indices', 'hidden_indices',
-                                  'motor_indices']
-
-for name in _derived_experiment_properties:
-    setattr(Animat, name, property(_derived_experiment_getter(name)))
-
-
 def from_json(dictionary, experiment=None, parent=None):
     """Initialize an animat object from a JSON dictionary.
 
