@@ -474,7 +474,8 @@ get_num_concepts = fitness_functions.avg_over_visited_states()(num_concepts)
 
 # TODO: average over all visited states, not unique visited states?
 def convert_evolution_to_json(evolution):
-
+    """Convert an an evolution to the json format used by `animanimate`. The
+     JSON produced by this funciton is the input for the evolution tab."""
     lineage = []
     for animat in evolution.lineage:
         lineage.append({
