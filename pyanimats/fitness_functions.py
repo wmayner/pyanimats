@@ -34,7 +34,8 @@ LaTeX_NAMES = {
     'bp': '\Phi',
     'bp_wvn': '\Phi\ (world\ vs.\ noise)',
     'sd_wvn': 'State\ differentiation (world\ vs.\ noise)',
-    'mat': 'Matching'
+    'mat': 'Matching',
+    'food': 'Food',
 }
 MULTIVALUED = ['mat']
 CHEAP = ['nat']
