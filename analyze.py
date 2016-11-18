@@ -561,16 +561,17 @@ def convert_animat_to_game_json(animat, scrambled=False):
                 'timesteps': [
                     {
                         'num': t,
-                        'world': world_states[trialnum, t],
-                        'animat': game.animat_states[trialnum, t],
-                        'pos': game.animat_positions[trialnum, t],
-                        'phidata': ((
-                            phi_data[tuple(game.animat_states[trialnum, t])] if
-                            tuple(game.animat_states[trialnum, t]) in phi_data
-                            else False
-                        ) if phi_data else False)
+                        'world': world_state,
+                        'animat': animat_state,
+                        'pos': animat_position,
+                        'phidata': phi_data[tuple(animat_state)]
                     }
-                    for t, world_state in enumerate(world_states[trialnum])
+                    for t, (world_state, animat_state, animat_position)
+                        in enumerate(zip(
+                            world_states[trialnum],
+                            game.animat_states[trialnum],
+                            game.animat_positions[trialnum]
+                        ))
                 ],
             } for trialnum in range(game.animat_states.shape[0])
         ],
