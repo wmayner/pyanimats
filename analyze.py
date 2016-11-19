@@ -476,18 +476,17 @@ get_num_concepts = fitness_functions.avg_over_visited_states()(num_concepts)
 def convert_evolution_to_json(evolution):
     """Convert an an evolution to the json format used by `animanimate`. The
      JSON produced by this funciton is the input for the evolution tab."""
-    lineage = []
-    for animat in evolution.lineage:
-        lineage.append({
+    return serialize.serializable([
+        {
             'fitness': animat.fitness,
             'phi': get_phi(animat),
             'numConcepts': get_num_concepts(animat),
             'cm': animat.cm,
             'mechanisms': animat.mechanisms(separate_on_off=True),
             'config': get_config(animat),
-        })
-
-    return serialize.serializable(lineage)
+        }
+        for animat in evolution.lineage
+    ])
 
 
 def get_config(animat):
