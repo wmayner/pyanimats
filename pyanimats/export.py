@@ -1,8 +1,31 @@
 
+"""
+Export PyAnimats to Visual Interface
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Usage:
+    export.py <output.json> evolution <evolution.json>
+    export.py <output.json> game <evolution.json>
+
+Arguments:
+    <output.json>               File where the visual interface JSON should be
+                                stored
+    evolution <evolution.json>  Export an evolution to the JSON format used by
+                                the evolution visual interface
+    game <evolution.json>       Export the fittest animat in the evolution to
+                                the JSON format used by the game visual
+                                interface
+"""
+
+import json
+
+import numpy as np
 import pyphi
+from pyphi.convert import loli_index2state as i2s
+from docopt import docopt
 
-from pyanimats import serialize
+from pyanimats import evolve, fitness_functions, serialize, utils
+from pyanimats.__about__ import __version__
 
 
 def num_concepts(ind, state):
@@ -68,7 +91,7 @@ def get_phi_data(animat, game):
 
     # Get the data for every state.
     return {state: fitness_functions.main_complex(animat, state).to_json()
-            for state in map(tuple, unique_rows(game.animat_states))}
+            for state in map(tuple, utils.unique_rows(game.animat_states))}
 
 
 def convert_animat_to_game_json(animat, scrambled=False):
@@ -121,3 +144,22 @@ def convert_animat_to_game_json(animat, scrambled=False):
             } for trialnum in range(game.animat_states.shape[0])
         ],
     })
+
+
+if __name__ == '__main__':
+    args = docopt(__doc__, version=__version__)
+
+    with open(args['<evolution.json>']) as f:
+        data = json.load(f)
+
+    evolution = evolve.from_json(data)
+
+    if args['evolution']:
+        output = convert_evolution_to_json(evolution)
+
+    elif args['game']:
+        fittest = evolution.lineage[0]
+        output = convert_animat_to_game_json(fittest)
+
+    with open(args['<output.json>'], 'w') as f:
+        json.dump(output, f, indent=4)
