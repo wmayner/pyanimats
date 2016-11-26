@@ -553,8 +553,8 @@ def mat(ind, iterations=20, precomputed_complexes=None):
 _register(data_function=main_complex)(mat)
 
 
-def food(ind, baseline_penalty=None, activity_penalty=None,
-         block_values=None):
+def food(ind, baseline_penalty=None, activity_penalty=None, block_values=None,
+         scrambled=False, noise_level=None):
     """Food: Animats are evaluated based on their ability to obtain energy.
     Some blocks are designated as food (with the hit multiplier in the task
     specification), others are poison. Catching food blocks yields energy;
@@ -566,11 +566,14 @@ def food(ind, baseline_penalty=None, activity_penalty=None,
         1: Activity penalty (per hidden/motor unit firing)
         2: Energy values per block type
     """
+    if noise_level is None:
+        noise_level = ind.noise_level
+
     baseline_penalty = baseline_penalty or ind.function_params[0]
     activity_penalty = activity_penalty or ind.function_params[1]
     block_values = block_values or ind.function_params[2]
 
-    game = ind.play_game()
+    game = ind.play_game(scrambled=scrambled, noise_level=noise_level)
     animat_states, trial_results = game[0], game[3]
 
     num_trials_per_block = int(len(trial_results) / len(block_values))
