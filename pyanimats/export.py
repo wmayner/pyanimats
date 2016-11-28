@@ -23,6 +23,7 @@ import numpy as np
 import pyphi
 from pyphi.convert import loli_index2state as i2s
 from docopt import docopt
+from tqdm import tqdm
 
 from pyanimats import evolve, fitness_functions, serialize, utils
 from pyanimats.__about__ import __version__
@@ -54,7 +55,7 @@ def convert_evolution_to_json(evolution):
             'mechanisms': animat.mechanisms(separate_on_off=True),
             'config': get_config(animat),
         }
-        for animat in evolution.lineage
+        for animat in tqdm(evolution.lineage)
     ])
 
 
@@ -91,7 +92,7 @@ def get_phi_data(animat, game):
 
     # Get the data for every state.
     return {state: fitness_functions.main_complex(animat, state).to_json()
-            for state in map(tuple, utils.unique_rows(game.animat_states))}
+            for state in map(tuple, tqdm(utils.unique_rows(game.animat_states)))}
 
 
 def convert_animat_to_game_json(animat, scrambled=False):
@@ -141,7 +142,7 @@ def convert_animat_to_game_json(animat, scrambled=False):
                             game.animat_positions[trialnum]
                         ))
                 ],
-            } for trialnum in range(game.animat_states.shape[0])
+            } for trialnum in tqdm(range(game.animat_states.shape[0]))
         ],
     })
 
@@ -149,6 +150,7 @@ def convert_animat_to_game_json(animat, scrambled=False):
 if __name__ == '__main__':
     args = docopt(__doc__, version=__version__)
 
+    print('Reading input...')
     with open(args['<evolution.json>']) as f:
         data = json.load(f)
 
@@ -161,5 +163,6 @@ if __name__ == '__main__':
         fittest = evolution.lineage[0]
         output = convert_animat_to_game_json(fittest)
 
+    print('Writing output...')
     with open(args['<output.json>'], 'w') as f:
         json.dump(output, f, indent=4)
