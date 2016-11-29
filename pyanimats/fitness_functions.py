@@ -97,7 +97,7 @@ def shortcircuit_if_empty(value=0.0):
 
 # TODO document kwargs
 def avg_over_visited_states(upto_attr=False, transform=False, n=None,
-                            scrambled=False):
+                            scrambled=False, noise_level=None):
     """A decorator that takes an animat and applies a function for every unique
     state the animat visits during a game (up to the given units only) and
     returns the average.
@@ -106,8 +106,10 @@ def avg_over_visited_states(upto_attr=False, transform=False, n=None,
     def decorator(func):
         @wraps(func)
         def wrapper(ind, **kwargs):
+            if noise_level is None:
+                noise_level = ind.noise_level
             upto = getattr(ind, upto_attr) if upto_attr else False
-            game = ind.play_game(scrambled=scrambled)
+            game = ind.play_game(scrambled=scrambled, noise_level=noise_level)
             sort = n is not None
             unique_states = unique_rows(game.animat_states, upto=upto,
                                         sort=sort)[:n]
@@ -138,7 +140,7 @@ def wvn_trial(world_trial, noise_trial, state_data, transform, reduce,
 
 
 def wvn(transform=None, reduce=sum, upto_attr=False, shortcircuit=True,
-        shortcircuit_value=0.0):
+        shortcircuit_value=0.0, noise_level=None):
     """Compute the world vs. noise difference for a given function.
 
     Args:
@@ -164,9 +166,11 @@ def wvn(transform=None, reduce=sum, upto_attr=False, shortcircuit=True,
         @wraps(func)
         def wrapper(ind, **kwargs):
             upto = getattr(ind, upto_attr) if upto_attr else False
+            if noise_level is None:
+                noise_level = ind.noise_level
             # Play the game and a scrambled version of it.
-            world = ind.play_game().animat_states
-            noise = ind.play_game(scrambled=True).animat_states
+            world = ind.play_game(noise_level=noise_level).animat_states
+            noise = ind.play_game(scrambled=True, noise_level=noise_level).animat_states
             # Uniqify all states up to the given indices.
             w_and_n = np.concatenate([world, noise])
             w_and_n = w_and_n.reshape(-1, w_and_n.shape[-1])
@@ -217,26 +221,30 @@ _register()(zero)
 # Natural fitness
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def nat(ind, scrambled=False):
+def nat(ind, scrambled=False, noise_level=None):
     """Natural: Animats are evaluated based on the number of game trials they
     successfully complete. For each task given in the ``experiment.task``
     parameter, there is one trial per direction (left or right) of block
     descent, per initial animat position (given by
     ``experiment.world_width``)."""
-    return ind.play_game(scrambled=scrambled).correct
+    if noise_level is None:
+        noise_level = ind.noise_level
+    return ind.play_game(scrambled=scrambled, noise_level=noise_level).correct
 _register()(nat)
 
 
 # Mutual information
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def mi(ind, scrambled=False):
+def mi(ind, scrambled=False, noise_level=None):
     """Mutual information: Animats are evaluated based on the mutual
     information between their sensors and motor over the course of a game.
     """
     if ind.num_motors == 0:
         return 0.0
-    states = ind.play_game(scrambled=scrambled).animat_states
+    if noise_level is None:
+        noise_level = ind.noise_level
+    states = ind.play_game(scrambled=scrambled, noise_level=noise_level).animat_states
     # The contingency matrix has a row for every sensor state and a column for
     # every motor state.
     contingency = np.zeros([ind.num_sensor_states, ind.num_motor_states])
@@ -369,17 +377,19 @@ _register(data_function=main_complex)(bp_wvn)
 # World vs. noise state differentiation
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 @shortcircuit_if_empty()
-def sd_wvn(ind, upto_attr='hidden_indices', iterations=10):
+def sd_wvn(ind, upto_attr='hidden_indices', iterations=10, noise_level=None):
     """State differentiation (world vs. noise): Measures the number of
     hidden-unit states that appear only in the world or only in the scrambled
     world."""
     upto = getattr(ind, upto_attr) if upto_attr else False
-    unscrambled_game = ind.play_game()
+    if noise_level is None:
+        noise_level = ind.noise_level
+    unscrambled_game = ind.play_game(noise_level=noise_level)
     world = unscrambled_game.animat_states
     num_trials = world.shape[0]
     state_differentiation = np.zeros(iterations)
     for iteration in range(iterations):
-        noise = ind.play_game(scrambled=True).animat_states
+        noise = ind.play_game(scrambled=True, noise_level=noise_level).animat_states
         # Get a permutation of the trials.
         shuffled_trials = list(range(num_trials))
         ind.random.shuffle(shuffled_trials)
@@ -469,7 +479,7 @@ def matching_average_weighted(W, N, constellations, complexes):
 
 
 @shortcircuit_if_empty(value=(0, 0, 0))
-def mat(ind, iterations=20, precomputed_complexes=None):
+def mat(ind, iterations=20, precomputed_complexes=None, noise_level=None):
     """Matching: Animats are evaluated based on how well they “match” their
     environment. Roughly speaking, this captures the degree to which their
     conceptual structure “resonates” with statistical regularities in the
@@ -482,9 +492,11 @@ def mat(ind, iterations=20, precomputed_complexes=None):
     that the animat obtains when presented with a stimulus set from the world,
     and Σφ'(N) is the same but for a stimulus set that has been scrambled first
     in space and then in time."""
+    if noise_level is None:
+        noise_level = ind.noise_level
     # Play the game and a scrambled version of it.
-    noise = ind.play_game(scrambled=True).animat_states
-    world = ind.play_game().animat_states
+    noise = ind.play_game(scrambled=True, noise_level=noise_level).animat_states
+    world = ind.play_game(noise_level=noise_level).animat_states
     # Since the motor states can't influence φ or ϕ, we set them to zero to
     # make uniqifying the states simpler.
     world[..., ind.motor_indices] = 0
