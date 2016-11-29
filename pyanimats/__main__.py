@@ -65,6 +65,7 @@ Animat options:
     -t --num-motors=INT        The number of motors in an animat
 
 Environment options:
+    -N --noise-level=FLOAT     The probability of a sensor flipping state.
     -W --world-width=INT       The width of the animats' environment
     -H --world-height=INT      The height of the animats' environment
 
@@ -116,6 +117,7 @@ cli_opt_to_experiment = {
     '--num-sensors':      ('num_sensors', int),
     '--num-hidden':       ('num_hidden', int),
     '--num-motors':       ('num_motors', int),
+    '--noise-level':      ('noise_level', float),
     '--world-width':      ('world_width', int),
     '--world-height':     ('world_height', int),
     '--mut-prob':         ('mutation_prob', float),
