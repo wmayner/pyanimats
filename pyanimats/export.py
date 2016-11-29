@@ -29,13 +29,14 @@ from pyanimats import evolve, fitness_functions, serialize, utils
 from pyanimats.__about__ import __version__
 
 
+def main_complex(ind, state):
+    return pyphi.compute.main_complex(ind.network, state)
+
 def num_concepts(ind, state):
-    mc = pyphi.compute.main_complex(ind.network, state)
-    return len(mc.unpartitioned_constellation)
+    return len(main_complex(ind, state).unpartitioned_constellation)
 
 def phi(ind, state):
-    mc = pyphi.compute.main_complex(ind.network, state)
-    return mc.phi
+    return main_complex(ind, state).phi
 
 
 get_phi = fitness_functions.avg_over_visited_states()(phi)
@@ -91,28 +92,29 @@ def get_phi_data(animat, game):
     #     return None
 
     # Get the main complex for every state.
-    data = {state: fitness_functions.main_complex(animat, state).to_json()
+    return {state: get_main_complex(animat, state)
             for state in map(tuple, tqdm(utils.unique_rows(game.animat_states)))}
 
-    # Get the essential information from each main complex
-    def compress(mc):
-        return {
-            'unpartitioned_constellation': [
-                {
-                    'mechanism': concept.mechanism,
-                    'cause': {
-                        'phi': concept.cause.phi,
-                        'purview': concept.cause.purview
-                    },
-                    'effect': {
-                        'phi': concept.effect.phi,
-                        'purview': concept.effect.purview
-                    }
-                } for concept in mc['unpartitioned_constellation']
-            ]
-        }
 
-    return {state: compress(mc) for state, mc in data.items()}
+def get_main_complex(animat, state):
+    """Get the essential information from the main complex."""
+    mc = main_complex(animat, state)
+
+    return {
+        'unpartitioned_constellation': [
+            {
+                'mechanism': concept.mechanism,
+                'cause': {
+                    'phi': concept.cause.phi,
+                    'purview': concept.cause.purview
+                },
+                'effect': {
+                    'phi': concept.effect.phi,
+                    'purview': concept.effect.purview
+                }
+            } for concept in mc.unpartitioned_constellation
+        ]
+    }
 
 
 def convert_animat_to_game_json(animat, scrambled=False):
