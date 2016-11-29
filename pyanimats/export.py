@@ -90,9 +90,30 @@ def get_phi_data(animat, game):
     # if data_func is None:
     #     return None
 
-    # Get the data for every state.
-    return {state: fitness_functions.main_complex(animat, state).to_json()
+    # Get the main complex for every state.
+    data = {state: fitness_functions.main_complex(animat, state).to_json()
             for state in map(tuple, tqdm(utils.unique_rows(game.animat_states)))}
+
+    # Get the essential information from each main complex
+    def compress(mc):
+        return {
+            'unpartitioned_constellation': [
+                {
+                    'mechanism': concept.mechanism,
+                    'cause': {
+                        'phi': concept.cause.phi,
+                        'purview': concept.cause.purview
+
+                    },
+                    'effect': {
+                        'phi': concept.effect.phi,
+                        'purview': concept.effect.purview
+                    }
+                } for concept in mc['unpartitioned_constellation']
+            ]
+        }
+
+    return serialize.serializable({state: compress(mc) for state, mc in data.items()})
 
 
 def convert_animat_to_game_json(animat, scrambled=False):
