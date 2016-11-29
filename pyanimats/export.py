@@ -56,7 +56,7 @@ def convert_evolution_to_json(evolution):
             'mechanisms': animat.mechanisms(separate_on_off=True),
             'config': get_config(animat),
         }
-        for animat in tqdm(evolution.lineage)
+        for animat in tqdm(evolution.lineage, desc='Computing ϕ')
     ]
 
 
@@ -91,9 +91,10 @@ def get_phi_data(animat, game):
     # if data_func is None:
     #     return None
 
+    states = tqdm(utils.unique_rows(game.animat_states), desc='Computing ϕ')
     # Get the main complex for every state.
     return {state: get_main_complex(animat, state)
-            for state in map(tuple, tqdm(utils.unique_rows(game.animat_states)))}
+            for state in map(tuple, states)}
 
 
 def get_main_complex(animat, state):
@@ -164,7 +165,7 @@ def convert_animat_to_game_json(animat, scrambled=False):
                             game.animat_positions[trialnum]
                         ))
                 ],
-            } for trialnum in tqdm(range(game.animat_states.shape[0]))
+            } for trialnum in range(game.animat_states.shape[0])
         ],
     }
 
