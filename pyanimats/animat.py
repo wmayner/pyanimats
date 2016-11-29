@@ -324,7 +324,7 @@ class Animat:
             on_mapping = [mapping for mapping in logical_function
                           if mapping[1]]
             logical_function = [off_mapping, on_mapping]
-        mechanism = Mechanism(inputs=node.inputs, tpm=logical_function)
+        mechanism = Mechanism(inputs=node.input_indices, tpm=logical_function)
         return mechanism
 
     def mechanisms(self, separate_on_off=False):
