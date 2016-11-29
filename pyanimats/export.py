@@ -46,7 +46,7 @@ get_num_concepts = fitness_functions.avg_over_visited_states()(num_concepts)
 def convert_evolution_to_json(evolution):
     """Convert an an evolution to the json format used by `animanimate`. The
      JSON produced by this funciton is the input for the evolution tab."""
-    return serialize.serializable([
+    return [
         {
             'fitness': animat.fitness,
             'phi': get_phi(animat),
@@ -56,7 +56,7 @@ def convert_evolution_to_json(evolution):
             'config': get_config(animat),
         }
         for animat in tqdm(evolution.lineage)
-    ])
+    ]
 
 
 def get_config(animat):
@@ -103,7 +103,6 @@ def get_phi_data(animat, game):
                     'cause': {
                         'phi': concept.cause.phi,
                         'purview': concept.cause.purview
-
                     },
                     'effect': {
                         'phi': concept.effect.phi,
@@ -113,7 +112,7 @@ def get_phi_data(animat, game):
             ]
         }
 
-    return serialize.serializable({state: compress(mc) for state, mc in data.items()})
+    return {state: compress(mc) for state, mc in data.items()}
 
 
 def convert_animat_to_game_json(animat, scrambled=False):
@@ -132,7 +131,7 @@ def convert_animat_to_game_json(animat, scrambled=False):
                  game.world_states.flatten().tolist()))).reshape(
                      game.world_states.shape + (world_width,))
 
-    return serialize.serializable({
+    return {
         'config': get_config(animat),
         'generation': animat.gen,
         'fitness': animat.fitness,
@@ -165,7 +164,7 @@ def convert_animat_to_game_json(animat, scrambled=False):
                 ],
             } for trialnum in tqdm(range(game.animat_states.shape[0]))
         ],
-    })
+    }
 
 
 if __name__ == '__main__':
@@ -186,4 +185,4 @@ if __name__ == '__main__':
 
     print('Writing output...')
     with open(args['<output.json>'], 'w') as f:
-        json.dump(output, f, indent=4)
+        json.dump(output, f, indent=4, default=serialize.serializable)
