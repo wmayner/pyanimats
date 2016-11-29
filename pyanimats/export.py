@@ -46,18 +46,21 @@ get_num_concepts = fitness_functions.avg_over_visited_states()(num_concepts)
 # TODO: average over all visited states, not unique visited states?
 def convert_evolution_to_json(evolution):
     """Convert an an evolution to the json format used by `animanimate`. The
-     JSON produced by this funciton is the input for the evolution tab."""
-    return [
-        {
-            'fitness': animat.fitness,
-            'phi': get_phi(animat),
-            'numConcepts': get_num_concepts(animat),
-            'cm': animat.cm,
-            'mechanisms': animat.mechanisms(separate_on_off=True),
-            'config': get_config(animat),
-        }
-        for animat in tqdm(evolution.lineage, desc='Computing ϕ')
-    ]
+     JSON produced by this function is the input for the evolution tab."""
+    return {
+        'config': get_config(evolution.lineage[0]),
+        'lineage': [
+            {
+                'generation': animat.gen,
+                'fitness': animat.fitness,
+                'phi': get_phi(animat),
+                'numConcepts': get_num_concepts(animat),
+                'cm': animat.cm,
+                'mechanisms': animat.mechanisms(separate_on_off=True),
+            }
+            for animat in tqdm(evolution.lineage, desc='Computing ϕ')
+        ]
+    }
 
 
 def get_config(animat):
