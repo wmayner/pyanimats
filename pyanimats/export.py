@@ -49,7 +49,7 @@ def convert_evolution_to_json(evolution):
      JSON produced by this function is the input for the evolution tab."""
     return {
         'config': get_config(evolution.lineage[0]),
-        'lineage': [
+        'lineage': reversed([
             {
                 'generation': animat.gen,
                 'fitness': animat.fitness,
@@ -59,7 +59,7 @@ def convert_evolution_to_json(evolution):
                 'mechanisms': animat.mechanisms(separate_on_off=True),
             }
             for animat in tqdm(evolution.lineage, desc='Computing ϕ')
-        ]
+        ])
     }
 
 
