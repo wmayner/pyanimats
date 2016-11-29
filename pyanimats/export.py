@@ -173,8 +173,11 @@ def convert_animat_to_game_json(animat, scrambled=False):
 if __name__ == '__main__':
     args = docopt(__doc__, version=__version__)
 
-    print('Reading input...')
-    with open(args['<evolution.json>']) as f:
+    input_file = args['<evolution.json>']
+    output_file = args['<output.json>']
+
+    print("Reading '{}'...".format(input_file))
+    with open(input_file) as f:
         data = json.load(f)
 
     evolution = evolve.from_json(data)
@@ -186,6 +189,6 @@ if __name__ == '__main__':
         fittest = evolution.lineage[0]
         output = convert_animat_to_game_json(fittest)
 
-    print('Writing output...')
-    with open(args['<output.json>'], 'w') as f:
+    print("Writing '{}'...".format(output_file))
+    with open(output_file, 'w') as f:
         json.dump(output, f, indent=4, default=serialize.serializable)
