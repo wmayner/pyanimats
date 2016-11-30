@@ -206,6 +206,8 @@ class Evolution:
                     for l in first_lines[:-1]]
                 print('\n' + '\n'.join(header_lines))
 
+            self.print_status(self.logbook.__str__(startindex=-1), 0)
+
         last_status, last_checkpoint = [timer()] * 2
 
         for gen in generations:
