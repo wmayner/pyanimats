@@ -195,6 +195,7 @@ class Evolution:
                 for a in self.population:
                     a.inject_start_codons(self.experiment.init_start_codons)
 
+            # Initial evaluation
             self.evaluate(self.population)
             self.record(self.population, self.generation)
 
@@ -206,6 +207,7 @@ class Evolution:
                     for l in first_lines[:-1]]
                 print('\n' + '\n'.join(header_lines))
 
+            # Print initial status
             self.print_status(self.logbook.__str__(startindex=-1), 0)
 
         last_status, last_checkpoint = [timer()] * 2
