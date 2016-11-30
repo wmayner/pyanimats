@@ -189,13 +189,15 @@ class Evolution:
         self.random.setstate(self.python_rng_state)
         c_animat.set_rng_state(self.c_rng_state)
 
-        # Initial evalutation.
         if self.generation == 0:
-            self.population = self.new_gen(self.population, self.generation)
             # Inject start codons.
             if self.experiment.init_start_codons:
                 for a in self.population:
                     a.inject_start_codons(self.experiment.init_start_codons)
+
+            self.evaluate(self.population)
+            self.record(self.population, self.generation)
+
             # Print first lines of the logbook.
             if 0 < self.simulation.status_interval < float('inf'):
                 first_lines = str(self.logbook).split('\n')
