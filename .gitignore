@@ -31,3 +31,4 @@ notebooks
 !pyanimats/*.py
 pyanimats/c_animat/main.cpp
 pyanimats/c_animat/c_animat.cpp
+jobs
