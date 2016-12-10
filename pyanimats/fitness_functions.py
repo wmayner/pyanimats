@@ -221,7 +221,7 @@ _register()(zero)
 # Natural fitness
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def nat(ind, scrambled=False, noise_level=None):
+def nat(ind, scrambled=False, noise_level=None, iterations=10):
     """Natural: Animats are evaluated based on the number of game trials they
     successfully complete. For each task given in the ``experiment.task``
     parameter, there is one trial per direction (left or right) of block
@@ -229,7 +229,13 @@ def nat(ind, scrambled=False, noise_level=None):
     ``experiment.world_width``)."""
     if noise_level is None:
         noise_level = ind.noise_level
-    return ind.play_game(scrambled=scrambled, noise_level=noise_level).correct
+    if noise_level == 0:
+        return ind.play_game(scrambled=scrambled,
+                             noise_level=noise_level).correct
+    return sum([
+        ind.play_game(scrambled=scrambled, noise_level=noise_level).correct
+        for i in range(iterations)
+    ]) / iterations
 _register()(nat)
 
 
