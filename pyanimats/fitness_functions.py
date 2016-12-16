@@ -631,7 +631,7 @@ _register()(food_or_die)
 
 
 def food(ind, baseline_penalty=None, activity_penalty=None, block_values=None,
-         scrambled=False, noise_level=None):
+         scrambled=False, noise_level=None, iterations=10):
     """Food: Animats are evaluated based on their ability to obtain energy.
     Some blocks are designated as food (with the hit multiplier in the task
     specification), others are poison. Catching food blocks yields energy;
@@ -645,26 +645,33 @@ def food(ind, baseline_penalty=None, activity_penalty=None, block_values=None,
     """
     if noise_level is None:
         noise_level = ind.noise_level
+    if noise_level == 0:
+        iterations = 1
 
     baseline_penalty = baseline_penalty or ind.function_params[0]
     activity_penalty = activity_penalty or ind.function_params[1]
     block_values = block_values or ind.function_params[2]
 
-    game = ind.play_game(scrambled=scrambled, noise_level=noise_level)
-    animat_states, trial_results = game[0], game[3]
-
-    num_trials_per_block = int(len(trial_results) / len(block_values))
+    num_trials_per_block = ind.num_trials / len(block_values)
     block_values = np.concatenate([np.full(num_trials_per_block, val, int)
                                    for val in block_values])
 
-    # Cumulative block consumption
-    food = np.zeros(ind.num_trials)
-    catches = np.where(np.logical_or(trial_results == CORRECT_CATCH,
-                                     trial_results == WRONG_CATCH))[0]
-    food[catches] = 1
-    food = np.sum(food * block_values)
-    # Cumulative activity penalty
-    total_activity_penalty = activity_penalty * np.sum(animat_states)
+    scores = np.zeros(iterations)
+    for i in range(iterations):
 
-    return sum([food, baseline_penalty, total_activity_penalty])
+        game = ind.play_game(scrambled=scrambled,
+                             noise_level=noise_level)
+
+        # Cumulative block consumption
+        food = np.zeros(ind.num_trials)
+        catches = np.where(np.logical_or(game.trial_results == CORRECT_CATCH,
+                                         game.trial_results == WRONG_CATCH))[0]
+        food[catches] = 1
+        food = np.sum(food * block_values)
+        # Cumulative activity penalty
+        total_activity_penalty = activity_penalty * np.sum(game.animat_states)
+
+        scores[i] = sum([food, baseline_penalty, total_activity_penalty])
+
+    return sum(scores) / iterations
 _register()(food)
