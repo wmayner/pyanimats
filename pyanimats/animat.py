@@ -12,6 +12,7 @@ animat properties (connectivity, associated PyPhi objects, etc.).
 from collections import namedtuple
 from copy import deepcopy
 from uuid import uuid4
+import string
 
 import numpy as np
 import pyphi
@@ -96,6 +97,12 @@ class Animat:
         self._dirty_network = True
         # Get a random unique ID.
         self._id = uuid4()
+        # Get node labels.
+        self.node_labels = (
+            ['s{}'.format(i) for i in range(self.num_sensors)] +
+            list(string.ascii_uppercase)[:self.num_hidden] +
+            ['m{}'.format(i) for i in range(self.num_motors)]
+        )
 
     def __str__(self):
         string = ('Animat(gen={}, genome={}, '
@@ -209,7 +216,8 @@ class Animat:
         """The PyPhi network representing the animat in the given state."""
         if self._dirty_network:
             self._network = pyphi.Network(self.tpm,
-                                          connectivity_matrix=self.cm)
+                                          connectivity_matrix=self.cm,
+                                          node_labels=self.node_labels)
             self._dirty_network = False
         return self._network
 
