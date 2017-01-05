@@ -37,8 +37,10 @@ def load_all(directory, pattern=os.path.join('output*.json*'), last=False,
     for path in tqdm(paths, leave=False, dynamic_ncols=True):
         try:
             d.append(load(path, last=last, **kwargs))
-        except EOFError:
-            print('Could not load file `{}`. Skipping...'.format(path))
+        except Exception as e:
+            print('Could not load file `{}`.\n'
+                  '  Error: {}\n'
+                  '  Skipping...'.format(path, e))
 
     def sort_func(x):
         if last:
