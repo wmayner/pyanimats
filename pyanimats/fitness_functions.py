@@ -485,7 +485,8 @@ def matching_average_weighted(W, N, constellations, complexes):
 
 
 @shortcircuit_if_empty(value=(0, 0, 0))
-def mat(ind, iterations=20, precomputed_complexes=None, noise_level=None):
+def mat(ind, iterations=20, precomputed_complexes=None, noise_level=None,
+        noise_iterations=10):
     """Matching: Animats are evaluated based on how well they “match” their
     environment. Roughly speaking, this captures the degree to which their
     conceptual structure “resonates” with statistical regularities in the
@@ -497,20 +498,29 @@ def mat(ind, iterations=20, precomputed_complexes=None, noise_level=None):
     visits during a game), Σφ'(W) is the sum of φ for each *unique* concept
     that the animat obtains when presented with a stimulus set from the world,
     and Σφ'(N) is the same but for a stimulus set that has been scrambled first
-    in space and then in time."""
+    in space and then in time.
+    """
     if noise_level is None:
         noise_level = ind.noise_level
+    if noise_level == 0:
+        noise_iterations = 1
     # Play the game and a scrambled version of it.
-    noise = ind.play_game(scrambled=True, noise_level=noise_level).animat_states
-    world = ind.play_game(noise_level=noise_level).animat_states
+    scrambled = np.array([
+        ind.play_game(scrambled=True, noise_level=noise_level).animat_states
+        for i in range(noise_iterations)
+    ])
+    world = np.array([
+        ind.play_game(noise_level=noise_level).animat_states
+        for i in range(noise_iterations)
+    ])
     # Since the motor states can't influence φ or ϕ, we set them to zero to
     # make uniqifying the states simpler.
     world[..., ind.motor_indices] = 0
-    noise[..., ind.motor_indices] = 0
+    scrambled[..., ind.motor_indices] = 0
     # Get a flat list of all the the states.
-    combined = np.concatenate([world, noise])
+    combined = np.concatenate([world, scrambled])
     combined = combined.reshape(-1, combined.shape[-1])
-    # Get unique world and noise states and their counts, up to sensor and
+    # Get unique world and scrambled states and their counts, up to sensor and
     # hidden states (we care about the sensors since sensor states can
     # influence φ and ϕ as background conditions). The motor states are ignored
     # since now they're all zero.
@@ -530,41 +540,47 @@ def mat(ind, iterations=20, precomputed_complexes=None, noise_level=None):
         for state, bm in complexes.items()
     }
     # Preallocate iteration values.
-    raw_matching = np.zeros(iterations)
-    raw_matching_weighted = np.zeros(iterations)
-    raw_matching_average_weighted = np.zeros(iterations)
-    shuffled = list(range(len(world)))
-    for iteration in range(iterations):
-        # Randomly pair trials to form stimulus sets.
-        ind.random.shuffle(shuffled)
-        world_stimuli = [
-            np.vstack((world[shuffled[i]], world[shuffled[i + 1]]))
-            for i in range(0, len(world), 2)
-        ]
-        noise_stimuli = [
-            np.vstack((noise[shuffled[i]], noise[shuffled[i + 1]]))
-            for i in range(0, len(noise), 2)
-        ]
-        # Get the states in each stimulus set for world and noise.
-        world_stimuli = [[tuple(state) for state in stimulus]
-                         for stimulus in world_stimuli]
-        noise_stimuli = [[tuple(state) for state in stimulus]
-                         for stimulus in noise_stimuli]
-        # Now we calculate the matching terms for many stimulus sets (each pair
-        # of trials) which are later averaged to obtain the matching value for
-        # a “typical” stimulus set.
-        raw_matching[iteration] = np.mean([
-            matching(W, N, constellations)
-            for W, N in zip(world_stimuli, noise_stimuli)
-        ])
-        raw_matching_weighted[iteration] = np.mean([
-            matching_weighted(W, N, constellations, complexes)
-            for W, N in zip(world_stimuli, noise_stimuli)
-        ])
-        raw_matching_average_weighted[iteration] = np.mean([
-            matching_average_weighted(W, N, constellations, complexes)
-            for W, N in zip(world_stimuli, noise_stimuli)
-        ])
+    raw_matching = np.zeros((noise_iterations, iterations))
+    raw_matching_weighted = np.zeros((noise_iterations, iterations))
+    raw_matching_average_weighted = np.zeros((noise_iterations, iterations))
+    for noise_iteration in range(noise_iterations):
+        cur_world = world[noise_iteration]
+        cur_scrambled = scrambled[noise_iteration]
+        shuffled = list(range(len(cur_world)))
+        for iteration in range(iterations):
+            # Randomly pair trials to form stimulus sets.
+            ind.random.shuffle(shuffled)
+            world_stimuli = [
+                np.vstack((cur_world[shuffled[i]],
+                           cur_world[shuffled[i + 1]]))
+                for i in range(0, len(cur_world), 2)
+            ]
+            scrambled_stimuli = [
+                np.vstack((cur_scrambled[shuffled[i]],
+                           cur_scrambled[shuffled[i + 1]]))
+                for i in range(0, len(cur_scrambled), 2)
+            ]
+            # Get the states in each stimulus set for cur_world and
+            # cur_scrambled.
+            world_stimuli = [[tuple(state) for state in stimulus]
+                             for stimulus in world_stimuli]
+            scrambled_stimuli = [[tuple(state) for state in stimulus]
+                                 for stimulus in scrambled_stimuli]
+            # Now we calculate the matching terms for many stimulus sets (each
+            # pair of trials) which are later averaged to obtain the matching
+            # value for a “typical” stimulus set.
+            raw_matching[noise_iteration][iteration] = np.mean([
+                matching(W, N, constellations)
+                for W, N in zip(world_stimuli, scrambled_stimuli)
+            ])
+            raw_matching_weighted[noise_iteration][iteration] = np.mean([
+                matching_weighted(W, N, constellations, complexes)
+                for W, N in zip(world_stimuli, scrambled_stimuli)
+            ])
+            raw_matching_average_weighted[noise_iteration][iteration] = np.mean([
+                matching_average_weighted(W, N, constellations, complexes)
+                for W, N in zip(world_stimuli, scrambled_stimuli)
+            ])
     return (raw_matching_average_weighted.mean(),
             raw_matching_weighted.mean(),
             existence * raw_matching.mean())
