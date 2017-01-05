@@ -448,7 +448,8 @@ def matching_weighted(W, N, constellations, complexes):
     return world.sum() - noise.sum()
 
 
-def matching_average_weighted(W, N, constellations, complexes):
+def matching_average_weighted(W, N, constellations, complexes,
+                              conceptwise_contributions=False):
     # First uniqify states, since that's faster than concepts.
     unq_W, unq_N = set(W), set(N)
     # Collect the constellations specified in the world.
@@ -480,8 +481,20 @@ def matching_average_weighted(W, N, constellations, complexes):
                   for concept, values in big_phis_w.items()}
     big_phis_n = {concept: np.mean(values)
                   for concept, values in big_phis_n.items()}
-    return (sum(c.phi * big_phis_w[c] for c in world_concepts) -
-            sum(c.phi * big_phis_n[c] for c in noise_concepts))
+    # Compute the final matching value.
+    matching_value = (
+        sum(c.phi * big_phis_w[c] for c in world_concepts) -
+        sum(c.phi * big_phis_n[c] for c in noise_concepts)
+    )
+    if not conceptwise_contributions:
+        return matching_value
+    # If desired, compute the concept-wise contributions to matching.
+    conceptwise_contributions = {}
+    for c in world_concepts | noise_concepts:
+        conceptwise_contributions[c] = (
+            c.phi * (big_phis_w.get(c, 0) - big_phis_n.get(c, 0))
+        )
+    return conceptwise_contributions
 
 
 @shortcircuit_if_empty(value=(0, 0, 0))
