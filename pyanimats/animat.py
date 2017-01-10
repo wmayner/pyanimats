@@ -114,8 +114,11 @@ class Animat:
         return str(self)
 
     def __eq__(self, other):
-        return (self.genome == other.genome and
-                self._experiment == other._experiment)
+        try:
+            return (self.genome == other.genome and
+                    self._experiment == other._experiment)
+        except AttributeError:
+            return False
 
     def __getattr__(self, name):
         """Fall back to experiment attributes."""
