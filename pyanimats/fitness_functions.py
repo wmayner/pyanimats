@@ -385,31 +385,45 @@ _register(data_function=main_complex)(bp_wvn)
 # World vs. noise state differentiation
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 @shortcircuit_if_empty()
-def sd_wvn(ind, upto_attr='hidden_indices', iterations=10, noise_level=None):
+def sd_wvn(ind, upto_attr='hidden_indices', upto=False, noise_iterations=10,
+           iterations=10, noise_level=None):
     """State differentiation (world vs. noise): Measures the number of
     hidden-unit states that appear only in the world or only in the scrambled
     world."""
-    upto = getattr(ind, upto_attr) if upto_attr else False
+    upto = upto or getattr(ind, upto_attr) if upto_attr else False
+
     if noise_level is None:
         noise_level = ind.noise_level
-    unscrambled_game = ind.play_game(noise_level=noise_level)
-    world = unscrambled_game.animat_states
-    num_trials = world.shape[0]
-    state_differentiation = np.zeros(iterations)
-    for iteration in range(iterations):
-        noise = ind.play_game(scrambled=True, noise_level=noise_level).animat_states
-        # Get a permutation of the trials.
-        shuffled_trials = list(range(num_trials))
-        ind.random.shuffle(shuffled_trials)
-        # Take the world vs. noise difference with randomly paired trials.
-        differences = [
-            len(unique_rows(world[[shuffled_trials[i:i + 2]]], upto=upto)) -
-            len(unique_rows(noise[[shuffled_trials[i:i + 2]]], upto=upto))
-            for i in range(0, num_trials, 2)
-        ]
-        state_differentiation[iteration] = sum(differences) / len(differences)
-    ind._correct = ind.correct
-    return state_differentiation.mean()
+    if noise_level == 0:
+        noise_iterations = 1
+
+    results = np.zeros([noise_iterations, iterations, 2])
+    for noise_i in range(noise_iterations):
+        unscrambled_game = ind.play_game(noise_level=noise_level)
+        world = unscrambled_game.animat_states
+        num_trials = world.shape[0]
+        for i in range(iterations):
+            scrambled = ind.play_game(scrambled=True,
+                                      noise_level=noise_level).animat_states
+            # Get a permutation of the trials.
+            shuffled_trials = list(range(num_trials))
+            ind.random.shuffle(shuffled_trials)
+            # Take the world vs. scrambled difference with randomly paired
+            # trials.
+            world_values = [
+                len(unique_rows(world[[shuffled_trials[i:i + 2]]],
+                                upto=upto))
+            ]
+            scrambled_values = [
+                len(unique_rows(scrambled[[shuffled_trials[i:i + 2]]],
+                                upto=upto))
+            ]
+            results[noise_i][i][:] = [
+                sum(world_values) / len(world_values),
+                sum(scrambled_values) / len(scrambled_values),
+            ]
+    results = np.mean(results, axis=(0, 1))
+    return (results[0], results[1], results[0] - results[1])
 _register(data_function=main_complex)(sd_wvn)
 
 
