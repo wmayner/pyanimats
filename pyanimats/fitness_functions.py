@@ -170,7 +170,8 @@ def wvn(transform=None, reduce=sum, upto_attr=False, shortcircuit=True,
                 noise_level = ind.noise_level
             # Play the game and a scrambled version of it.
             world = ind.play_game(noise_level=noise_level).animat_states
-            noise = ind.play_game(scrambled=True, noise_level=noise_level).animat_states
+            noise = ind.play_game(scrambled=True,
+                                  noise_level=noise_level).animat_states
             # Uniqify all states up to the given indices.
             w_and_n = np.concatenate([world, noise])
             w_and_n = w_and_n.reshape(-1, w_and_n.shape[-1])
@@ -250,7 +251,8 @@ def mi(ind, scrambled=False, noise_level=None):
         return 0.0
     if noise_level is None:
         noise_level = ind.noise_level
-    states = ind.play_game(scrambled=scrambled, noise_level=noise_level).animat_states
+    states = ind.play_game(scrambled=scrambled,
+                           noise_level=noise_level).animat_states
     # The contingency matrix has a row for every sensor state and a column for
     # every motor state.
     contingency = np.zeros([ind.num_sensor_states, ind.num_motor_states])
@@ -582,18 +584,21 @@ def mat(ind, iterations=20, precomputed_complexes=None, noise_level=None,
             # Now we calculate the matching terms for many stimulus sets (each
             # pair of trials) which are later averaged to obtain the matching
             # value for a “typical” stimulus set.
-            raw_matching[noise_iteration][iteration] = np.mean([
-                matching(W, N, constellations)
-                for W, N in zip(world_stimuli, scrambled_stimuli)
-            ])
-            raw_matching_weighted[noise_iteration][iteration] = np.mean([
-                matching_weighted(W, N, constellations, complexes)
-                for W, N in zip(world_stimuli, scrambled_stimuli)
-            ])
-            raw_matching_average_weighted[noise_iteration][iteration] = np.mean([
-                matching_average_weighted(W, N, constellations, complexes)
-                for W, N in zip(world_stimuli, scrambled_stimuli)
-            ])
+            raw_matching[noise_iteration][iteration] = \
+                np.mean([
+                    matching(W, N, constellations)
+                    for W, N in zip(world_stimuli, scrambled_stimuli)
+                ])
+            raw_matching_weighted[noise_iteration][iteration] = \
+                np.mean([
+                    matching_weighted(W, N, constellations, complexes)
+                    for W, N in zip(world_stimuli, scrambled_stimuli)
+                ])
+            raw_matching_average_weighted[noise_iteration][iteration] = \
+                np.mean([
+                    matching_average_weighted(W, N, constellations, complexes)
+                    for W, N in zip(world_stimuli, scrambled_stimuli)
+                ])
     return (raw_matching_average_weighted.mean(),
             raw_matching_weighted.mean(),
             existence * raw_matching.mean())
