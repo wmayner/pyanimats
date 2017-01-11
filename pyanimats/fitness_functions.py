@@ -385,12 +385,22 @@ _register(data_function=main_complex)(bp_wvn)
 # World vs. noise state differentiation
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 @shortcircuit_if_empty()
-def sd_wvn(ind, upto_attr='hidden_indices', upto=False, noise_iterations=10,
+def sd_wvn(ind, upto_attr='hidden_indices', upto=None, noise_iterations=10,
            iterations=10, noise_level=None):
     """State differentiation (world vs. noise): Measures the number of
     hidden-unit states that appear only in the world or only in the scrambled
-    world."""
-    upto = upto or getattr(ind, upto_attr) if upto_attr else False
+    world.
+
+    Returns a tuple containing the world vs. scrambled differentiation
+    difference, the world differentiation, and the scrambled world
+    differentiation.
+    """
+    if upto is None:
+        # Use `upto_attr`
+        upto = getattr(ind, upto_attr) if upto_attr else False
+    elif not upto:
+        # Empty set of elements has 0 differentiation
+        return (0, 0, 0)
 
     if noise_level is None:
         noise_level = ind.noise_level
@@ -423,7 +433,7 @@ def sd_wvn(ind, upto_attr='hidden_indices', upto=False, noise_iterations=10,
                 sum(scrambled_values) / len(scrambled_values),
             ]
     results = np.mean(results, axis=(0, 1))
-    return (results[0], results[1], results[0] - results[1])
+    return (results[0] - results[1], results[0], results[1])
 _register(data_function=main_complex)(sd_wvn)
 
 
