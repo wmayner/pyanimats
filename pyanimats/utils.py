@@ -17,6 +17,21 @@ from .__about__ import __version__
 from .constants import DAYS, HOURS, MINUTES, WEEKS, PRECISION
 
 
+def mean(iterable):
+    return sum(iterable) / len(iterable)
+
+
+def dict_mean(dicts):
+    """Average over dictionary values."""
+    all_values = {}
+    for d in dicts:
+        for k, v in d.items():
+            if k not in all_values:
+                all_values[k] = []
+            all_values[k].append(v)
+    return {k: mean(values) for k, values in all_values.items()}
+
+
 def rounder(obj):
     """Recursively round all contents of ``obj`` to ``precision``."""
     if isinstance(obj, (float, int)):
