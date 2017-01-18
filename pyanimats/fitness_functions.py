@@ -475,7 +475,7 @@ def matching_weighted(W, N, constellations, complexes):
 
 
 def matching_average_weighted(W, N, constellations, complexes,
-                              conceptwise_contributions=False):
+                              conceptwise=False):
     # First uniqify states, since that's faster than concepts.
     unq_W, unq_N = set(W), set(N)
     # Collect the constellations specified in the world.
@@ -512,7 +512,7 @@ def matching_average_weighted(W, N, constellations, complexes,
         sum(c.phi * big_phis_w[c] for c in world_concepts) -
         sum(c.phi * big_phis_n[c] for c in noise_concepts)
     )
-    if not conceptwise_contributions:
+    if not conceptwise:
         return matching_value
     # If desired, compute the concept-wise contributions to matching.
     conceptwise_contributions = {}
@@ -520,12 +520,12 @@ def matching_average_weighted(W, N, constellations, complexes,
         conceptwise_contributions[c] = (
             c.phi * (big_phis_w.get(c, 0) - big_phis_n.get(c, 0))
         )
-    return conceptwise_contributions
+    return matching_value, conceptwise_contributions
 
 
-@shortcircuit_if_empty(value=(0, 0, 0))
+@shortcircuit_if_empty(value=(0, 0, 0, 0, 0))
 def mat(ind, iterations=20, precomputed_complexes=None, noise_level=None,
-        noise_iterations=10):
+        noise_iterations=10, conceptwise=False):
     """Matching: Animats are evaluated based on how well they “match” their
     environment. Roughly speaking, this captures the degree to which their
     conceptual structure “resonates” with statistical regularities in the
@@ -578,10 +578,11 @@ def mat(ind, iterations=20, precomputed_complexes=None, noise_level=None,
         state: set(bm.unpartitioned_constellation)
         for state, bm in complexes.items()
     }
+    conceptwise_contributions = [[None]*iterations]*noise_iterations
     # Preallocate iteration values.
-    raw_matching = np.zeros((noise_iterations, iterations))
-    raw_matching_weighted = np.zeros((noise_iterations, iterations))
-    raw_matching_average_weighted = np.zeros((noise_iterations, iterations))
+    raw_matching_vals = np.zeros((noise_iterations, iterations))
+    matching_weighted_vals = np.zeros((noise_iterations, iterations))
+    matching_average_weighted_vals = np.zeros((noise_iterations, iterations))
     for noise_iteration in range(noise_iterations):
         cur_world = world[noise_iteration]
         cur_scrambled = scrambled[noise_iteration]
@@ -608,24 +609,36 @@ def mat(ind, iterations=20, precomputed_complexes=None, noise_level=None,
             # Now we calculate the matching terms for many stimulus sets (each
             # pair of trials) which are later averaged to obtain the matching
             # value for a “typical” stimulus set.
-            raw_matching[noise_iteration][iteration] = \
+            raw_matching_vals[noise_iteration][iteration] = \
                 np.mean([
                     matching(W, N, constellations)
                     for W, N in zip(world_stimuli, scrambled_stimuli)
                 ])
-            raw_matching_weighted[noise_iteration][iteration] = \
+            matching_weighted_vals[noise_iteration][iteration] = \
                 np.mean([
                     matching_weighted(W, N, constellations, complexes)
                     for W, N in zip(world_stimuli, scrambled_stimuli)
                 ])
-            raw_matching_average_weighted[noise_iteration][iteration] = \
-                np.mean([
-                    matching_average_weighted(W, N, constellations, complexes)
-                    for W, N in zip(world_stimuli, scrambled_stimuli)
-                ])
-    return (raw_matching_average_weighted.mean(),
-            raw_matching_weighted.mean(),
-            existence * raw_matching.mean())
+            matching_average_weighted_iter = [
+                matching_average_weighted(W, N, constellations, complexes,
+                                          conceptwise=conceptwise)
+                for W, N in zip(world_stimuli, scrambled_stimuli)
+            ]
+            if conceptwise:
+                values, cwise = zip(*matching_average_weighted_iter)
+                conceptwise_contributions[noise_iteration][iterations] = cwise
+            else:
+                matching_average_weighted_vals[noise_iteration][iteration] = \
+                    np.mean(matching_average_weighted_iter)
+    raw_matching_mean = raw_matching_vals.mean()
+    results = (matching_average_weighted_vals.mean(),
+               matching_weighted_vals.mean(),
+               existence * raw_matching_mean,
+               raw_matching_mean,
+               existence)
+    if not conceptwise:
+        return results
+    return results, conceptwise_contributions
 _register(data_function=main_complex)(mat)
 
 
