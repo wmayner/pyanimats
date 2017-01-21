@@ -723,7 +723,7 @@ def food(ind, baseline_penalty=None, activity_penalty=None, block_values=None,
     activity_penalty = activity_penalty or ind.function_params[1]
     block_values = block_values or ind.function_params[2]
 
-    num_trials_per_block = ind.num_trials / len(block_values)
+    num_trials_per_block = int(ind.num_trials / len(block_values))
     block_values = np.concatenate([np.full(num_trials_per_block, val, int)
                                    for val in block_values])
 
