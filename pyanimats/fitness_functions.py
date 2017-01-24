@@ -626,7 +626,7 @@ def mat(ind, iterations=20, precomputed_complexes=None, noise_level=None,
             ]
             if conceptwise:
                 values, cwise = zip(*matching_average_weighted_iter)
-                conceptwise_contributions[noise_iteration][iterations] = cwise
+                conceptwise_contributions[noise_iteration][iteration] = cwise
             else:
                 matching_average_weighted_vals[noise_iteration][iteration] = \
                     np.mean(matching_average_weighted_iter)
