@@ -7,6 +7,7 @@
 import os
 import gzip
 import json
+import math
 from glob import glob
 
 from tqdm import tqdm
@@ -14,7 +15,9 @@ from tqdm import tqdm
 from . import evolve
 
 
-def load(filepath, convert=True, compressed=False, last=False):
+def load(filepath, convert=True, compressed=False, gen=None):
+    """`gen` is a number between 0 and 1 expressing a percentage of the full
+    evolution."""
     _, ext = os.path.splitext(filepath)
     if compressed or ext in ['.gz', '.gzip']:
         with gzip.open(filepath, 'rb') as f:
@@ -22,10 +25,13 @@ def load(filepath, convert=True, compressed=False, last=False):
     else:
         with open(filepath, 'rt') as f:
             d = json.load(f)
-    if convert or last:
+    if convert:
         d = evolve.from_json(d)
-        if last:
-            d = d['lineage'][0]
+        if gen is None:
+            return d
+        ngen = len(d['lineage'])
+        gen = math.ceil((1 - gen) * (ngen - 1))
+        d = d['lineage'][gen]
     return d
 
 
