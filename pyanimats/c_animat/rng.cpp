@@ -19,6 +19,12 @@ int randCharInt() {
     return uniform_char_int_dist(mersenne);
 }
 
+int randBitInt() {
+    // Return a random integer such that the bits are also uniformly
+    // distributed
+    return uniform_int_dist_pow2(mersenne);
+}
+
 std::string getState() {
     std::stringstream stream;
     stream << mersenne;

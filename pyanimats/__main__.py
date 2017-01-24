@@ -63,6 +63,7 @@ Animat options:
     -e --num-sensors=INT       The number of sensors in an animat
     -i --num-hidden=INT        The number of hidden units in an animat
     -t --num-motors=INT        The number of motors in an animat
+    -R --random-init=BOOL      Animats begin trials in a random state
 
 Environment options:
     -N --noise-level=FLOAT     The probability of a sensor flipping state.
@@ -117,6 +118,7 @@ cli_opt_to_experiment = {
     '--num-sensors':      ('num_sensors', int),
     '--num-hidden':       ('num_hidden', int),
     '--num-motors':       ('num_motors', int),
+    '--random-init':      ('random_init_state', int),
     '--noise-level':      ('noise_level', float),
     '--world-width':      ('world_width', int),
     '--world-height':     ('world_height', int),

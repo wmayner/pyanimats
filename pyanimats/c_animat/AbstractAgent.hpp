@@ -34,7 +34,8 @@ class AbstractAgent {
     vector<unsigned char> newStates;
 
     int getAction();
-    void resetState();
+    void zeroState();
+    void randomState();
     void updateStates();
     void injectStartCodons(int n, unsigned char codon_one,
             unsigned char codon_two);

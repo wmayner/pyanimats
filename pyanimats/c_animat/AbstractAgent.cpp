@@ -31,9 +31,19 @@ int AbstractAgent::getAction() {
     else return 0;
 }
 
-void AbstractAgent::resetState() {
+void AbstractAgent::zeroState() {
     for (int i = 0; i < mNumNodes; i++)
         states[i] = 0;
+}
+
+void AbstractAgent::randomState() {
+    // Get an integer from a distribution such that the distribution of bits is
+    // uniform
+    int random_bits = randBitInt();
+    for (int i = 0; i < mNumNodes; i++) {
+        // Use the ith random bit as the ith node state
+        states[i] = (random_bits >> i) & 1;
+    }
 }
 
 void AbstractAgent::updateStates() {

@@ -16,7 +16,7 @@ vector<int> executeGame(vector<unsigned char> &allAnimatStates, vector<int>
         &allWorldStates, vector<int> &allAnimatPositions, vector<int>
         &trialResults, AbstractAgent* agent, vector<int> hitMultipliers,
         vector<int> patterns, int worldWidth, int worldHeight,
-        bool scrambleWorld, double noiseLevel) {
+        bool scrambleWorld, double noiseLevel, bool randomInitState) {
     // Holds the correct/incorrect counts; this is returned
     vector<int> totals;
     totals.resize(2, 0);
@@ -49,7 +49,12 @@ vector<int> executeGame(vector<unsigned char> &allAnimatStates, vector<int>
                 // Set agent position
                 agentPos = initAgentPos;
 
-                agent->resetState();
+                // Reset agent state
+                if (randomInitState) {
+                    agent->randomState();
+                } else {
+                    agent->zeroState();
+                }
 
                 // Generate world
                 world.resize(worldHeight);
@@ -88,10 +93,11 @@ vector<int> executeGame(vector<unsigned char> &allAnimatStates, vector<int>
                 }
 
                 #ifdef _DEBUG
-                    printf("\n\n-------------------------");
+                    printf("\n\n=========================================");
                     printf("\n   Block pattern: %i", patterns[patternIndex]);
                     printf("\n       Direction: %i", direction);
                     printf("\nInitial position: %i", initAgentPos);
+                    printf("\n=========================================");
                     printf("\n\n");
                 #endif
 
@@ -137,7 +143,7 @@ vector<int> executeGame(vector<unsigned char> &allAnimatStates, vector<int>
                             if (cell == 0)
                                 printf("_");
                             if (cell == 1)
-                                printf("1");
+                                printf("#");
                         }
                         printf("\n");
 
@@ -162,6 +168,26 @@ vector<int> executeGame(vector<unsigned char> &allAnimatStates, vector<int>
                             if (space) {
                                 printf(" ");
                             }
+                        }
+                        // Print the ground
+                        printf("\n");
+                        for (int i = 0; i < worldWidth; i++) {
+                            printf("~");
+                        }
+                        // Print the animat state
+                        printf("\nState: ");
+                        for (int i = 0; i < agent->mNumSensors; i++) {
+                            printf("S");
+                        }
+                        for (int i = 0; i < agent->mNumHidden; i++) {
+                            printf("H");
+                        }
+                        for (int i = 0; i < agent->mNumMotors; i++) {
+                            printf("M");
+                        }
+                        printf("\n       ");
+                        for (int i = 0; i < agent->mNumNodes; i++) {
+                            printf("%i", agent->states[i]);
                         }
                         printf("\n\n");
                     #endif
@@ -190,7 +216,8 @@ vector<int> executeGame(vector<unsigned char> &allAnimatStates, vector<int>
                                 hit = 1;
                         }
                         #ifdef _DEBUG
-                        printf("-----------------\n");
+                        printf("-------------------------\n");
+                        printf("Trial result:\n");
                         #endif
                         if (hitMultipliers[patternIndex] > 0) {
                             if (hit == 1) {

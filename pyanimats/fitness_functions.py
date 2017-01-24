@@ -230,7 +230,7 @@ def nat(ind, scrambled=False, noise_level=None, iterations=10):
     ``experiment.world_width``)."""
     if noise_level is None:
         noise_level = ind.noise_level
-    if noise_level == 0:
+    if noise_level == 0 and not ind.random_init_state:
         return ind.play_game(scrambled=scrambled,
                              noise_level=noise_level).correct
     return sum([
@@ -404,7 +404,7 @@ def sd_wvn(ind, upto_attr='hidden_indices', upto=None, noise_iterations=10,
 
     if noise_level is None:
         noise_level = ind.noise_level
-    if noise_level == 0:
+    if noise_level == 0 and not ind.random_init_state:
         noise_iterations = 1
 
     results = np.zeros([noise_iterations, iterations, 2])

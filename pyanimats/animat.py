@@ -80,6 +80,8 @@ class Animat:
                                                     experiment.deterministic)
         if 'noise_level' not in self._experiment:
             self.noise_level = 0.0
+        if 'random_init_state' not in self._experiment:
+            self.random_init_state = False
         self.parent = None
         self.gen = 0
         self.fitness = 1.0
@@ -263,7 +265,8 @@ class Animat:
         self._dirty_cm = True
         self._dirty_network = True
 
-    def play_game(self, scrambled=False, noise_level=None):
+    def play_game(self, scrambled=False, noise_level=None,
+                  random_init_state=None):
         """Return the list of state transitions the animat goes through when
         playing the game."""
         if noise_level is None:
@@ -271,10 +274,12 @@ class Animat:
                 noise_level = self.noise_level
             except AttributeError:
                 noise_level = 0.0
+        if random_init_state is None:
+            random_init_state = self.random_init_state
         game = self._c_animat.play_game(
             self.hit_multipliers, self.block_patterns, self.world_width,
             self.world_height, scramble_world=scrambled,
-            noise_level=noise_level)
+            noise_level=noise_level, random_init_state=random_init_state)
         game = Game(animat_states=game[0].reshape(self.num_trials,
                                                   self.world_height,
                                                   self.num_nodes),
