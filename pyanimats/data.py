@@ -29,9 +29,10 @@ def load(filepath, convert=True, compressed=False, gen=None):
         d = evolve.from_json(d)
         if gen is None:
             return d
-        ngen = len(d['lineage'])
-        gen = math.ceil((1 - gen) * (ngen - 1))
-        d = d['lineage'][gen]
+        matches = [animat for animat in d.lineage if animat.gen == gen]
+        if not matches:
+            return None
+        return matches[0]
     return d
 
 
