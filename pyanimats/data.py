@@ -7,7 +7,6 @@
 import os
 import gzip
 import json
-import math
 from glob import glob
 
 from tqdm import tqdm
