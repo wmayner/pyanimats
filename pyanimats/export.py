@@ -56,7 +56,7 @@ def convert_evolution_to_json(evolution):
                 'phi': get_phi(animat),
                 'numConcepts': get_num_concepts(animat),
                 'cm': animat.cm,
-                'mechanisms': animat.mechanisms(separate_on_off=True),
+                'mechanisms': get_mechanisms(animat)
             }
             for animat in tqdm(evolution.lineage, desc='Computing ϕ')
         ])
@@ -121,6 +121,11 @@ def get_main_complex(animat, state):
     }
 
 
+def get_mechanisms(animat):
+    """Get the nodes of the animat."""
+    return serialize.serializable(animat.mechanisms(separate_on_off=True))
+
+
 def convert_animat_to_game_json(animat, scrambled=False):
     """Convert an animat to the json format used by the game tab of
     `animanimate`."""
@@ -144,7 +149,7 @@ def convert_animat_to_game_json(animat, scrambled=False):
         'correct': animat.correct,
         'incorrect': animat.incorrect,
         'cm': animat.cm,
-        'mechanisms': animat.mechanisms(separate_on_off=True),
+        'mechanisms': get_mechanisms(animat),
         'notes': None,
         'trials': [
             {
