@@ -22,7 +22,13 @@ from .experiment import Experiment
 
 Game = namedtuple('Game', ['animat_states', 'world_states', 'animat_positions',
                            'trial_results', 'correct', 'incorrect'])
-Mechanism = namedtuple('Mechanism', ['inputs', 'tpm'])
+
+
+class Mechanism(namedtuple('Mechanism', ['inputs', 'tpm'])):
+    """The TPM of a single animat node."""
+
+    def serializable(self):
+        return {'inputs': self.inputs, 'tpm': self.tpm}
 
 
 class Animat:
