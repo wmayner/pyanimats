@@ -15,7 +15,7 @@ import pyphi
 from sklearn.metrics import mutual_info_score
 
 from . import constants
-from .utils import unique_rows
+from .utils import unique_rows, dict_mean
 from c_animat import CORRECT_CATCH, WRONG_CATCH
 
 _WRAPPER_WIDTH = 72
@@ -638,6 +638,16 @@ def mat(ind, iterations=20, precomputed_complexes=None, noise_level=None,
                existence)
     if not conceptwise:
         return results
+    # Average all conceptwise contributions into a single dictionary:
+    # Noise iteration level
+    conceptwise_contributions = dict_mean([
+        # Iteration level
+        dict_mean([
+            # Stimulus set level
+            dict_mean(l) for l in iteration
+        ])
+        for iteration in conceptwise_contributions
+    ])
     return results, conceptwise_contributions
 _register(data_function=main_complex)(mat)
 
