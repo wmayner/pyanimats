@@ -523,7 +523,6 @@ def matching_average_weighted(W, N, constellations, complexes,
     return matching_value, conceptwise_contributions
 
 
-@shortcircuit_if_empty(value=(0, 0, 0, 0, 0))
 def mat(ind, iterations=20, precomputed_complexes=None, noise_level=None,
         noise_iterations=10, conceptwise=False):
     """Matching: Animats are evaluated based on how well they “match” their
