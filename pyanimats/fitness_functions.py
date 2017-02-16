@@ -610,15 +610,15 @@ def mat(ind, iterations=20, precomputed_complexes=None, noise_level=None,
                            cur_scrambled[shuffled[i + 1]]))
                 for i in range(0, len(cur_scrambled), 2)
             ]
-            # Get the states in each stimulus set for cur_world and
-            # cur_scrambled.
+            # Get the states in each stimulus set for the world and the
+            # scrambled world.
             world_stimuli = [[tuple(state) for state in stimulus]
                              for stimulus in world_stimuli]
             scrambled_stimuli = [[tuple(state) for state in stimulus]
                                  for stimulus in scrambled_stimuli]
             # Now we calculate the matching terms for many stimulus sets (each
-            # pair of trials) which are later averaged to obtain the matching
-            # value for a “typical” stimulus set.
+            # pair of trials) which are averaged to obtain the matching value
+            # for a “typical” stimulus set.
             raw_matching_vals[noise_iteration][iteration] = \
                 np.mean([
                     matching(W, N, constellations)
@@ -629,6 +629,8 @@ def mat(ind, iterations=20, precomputed_complexes=None, noise_level=None,
                     matching_weighted(W, N, constellations, complexes)
                     for W, N in zip(world_stimuli, scrambled_stimuli)
                 ])
+            # Average-Phi-weighted matching must be handled differently in case
+            # the conceptwise values are desired.
             matching_average_weighted_iter = [
                 matching_average_weighted(W, N, constellations, complexes,
                                           conceptwise=conceptwise)
@@ -638,16 +640,20 @@ def mat(ind, iterations=20, precomputed_complexes=None, noise_level=None,
                 values, cwise = zip(*matching_average_weighted_iter)
                 conceptwise_contributions[noise_iteration][iteration] = cwise
             else:
-                matching_average_weighted_vals[noise_iteration][iteration] = \
-                    np.mean(matching_average_weighted_iter)
+                values = matching_average_weighted_iter
+            matching_average_weighted_vals[noise_iteration][iteration] = \
+                np.mean(values)
+
     raw_matching_mean = raw_matching_vals.mean()
     results = (matching_average_weighted_vals.mean(),
                matching_weighted_vals.mean(),
                existence * raw_matching_mean,
                raw_matching_mean,
                existence)
+
     if not conceptwise:
         return results
+
     # Average all conceptwise contributions into a single dictionary:
     # Noise iteration level
     conceptwise_contributions = dict_mean([
@@ -658,6 +664,7 @@ def mat(ind, iterations=20, precomputed_complexes=None, noise_level=None,
         ])
         for iteration in conceptwise_contributions
     ])
+
     return results, conceptwise_contributions
 _register(data_function=main_complex)(mat)
 
