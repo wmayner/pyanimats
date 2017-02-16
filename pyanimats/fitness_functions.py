@@ -384,7 +384,7 @@ _register(data_function=main_complex)(bp_wvn)
 
 # World vs. noise state differentiation
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-@shortcircuit_if_empty()
+@shortcircuit_if_empty(value=(0, 0, 0))
 def sd_wvn(ind, upto_attr='hidden_indices', upto=None, noise_iterations=10,
            iterations=10, noise_level=None):
     """State differentiation (world vs. noise): Measures the number of
@@ -539,10 +539,20 @@ def mat(ind, iterations=20, precomputed_complexes=None, noise_level=None,
     and Σφ'(N) is the same but for a stimulus set that has been scrambled first
     in space and then in time.
     """
+    # Shortcircuit
+    if ind.cm.sum() == 0:
+        if conceptwise:
+            return ((0, 0, 0, 0, 0), {})
+        else:
+            return (0, 0, 0, 0, 0)
+
+    # Default noise level
     if noise_level is None:
         noise_level = ind.noise_level
+    # Only need one iteration if there's no noise
     if noise_level == 0:
         noise_iterations = 1
+
     # Play the game and a scrambled version of it.
     scrambled = np.array([
         ind.play_game(scrambled=True, noise_level=noise_level).animat_states
