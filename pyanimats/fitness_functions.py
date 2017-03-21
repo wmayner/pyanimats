@@ -222,7 +222,8 @@ _register()(zero)
 # Natural fitness
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def nat(ind, scrambled=False, noise_level=None, iterations=10):
+def nat(ind, scrambled=False, noise_level=None, random_init_state=None,
+        iterations=10):
     """Natural: Animats are evaluated based on the number of game trials they
     successfully complete. For each task given in the ``experiment.task``
     parameter, there is one trial per direction (left or right) of block
@@ -230,11 +231,16 @@ def nat(ind, scrambled=False, noise_level=None, iterations=10):
     ``experiment.world_width``)."""
     if noise_level is None:
         noise_level = ind.noise_level
-    if noise_level == 0 and not ind.random_init_state:
+    if random_init_state is None:
+        random_init_state = ind.random_init_state
+    if noise_level == 0 and not random_init_state:
         return ind.play_game(scrambled=scrambled,
-                             noise_level=noise_level).correct
+                             noise_level=noise_level,
+                             random_init_state=random_init_state).correct
     return sum([
-        ind.play_game(scrambled=scrambled, noise_level=noise_level).correct
+        ind.play_game(scrambled=scrambled,
+                      noise_level=noise_level,
+                      random_init_state=random_init_state).correct
         for i in range(iterations)
     ]) / iterations
 _register()(nat)
@@ -537,6 +543,13 @@ def mat(ind, iterations=20, precomputed_complexes=None, noise_level=None,
     that the animat obtains when presented with a stimulus set from the world,
     and Σφ'(N) is the same but for a stimulus set that has been scrambled first
     in space and then in time.
+
+    Returns a tuple containing:
+    - Mean matching (unique concepts weighted by their mean ϕ)
+    - Mean matching (each concept weighted by its ϕ)
+    - Mean matching (unique concepts, weighted by mean ϕ over visited states)
+    - Mean matching (unique concepts, no ϕ-weighting)
+    - Mean ϕ over visited states
     """
     # Shortcircuit
     if ind.cm.sum() == 0:
