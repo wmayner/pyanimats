@@ -7,7 +7,7 @@ Fitness functions for driving animat evolution.
 """
 
 import textwrap
-from collections import Counter, OrderedDict
+from collections import Counter, OrderedDict, defaultdict
 from functools import wraps
 
 import numpy as np
@@ -15,7 +15,7 @@ import pyphi
 from sklearn.metrics import mutual_info_score
 
 from . import constants
-from .utils import unique_rows, dict_mean
+from .utils import mean, unique_rows, dict_mean, dict_apply
 from c_animat import CORRECT_CATCH, WRONG_CATCH
 
 _WRAPPER_WIDTH = 72
@@ -446,83 +446,74 @@ _register(data_function=main_complex)(sd_wvn)
 # Matching
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def matching(W, N, constellations):
+def get_unq_concepts(states, all_constellations):
     # First uniqify states, since that's faster than concepts.
-    unq_W, unq_N = set(W), set(N)
-    # Collect the constellations specified in the world.
-    world_constellations = [constellations[state] for state in unq_W]
-    # Collect those specified in noise.
-    noise_constellations = [constellations[state] for state in unq_N]
-    # Join the constellations for every state visited in the world and uniquify
-    # the resulting set of concepts. Concepts should be considered the same
-    # when they have the same φ, same mechanism, same mechanism state, and the
-    # same cause and effect purviews and repertoires.
-    world_concepts = unq_concepts(world_constellations)
-    # Do the same for noise.
-    noise_concepts = unq_concepts(noise_constellations)
-    # Calculate and return the final value for matching: the difference in the
-    # sum of small phi for the unique concepts specified when presented with
-    # the world and that when presented with a scrambled world, weighted by
-    # existence in the world.
-    return (sum(c.phi for c in world_concepts) -
-            sum(c.phi for c in noise_concepts))
+    states = set(states)
+    # Collect the constellations associated with the states.
+    constellations = [all_constellations[state] for state in states]
+    # Join the constellations for every state visited and uniquify the
+    # resulting set of concepts. Concepts should be considered the same when
+    # they have the same φ, same mechanism, same mechanism state, and the same
+    # cause and effect purviews and repertoires.
+    return unq_concepts(constellations)
 
 
-def matching_weighted(W, N, constellations, complexes):
+def concept_to_big_phi(states, constellations, complexes):
+    """Return a mapping from concepts to mean ϕ values."""
+    big_phis = defaultdict(list)
+    for state in states:
+        for c in constellations[state]:
+            big_phis[c].append(complexes[state].phi)
+    return dict_apply(mean, big_phis)
+
+
+def matching(world_concepts, scrambled_concepts):
+    return phi_sum(world_concepts) - phi_sum(scrambled_concepts)
+
+
+def matching_num_concepts(world_concepts, scrambled_concepts):
+    world, scrambled = len(world_concepts), len(scrambled_concepts)
+    return (world - scrambled ,world, scrambled)
+
+
+def matching_num_all_concepts(W, S, constellations):
+    world = sum(len(constellations[state]) for state in W)
+    scrambled = sum(len(constellations[state]) for state in S)
+    return (world - scrambled ,world, scrambled)
+
+
+def matching_weighted(W, S, constellations, complexes):
     world = np.array([
         sum(complexes[state].phi * c.phi for c in constellations[state])
         for state in W
     ])
     noise = np.array([
         sum(complexes[state].phi * c.phi for c in constellations[state])
-        for state in N
+        for state in S
     ])
     return world.sum() - noise.sum()
 
 
-def matching_average_weighted(W, N, constellations, complexes,
-                              conceptwise=False):
-    # First uniqify states, since that's faster than concepts.
-    unq_W, unq_N = set(W), set(N)
-    # Collect the constellations specified in the world.
-    world_constellations = [constellations[state] for state in unq_W]
-    # Collect those specified in noise.
-    noise_constellations = [constellations[state] for state in unq_N]
-    # Join the constellations for every state visited in the world and uniquify
-    # the resulting set of concepts. Concepts should be considered the same
-    # when they have the same φ, same mechanism, same mechanism state, and the
-    # same cause and effect purviews and repertoires.
-    world_concepts = unq_concepts(world_constellations)
-    # Do the same for noise.
-    noise_concepts = unq_concepts(noise_constellations)
-    # Map concepts to the ϕ values.
-    big_phis_w = {}
-    for state in W:
-        for c in constellations[state]:
-            if c not in big_phis_w:
-                big_phis_w[c] = []
-            big_phis_w[c].append(complexes[state].phi)
-    big_phis_n = {}
-    for state in N:
-        for c in constellations[state]:
-            if c not in big_phis_n:
-                big_phis_n[c] = []
-            big_phis_n[c].append(complexes[state].phi)
-    # Average the ϕ values.
-    big_phis_w = {concept: np.mean(values)
-                  for concept, values in big_phis_w.items()}
-    big_phis_n = {concept: np.mean(values)
-                  for concept, values in big_phis_n.items()}
+def _matching_average_weighted(world_concepts, scrambled_concepts,
+                               big_phis_w, big_phis_n):
+    return (sum(c.phi * big_phis_w[c] for c in world_concepts) -
+            sum(c.phi * big_phis_n[c] for c in scrambled_concepts))
+
+
+def matching_average_weighted(W, S, world_concepts, scrambled_concepts,
+                              constellations, complexes, conceptwise=False):
+    # Map concepts to mean ϕ values.
+    big_phis_w = concept_to_big_phi(W, constellations, complexes)
+    big_phis_n = concept_to_big_phi(S, constellations, complexes)
     # Compute the final matching value.
-    matching_value = (
-        sum(c.phi * big_phis_w[c] for c in world_concepts) -
-        sum(c.phi * big_phis_n[c] for c in noise_concepts)
+    matching_value = _matching_average_weighted(
+        world_concepts, scrambled_concepts, big_phis_w, big_phis_n
     )
     if not conceptwise:
         return matching_value
     # If desired, compute the concept-wise contributions to matching.
     conceptwise_contributions = {}
-    for c in world_concepts | noise_concepts:
+    for c in world_concepts | scrambled_concepts:
         conceptwise_contributions[c] = (
             c.phi * (big_phis_w.get(c, 0) - big_phis_n.get(c, 0))
         )
@@ -530,26 +521,34 @@ def matching_average_weighted(W, N, constellations, complexes,
 
 
 def mat(ind, iterations=20, precomputed_complexes=None, noise_level=None,
-        noise_iterations=10, conceptwise=False):
+        noise_iterations=10, conceptwise=False, units=None):
     """Matching: Animats are evaluated based on how well they “match” their
     environment. Roughly speaking, this captures the degree to which their
     conceptual structure “resonates” with statistical regularities in the
     world. This quantity is given by
 
-        ϕ * (Σφ'(W) - Σφ'(N)),
+        ϕ * (Σφ'(W) - Σφ'(S)),
 
     where ϕ is the animat's ϕ-value (averaged over the *unique* states that it
     visits during a game), Σφ'(W) is the sum of φ for each *unique* concept
     that the animat obtains when presented with a stimulus set from the world,
-    and Σφ'(N) is the same but for a stimulus set that has been scrambled first
+    and Σφ'(S) is the same but for a stimulus set that has been scrambled first
     in space and then in time.
 
     Returns a tuple containing:
     - Mean matching (unique concepts weighted by their mean ϕ)
-    - Mean matching (each concept weighted by its ϕ)
+    - Mean matching (not unique; each concept weighted by its ϕ)
     - Mean matching (unique concepts, weighted by mean ϕ over visited states)
     - Mean matching (unique concepts, no ϕ-weighting)
     - Mean ϕ over visited states
+    - A tuple containing:
+        - Mean number of unique world concepts
+        - Mean number of unique scrambled concepts
+        - Mean difference in number of unique world and scrambled concepts
+    - A tuple containing:
+        - Mean number of world concepts
+        - Mean number of scrambled concepts
+        - Mean difference in number of world and scrambled concepts
     """
     # Shortcircuit
     if ind.cm.sum() == 0:
@@ -595,16 +594,33 @@ def mat(ind, iterations=20, precomputed_complexes=None, noise_level=None,
     big_phis, counts = zip(*[(complexes[state].phi, count)
                              for state, count in all_states.items()])
     existence = np.average(big_phis, weights=counts)
-    # Get the unique concepts in each constellation.
-    constellations = {
-        state: set(bm.unpartitioned_constellation)
-        for state, bm in complexes.items()
-    }
+    if units is None or units == 'main_complex':
+        # Get the unique concepts in each main complex's constellation.
+        constellations = {
+            state: set(bm.unpartitioned_constellation)
+            for state, bm in complexes.items()
+        }
+    elif units == 'hidden':
+        # Get the constellation for all hidden units.
+        constellations = {
+            state: set(pyphi.compute.constellation(ind.brain(state=state)))
+            for state in all_states
+        }
+    elif units == 'all':
+        # Get the constellation for all units, including sensors and motors.
+        constellations = {
+            state: set(
+                pyphi.compute.constellation(ind.as_subsystem(state=state))
+            )
+            for state in all_states
+        }
     conceptwise_contributions = [[None]*iterations]*noise_iterations
     # Preallocate iteration values.
     raw_matching_vals = np.zeros((noise_iterations, iterations))
     matching_weighted_vals = np.zeros((noise_iterations, iterations))
     matching_average_weighted_vals = np.zeros((noise_iterations, iterations))
+    matching_num_unq_concepts_vals = np.zeros((noise_iterations, iterations, 3))
+    matching_num_all_concepts_vals = np.zeros((noise_iterations, iterations, 3))
     for noise_iteration in range(noise_iterations):
         cur_world = world[noise_iteration]
         cur_scrambled = scrambled[noise_iteration]
@@ -624,29 +640,52 @@ def mat(ind, iterations=20, precomputed_complexes=None, noise_level=None,
             ]
             # Get the states in each stimulus set for the world and the
             # scrambled world.
-            world_stimuli = [[tuple(state) for state in stimulus]
-                             for stimulus in world_stimuli]
-            scrambled_stimuli = [[tuple(state) for state in stimulus]
-                                 for stimulus in scrambled_stimuli]
+            world_stimuli = [
+                [tuple(state) for state in stimulus]
+                for stimulus in world_stimuli
+            ]
+            scrambled_stimuli = [
+                [tuple(state) for state in stimulus]
+                for stimulus in scrambled_stimuli
+            ]
+            # Get unique world and scrambled concepts for each stimulus set.
+            world_concepts = [
+                get_unq_concepts(states, constellations)
+                for states in world_stimuli
+            ]
+            scrambled_concepts = [
+                get_unq_concepts(states, constellations)
+                for states in scrambled_stimuli
+            ]
             # Now we calculate the matching terms for many stimulus sets (each
             # pair of trials) which are averaged to obtain the matching value
             # for a “typical” stimulus set.
+            #
+            # Sum of small-phi, unique_concepts
+            # ---------------------------------
             raw_matching_vals[noise_iteration][iteration] = \
                 np.mean([
-                    matching(W, N, constellations)
-                    for W, N in zip(world_stimuli, scrambled_stimuli)
+                    matching(W, S)
+                    for W, S in zip(world_concepts, scrambled_concepts)
                 ])
+            # Weighted by 𝚽, not unique concepts
+            # ----------------------------------
             matching_weighted_vals[noise_iteration][iteration] = \
                 np.mean([
-                    matching_weighted(W, N, constellations, complexes)
-                    for W, N in zip(world_stimuli, scrambled_stimuli)
+                    matching_weighted(W, S, constellations, complexes)
+                    for W, S in zip(world_stimuli, scrambled_stimuli)
                 ])
-            # Average-Phi-weighted matching must be handled differently in case
-            # the conceptwise values are desired.
+            # Average per-concept 𝚽 weighting, unique concepts
+            # ------------------------------------------------
+            # This must be handled differently in case the conceptwise values
+            # are desired.
             matching_average_weighted_iter = [
-                matching_average_weighted(W, N, constellations, complexes,
-                                          conceptwise=conceptwise)
-                for W, N in zip(world_stimuli, scrambled_stimuli)
+                matching_average_weighted(
+                    W_states, S_states, W_concepts, S_concepts,
+                    constellations, complexes, conceptwise=conceptwise)
+                for W_states, S_states, W_concepts, S_concepts
+                in zip(world_stimuli, scrambled_stimuli, world_concepts,
+                       scrambled_concepts)
             ]
             if conceptwise:
                 values, cwise = zip(*matching_average_weighted_iter)
@@ -655,13 +694,38 @@ def mat(ind, iterations=20, precomputed_complexes=None, noise_level=None,
                 values = matching_average_weighted_iter
             matching_average_weighted_vals[noise_iteration][iteration] = \
                 np.mean(values)
+            # Number of unique concepts
+            # -------------------------
+            matching_num_unq_concepts_vals[noise_iteration][iteration] = \
+                np.mean([
+                    matching_num_concepts(W, S)
+                    for W, S in zip(world_concepts, scrambled_concepts)
+                ], axis=0)
+            # Number of non-unqiue concepts
+            # -----------------------------
+            matching_num_all_concepts_vals[noise_iteration][iteration] = \
+                np.mean([
+                    matching_num_all_concepts(W, S, constellations)
+                    for W, S in zip(world_stimuli, scrambled_stimuli)
+                ], axis=0)
 
-    raw_matching_mean = raw_matching_vals.mean()
-    results = (matching_average_weighted_vals.mean(),
-               matching_weighted_vals.mean(),
-               existence * raw_matching_mean,
-               raw_matching_mean,
-               existence)
+    # Average over iterations
+    mean_matching_average_weighted = matching_average_weighted_vals.mean()
+    mean_matching_weighted = matching_weighted_vals.mean()
+    mean_raw_matching = raw_matching_vals.mean()
+    mean_matching_num_unq_concepts = \
+        matching_num_unq_concepts_vals.mean(axis=0).mean(axis=0)
+    mean_matching_num_all_concepts = \
+        matching_num_all_concepts_vals.mean(axis=0).mean(axis=0)
+
+    # Collect and return results
+    results = (mean_matching_average_weighted,
+               mean_matching_weighted,
+               existence * mean_raw_matching,
+               mean_raw_matching,
+               existence,
+               tuple(mean_matching_num_unq_concepts),
+               tuple(mean_matching_num_all_concepts))
 
     if not conceptwise:
         return results
