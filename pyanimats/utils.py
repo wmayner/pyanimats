@@ -21,6 +21,10 @@ def mean(iterable):
     return sum(iterable) / len(iterable)
 
 
+def dict_apply(func, d):
+    return {k: func(v) for k, v in d.items()}
+
+
 def dict_mean(dicts):
     """Average over dictionary values."""
     all_values = {}
