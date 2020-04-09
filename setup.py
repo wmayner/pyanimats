@@ -39,7 +39,7 @@ setup_requires = [
 ]
 
 install_requires = setup_requires + [
-    'yaml',
+    'pyyaml',
     'deap',
     'docopt',
     'pyphi',
