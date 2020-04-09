@@ -25,7 +25,6 @@ notebooks
 *.json*
 *.pkl*
 *.sh
-*.md
 *.txt
 *.py
 !pyanimats/*.py
