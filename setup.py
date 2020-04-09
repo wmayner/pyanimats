@@ -35,14 +35,14 @@ extensions = [
 ]
 
 setup_requires = [
-    'numpy'
+    'numpy',
 ]
 
 install_requires = setup_requires + [
-    'yaml'
-    'deap'
-    'docopt'
-    'pyphi'
+    'yaml',
+    'deap',
+    'docopt',
+    'pyphi',
 ]
 
 setup(
