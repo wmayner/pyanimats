@@ -101,8 +101,8 @@ vector< vector<bool> > AbstractAgent::getTransitions() {
     tpm.clear();
     tpm.resize(mNumStates);
     for (int i = 0; i < mNumStates; i++) {
-        // Set animat to the ith state (using LOLI mapping from states to
-        // integers).
+        // Set animat to the ith state (using little-endian mapping from states
+        // to integers).
         for (int j = 0; j < mNumNodes; j++) {
             states[j] = (i >> j) & 1;
         }

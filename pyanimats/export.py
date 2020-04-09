@@ -21,7 +21,7 @@ import json
 
 import numpy as np
 import pyphi
-from pyphi.convert import loli_index2state as i2s
+from pyphi.convert import le_index2state as i2s
 from docopt import docopt
 from tqdm import tqdm
 

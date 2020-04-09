@@ -215,7 +215,7 @@ class Animat:
         """The PyPhi network representing the animat in the given state."""
         if self._dirty_network:
             self._network = pyphi.Network(self.tpm,
-                                          connectivity_matrix=self.cm)
+                                          cm=self.cm)
             self._dirty_network = False
         return self._network
 
@@ -319,7 +319,7 @@ class Animat:
         """Return the TPM of a single animat node."""
         node = self.as_subsystem().nodes[node_index]
         tpm = node.tpm[1].squeeze().astype(int)
-        states = [pyphi.convert.loli_index2state(i, len(node.inputs))
+        states = [pyphi.convert.le_index2state(i, len(node.inputs))
                   for i in range(tpm.size)]
         logical_function = list(zip(states, tpm.flatten()))
         if separate_on_off:
