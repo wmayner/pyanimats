@@ -16,7 +16,6 @@ from . import validate
 
 
 class Experiment(Munch):
-
     """Parameters specifying an evolutionary simulation.
 
     These can be accessed as attributes, i.e. with dot notation.
@@ -28,13 +27,12 @@ class Experiment(Munch):
     these.
 
     Keyword Args:
-        filepath (string): A file path pointing to a YAML file containing
-            experiment parameters.
-        override (string): A dictionary of experiment parameters. Values in
-            this dictionary overwrite values from the file.
+        dictionary (dict): A dictionary containing experiment parameters.
 
     Example:
-        >>> e = Experiment('experiments/example.yml')
+        >>> with open('experiments/example.yml') as f:
+        ...     dct = yaml.load(f)
+        >>> e = Experiment(dct)
         >>> e.num_sensors
         3
         >>> # This is a derived parameter that was not present in the file:
