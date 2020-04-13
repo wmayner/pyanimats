@@ -4,7 +4,7 @@
 
 This package must be installed with [`conda`](https://docs.conda.io/en/latest/miniconda.html).
 
-1. Create the environment from the `environment.yml` file: `conda env create <name_of_your_environment> --file=environment.yml`
+1. Create the environment from the `environment.yml` file: `conda env create --name=<name_of_your_environment> --file=environment.yml`
 2. Activate the environment: `conda activate <name_of_your_environment>`
 3. Build the C++ extensions by running `make`.
 4. Check that you can run the example simulation: from within the top-level directory of the repository, run `python -m pyanimats <output_directory> run experiments/example.yml`
